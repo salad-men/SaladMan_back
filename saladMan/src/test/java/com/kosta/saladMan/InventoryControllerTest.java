@@ -1,6 +1,5 @@
 package com.kosta.saladMan;
 
-
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -35,11 +34,11 @@ public class InventoryControllerTest {
         // given
         UserDto user1 = new UserDto();
         user1.setId(1L);
-        user1.setName("È«±æµ¿");
+        user1.setName("í™ê¸¸ë™");
 
         UserDto user2 = new UserDto();
         user2.setId(2L);
-        user2.setName("±èÃ¶¼ö");
+        user2.setName("ê¹€ì² ìˆ˜");
 
         when(userService.getUsers()).thenReturn(Arrays.asList(user1, user2));
 
@@ -48,7 +47,7 @@ public class InventoryControllerTest {
 
         // then
         assertThat(users).hasSize(2);
-        assertThat(users).extracting("name").containsExactly("È«±æµ¿", "±èÃ¶¼ö");
+        assertThat(users).extracting("name").containsExactly("í™ê¸¸ë™", "ê¹€ì² ìˆ˜");
 
         verify(userService, times(1)).getUsers();
     }
@@ -57,11 +56,11 @@ public class InventoryControllerTest {
     public void testCreateUser() {
         // given
         UserDto inputDto = new UserDto();
-        inputDto.setName("¹Ú¿µÈñ");
+        inputDto.setName("ë°•ì˜í¬");
 
         UserDto returnedDto = new UserDto();
         returnedDto.setId(3L);
-        returnedDto.setName("¹Ú¿µÈñ");
+        returnedDto.setName("ë°•ì˜í¬");
 
         when(userService.createUser(inputDto)).thenReturn(returnedDto);
 
@@ -70,7 +69,7 @@ public class InventoryControllerTest {
 
         // then
         assertThat(result.getId()).isEqualTo(3L);
-        assertThat(result.getName()).isEqualTo("¹Ú¿µÈñ");
+        assertThat(result.getName()).isEqualTo("ë°•ì˜í¬");
 
         verify(userService, times(1)).createUser(inputDto);
     }
