@@ -41,10 +41,10 @@ jobs:
         working-directory: saladMan
         run: chmod +x gradlew
 
-      # 6) Gradle 빌드 
-      - name: Gradle 빌드 
+      # 6) Gradle 빌드
+      - name: Gradle 빌드
         working-directory: saladMan
-        run: ./gradlew clean build 
+        run: ./gradlew clean build
 
       # 7) ECR 로그인
       - name: ECR 로그인
@@ -61,7 +61,7 @@ jobs:
       # 9) Docker 태그 & 푸시
       - name: Docker 태그 & 푸시
         run: |
-          docker tag saladman-server ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
+          docker tag saladMan-server ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
           docker push ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
 
       # 10) EC2에서 Docker 컨테이너 재배포
