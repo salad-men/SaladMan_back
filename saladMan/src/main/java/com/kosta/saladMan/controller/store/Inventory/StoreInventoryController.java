@@ -12,22 +12,6 @@ import com.kosta.saladMan.dto.UserDto;
 import com.kosta.saladMan.service.UserService;
 
 @RestController
-@RequestMapping("/api/users")   
 public class StoreInventoryController {
 
-    private final UserService service;
-
-    public StoreInventoryController(UserService service) {
-        this.service = service;
-    }
-
-    @GetMapping
-    public List<UserDto> getUsers() {
-        return service.getUsers();
-    }
-
-    @PostMapping
-    public UserDto createUser(@RequestBody UserDto dto) {
-        return service.createUser(dto);
-    }
 }
