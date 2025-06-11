@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.List;
 import java.util.Arrays;
 
-import com.kosta.saladMan.controller.hq.Inventroy.InventoryController;
+import com.kosta.saladMan.controller.hq.Inventroy.HqInventoryController;
 import com.kosta.saladMan.dto.UserDto;
 import com.kosta.saladMan.service.UserService;
 
@@ -22,7 +22,7 @@ public class InventoryControllerTest {
     private UserService userService;
 
     @InjectMocks
-    private InventoryController inventoryController;
+    private HqInventoryController inventoryController;
 
     @BeforeEach
     public void setup() {

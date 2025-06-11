@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.store.Inventory;
+package com.kosta.saladMan.controller.hq.Inventroy;
 
 import java.util.List;
 
@@ -9,15 +9,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.UserDto;
+import com.kosta.saladMan.entity.User;
+import com.kosta.saladMan.repository.UserRepository;
 import com.kosta.saladMan.service.UserService;
 
 @RestController
 @RequestMapping("/api/users")   
-public class InventoryController {
+public class HqInventoryController {
 
     private final UserService service;
 
-    public InventoryController(UserService service) {
+    public HqInventoryController(UserService service) {
         this.service = service;
     }
 
