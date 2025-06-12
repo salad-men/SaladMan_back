@@ -15,7 +15,12 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*");  // 모든 도메인 허용 (필요시 변경)
+        
+        //내부망 허용
+        config.addAllowedOriginPattern("http://localhost:5173");
+        //s3허용
+        config.addAllowedOriginPattern("http://saladman-web.s3-website.ap-northeast-2.amazonaws.com");
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
