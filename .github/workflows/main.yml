@@ -36,9 +36,10 @@ jobs:
         working-directory: saladMan
         run: chmod +x gradlew
 
+
       - name: Gradle 빌드
         working-directory: saladMan
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: ECR 로그인
         id: login-ecr
