@@ -34,11 +34,12 @@ jobs:
 
       - name: Gradle Wrapper 실행권한 추가
         working-directory: saladMan
-        run: ./gradlew clean build -x test
+        run: chmod +x gradlew
+
 
       - name: Gradle 빌드
         working-directory: saladMan
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: ECR 로그인
         id: login-ecr
