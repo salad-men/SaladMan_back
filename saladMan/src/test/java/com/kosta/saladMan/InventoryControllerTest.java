@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import com.kosta.saladMan.controller.hq.Inventroy.HqInventoryController;
-import com.kosta.saladMan.dto.UserDto;
+import com.kosta.saladMan.dto.store.UserDto;
 import com.kosta.saladMan.service.UserService;
 
 import org.junit.jupiter.api.BeforeEach;

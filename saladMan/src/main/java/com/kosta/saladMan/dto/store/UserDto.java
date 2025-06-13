@@ -1,4 +1,4 @@
-package com.kosta.saladMan.dto;
+package com.kosta.saladMan.dto.store;
 
 public class UserDto {
     private Long id;
