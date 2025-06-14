@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Column;
 import javax.persistence.Lob;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import lombok.Data;
@@ -32,6 +33,7 @@ public class Notice {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @CreationTimestamp
     private LocalDate postedAt;
 
     private Integer viewCnt;

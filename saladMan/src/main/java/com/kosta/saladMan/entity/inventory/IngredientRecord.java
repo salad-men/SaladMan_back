@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import lombok.AllArgsConstructor;
@@ -38,6 +39,7 @@ public class IngredientRecord {
 
     private String changeType;
     
+    @CreationTimestamp
     private LocalDate recordedAt;
 
     @Column(length = 255)

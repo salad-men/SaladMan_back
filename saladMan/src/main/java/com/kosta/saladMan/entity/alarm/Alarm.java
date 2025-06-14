@@ -11,6 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.FetchType;
 import javax.persistence.Lob;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import com.kosta.saladMan.entity.store.Store;
@@ -42,6 +43,7 @@ public class Alarm {
     @Lob
     @Column(columnDefinition = "TEXT")
     private String content;
-
+    
+    @CreationTimestamp
     private LocalDate sentAt;
 }

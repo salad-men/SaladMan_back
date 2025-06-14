@@ -11,6 +11,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import com.kosta.saladMan.entity.store.Store;
@@ -43,8 +45,10 @@ public class Disposal {
 
     private String status;
 
+    @CreationTimestamp
     private LocalDate requestedAt;
 
+    @CreationTimestamp
     private LocalDate processedAt;
 
     @Column(length = 255)

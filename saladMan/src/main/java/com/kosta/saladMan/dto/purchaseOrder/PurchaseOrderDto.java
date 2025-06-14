@@ -1,6 +1,7 @@
 package com.kosta.saladMan.dto.purchaseOrder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
 import com.kosta.saladMan.entity.store.Store;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class PurchaseOrderDto {
     private Integer id;
     private Integer storeId;
-    private LocalDate orderDate;
+    private LocalDateTime orderDateTime;
     private String status;
     private String requestedBy;
     private Integer totalPrice;
@@ -29,7 +30,7 @@ public class PurchaseOrderDto {
         return PurchaseOrder.builder()
                 .id(id)
                 .store(Store.builder().id(storeId).build())
-                .orderDate(orderDate)
+                .orderDateTime(orderDateTime)
                 .status(status)
                 .requestedBy(requestedBy)
                 .totalPrice(totalPrice)
