@@ -59,7 +59,7 @@ public class Store {
 
     private Boolean autoOrderEnabled;
 
-    private String username;
+    private String username; //계정 id
 
     private String password;
 

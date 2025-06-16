@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.store.StoreDto;
+import com.kosta.saladMan.service.hq.StoreManagement.HqStoreManagementService;
 
  
 @RestController
@@ -18,16 +19,19 @@ import com.kosta.saladMan.dto.store.StoreDto;
 public class HqStoreManageController {
 	
 	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	private HqStoreManagementService hqStoreManagementService;
+	
+
 	
 	@PostMapping("/storeRegister")
 	public ResponseEntity<Boolean> storeRegister(@RequestBody StoreDto storeDto){
 		try {
-			storeDto.setPassword(bCryptPasswordEncoder.encode(storeDto.getPassword()));
+			hqStoreManagementService.storeRegister(storeDto);
+			return new ResponseEntity<>(true,HttpStatus.OK);
+		
 		} catch (Exception e) {
-			// TODO: handle exception
+            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<>(true,HttpStatus.OK);
 
 	}
 
