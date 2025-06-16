@@ -1,5 +1,11 @@
 package com.kosta.saladMan.service.notice;
 
-public class ComplaintServiceImpl {
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ComplaintServiceImpl implements ComplaintService {
 
 }
