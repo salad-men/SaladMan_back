@@ -1,4 +1,6 @@
 package com.kosta.saladMan.entity.inventory;
+import java.time.LocalDate;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -37,6 +39,8 @@ public class Ingredient {
 
     @Column(nullable = false)
     private Boolean available;
+    
+
 
     public IngredientDto toDto() {
         return IngredientDto.builder()
