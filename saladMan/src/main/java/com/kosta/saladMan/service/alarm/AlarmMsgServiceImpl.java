@@ -1,5 +1,11 @@
 package com.kosta.saladMan.service.alarm;
 
-public class AlarmMsgServiceImpl {
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AlarmMsgServiceImpl implements AlarmMsgService{
 
 }
