@@ -23,6 +23,8 @@ public class TotalMenuDto {
     private String img;
     private String description;
     private LocalDate createdAt;
+    //이미지조회용
+    private String categoryName;
 
     public TotalMenu toEntity() {
         return TotalMenu.builder()
@@ -34,6 +36,19 @@ public class TotalMenuDto {
                 .img(img)
                 .description(description)
                 .createdAt(createdAt)
+                .build();
+    }
+    
+    public static TotalMenuDto fromEntity(TotalMenu menu) {
+        return TotalMenuDto.builder()
+                .id(menu.getId())
+                .categoryId(menu.getCategory().getId())
+                .name(menu.getName())
+                .originPrice(menu.getOriginPrice())
+                .salePrice(menu.getSalePrice())
+                .img(menu.getImg())
+                .description(menu.getDescription())
+                .createdAt(menu.getCreatedAt())
                 .build();
     }
 }
