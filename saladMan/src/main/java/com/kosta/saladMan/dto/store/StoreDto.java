@@ -56,5 +56,14 @@ public class StoreDto {
                 .role(role)
                 .build();
     }
+    public static StoreDto fromEntity(Store store) {
+        StoreDto dto = new StoreDto();
+        dto.setId(store.getId());
+        dto.setName(store.getName());
+        dto.setAddress(store.getAddress());
+        dto.setLatitude(store.getLatitude());
+        dto.setLongitude(store.getLongitude());
+        return dto;
+    }
 }
 
