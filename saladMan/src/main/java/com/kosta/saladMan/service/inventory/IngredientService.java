@@ -1,5 +1,13 @@
 package com.kosta.saladMan.service.inventory;
 
+import java.util.List;
+
+import com.kosta.saladMan.dto.inventory.IngredientDto;
+import com.kosta.saladMan.util.PageInfo;
+
 public interface IngredientService {
-    // 서비스 메서드 선언 예정
+    List<String> getAllCategories();
+    List<String> getAllStores();
+    List<IngredientDto> searchIngredientList(PageInfo pageInfo, String store, String category, String name) throws Exception;
+
 }
