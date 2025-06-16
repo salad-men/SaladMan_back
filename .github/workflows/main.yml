@@ -51,6 +51,11 @@ jobs:
         working-directory: saladMan
         run: docker build -t saladman-server .
 
+      - name: 현재 위치 확인
+        working-directory: saladMan
+        run: pwd && ls -la
+
+
       - name: Docker 태그 & 푸시
         run: |
           docker tag saladman-server ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
