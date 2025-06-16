@@ -1,5 +1,10 @@
 package com.kosta.saladMan.service.inventory;
 
-public class IngredientRecordServiceImpl {
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
+@Service
+@RequiredArgsConstructor
+public class IngredientRecordServiceImpl implements IngredientRecordService {
+    // 구현 예정
 }

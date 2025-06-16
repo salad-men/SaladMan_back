@@ -1,5 +1,5 @@
 package com.kosta.saladMan.service.alarm;
 
-public class AlarmService {
-
+public interface AlarmService {
+    // 서비스 메서드 선언 예정
 }

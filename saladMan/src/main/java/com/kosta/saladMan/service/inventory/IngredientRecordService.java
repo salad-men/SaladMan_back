@@ -1,5 +1,5 @@
 package com.kosta.saladMan.service.inventory;
 
-public class IngredientRecordService {
-
+public interface IngredientRecordService {
+    // 메서드 선언 예정
 }
