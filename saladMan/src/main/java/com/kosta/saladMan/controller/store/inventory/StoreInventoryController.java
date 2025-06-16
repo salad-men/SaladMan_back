@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.store.Inventory;
+package com.kosta.saladMan.controller.store.inventory;
 
 import java.util.List;
 
