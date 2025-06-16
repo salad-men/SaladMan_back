@@ -1,16 +1,15 @@
-buildscript{//쿼리 DSL 추가
-	ext{
-		queryDslVersion="5.0.0"
+buildscript {
+	ext {
+		queryDslVersion = "5.0.0"
 	}
 }
-
 plugins {
    id 'java'
    id 'war'
    id 'org.springframework.boot' version '2.7.17'
    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
-   	//쿼리 DSL 추가
-	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+   id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
+   
 }
 
 group = 'com.kosta'
@@ -25,6 +24,8 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	querydsl.extendsFrom compileClasspath
+	
 }
 
 repositories {
@@ -48,36 +49,23 @@ dependencies {
 	implementation "jakarta.servlet:jakarta.servlet-api"
 	implementation "jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api"
 	implementation "org.glassfish.web:jakarta.servlet.jsp.jstl"
-	testImplementation 'com.h2database:h2'
 	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
-	//implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
 	testImplementation 'com.h2database:h2'
-		
+	
 	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	
-	// https://mvnrepository.com/artifact/org.modelmapper/modelmapper
-	implementation("org.modelmapper:modelmapper:2.4.4")
-
-	//쿼리DSL 추가
+	implementation "org.modelmapper:modelmapper:2.4.4"
+	
+	// QueryDSL
 	implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-	implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+	annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-	
-	
 }
 
-tasks.named('bootBuildImage') {
-	builder = 'paketobuildpacks/builder-jammy-base:latest'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
-//쿼리DSL 추가 빌드시작
 def querydslDir = "$buildDir/generated/querydsl"
+
 querydsl {
 	jpa = true
 	querydslSourcesDir = querydslDir
@@ -87,14 +75,18 @@ sourceSets {
 	main.java.srcDir querydslDir
 }
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-	querydsl.extendsFrom compileClasspath
+tasks.withType(JavaCompile) {
+	options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
 }
 
 compileQuerydsl {
 	options.annotationProcessorPath = configurations.querydsl
 }
-//쿼리DSL 추가 빌드끝
+
+tasks.named('bootBuildImage') {
+	builder = 'paketobuildpacks/builder-jammy-base:latest'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
