@@ -42,7 +42,6 @@ dependencies {
 	implementation "org.glassfish.web:jakarta.servlet.jsp.jstl"
 	testImplementation 'com.h2database:h2'
 	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
-	//implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4'
 	testImplementation 'com.h2database:h2'
 	
 	
