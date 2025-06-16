@@ -48,7 +48,7 @@ jobs:
           registry-type: private
 
       - name: Docker 이미지 빌드
-        working-directory: saladMan
+        working-directory: .
         run: docker build -t saladman-server .
 
       - name: Docker 태그 & 푸시
