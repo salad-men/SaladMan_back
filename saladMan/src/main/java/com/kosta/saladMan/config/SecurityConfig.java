@@ -15,7 +15,7 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .authorizeRequests()
-                .antMatchers("/hq/storeRegister").permitAll() // ✅ 여기 허용
+                .antMatchers("/hq/*").permitAll() // ✅ 여기 허용
                 .anyRequest().authenticated(); // 나머지는 인증 필요
         return http.build();
     }

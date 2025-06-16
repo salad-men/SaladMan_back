@@ -30,4 +30,23 @@ public class HqStoreManagementServiceImpl implements HqStoreManagementService {
 		storeRepository.save(storeDto.toEntity());
 	}
 
+	@Override
+	public Boolean isStoreNameDouble(String storeName) throws Exception {
+		Optional<Store> oStore = storeRepository.findByName(storeName);
+		if(oStore.isPresent()) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Boolean isStoreUsernameDouble(String storeUsername) throws Exception {
+		Optional<Store> oStore = storeRepository.findByUsername(storeUsername);
+		if(oStore.isPresent()) {
+			return true;
+		}
+		return false;
+	}
+
+
 }
