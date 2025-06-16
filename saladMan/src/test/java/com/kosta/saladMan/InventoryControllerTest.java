@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.List;
 import java.util.Arrays;
 
-import com.kosta.saladMan.controller.hq.Inventroy.HqInventoryController;
+import com.kosta.saladMan.controller.hq.inventroy.HqInventoryController;
 import com.kosta.saladMan.dto.store.UserDto;
 import com.kosta.saladMan.service.UserService;
 
