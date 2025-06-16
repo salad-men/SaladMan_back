@@ -10,6 +10,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Column;
 import javax.persistence.FetchType;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import com.kosta.saladMan.entity.store.Store;
@@ -36,6 +37,7 @@ public class SaleOrder {
     private Store store;
 
     @Column(nullable = false)
+    @CreationTimestamp
     private LocalDateTime orderTime;
 
     private String status;

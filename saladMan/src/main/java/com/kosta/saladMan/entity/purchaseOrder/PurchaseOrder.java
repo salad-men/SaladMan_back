@@ -1,6 +1,7 @@
 package com.kosta.saladMan.entity.purchaseOrder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
@@ -34,7 +36,8 @@ public class PurchaseOrder {
     @JoinColumn(nullable = false, name = "store_id")
     private Store store;
 
-    private LocalDate orderDate;
+    @CreationTimestamp
+    private LocalDateTime orderDateTime;
 
     private String status;
 
@@ -50,7 +53,7 @@ public class PurchaseOrder {
         return PurchaseOrderDto.builder()
                 .id(id)
                 .storeId(store != null ? store.getId() : null)
-                .orderDate(orderDate)
+                .orderDateTime(orderDateTime)
                 .status(status)
                 .requestedBy(requestedBy)
                 .totalPrice(totalPrice)
