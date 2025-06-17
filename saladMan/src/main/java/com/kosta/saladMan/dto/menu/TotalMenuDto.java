@@ -1,14 +1,15 @@
-package com.kosta.saladMan.dto.menu;
+ package com.kosta.saladMan.dto.menu;
 
 import java.time.LocalDate;
+import java.util.List;
 
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
-import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.entity.menu.MenuCategory;
+import com.kosta.saladMan.entity.menu.TotalMenu;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -26,6 +27,9 @@ public class TotalMenuDto {
     //이미지조회용
     private String categoryName;
 
+    //성분 조회
+    private List<MenuIngredientViewDto> ingredients;
+    
     public TotalMenu toEntity() {
         return TotalMenu.builder()
                 .id(id)

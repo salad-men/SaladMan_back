@@ -53,6 +53,26 @@ import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 
+//@Configuration
+//public class SecurityConfig {
+//	
+//	//계정 생성 postman 테스트용
+//	@Bean
+//  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//      http
+//          .csrf().disable()
+//          .authorizeRequests()
+//              .antMatchers("/hq/*").permitAll() // ✅ 여기 허용
+//              .anyRequest().authenticated(); // 나머지는 인증 필요
+//      return http.build();
+//  }
+//	
+//	@Bean
+//  public BCryptPasswordEncoder bCryptPasswordEncoder() {
+//      return new BCryptPasswordEncoder();
+//  }
+//}
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

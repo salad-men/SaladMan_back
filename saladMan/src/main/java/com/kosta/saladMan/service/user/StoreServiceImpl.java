@@ -1,9 +1,8 @@
-package com.kosta.saladMan.service;
+package com.kosta.saladMan.service.user;
 
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
-import com.kosta.saladMan.service.StoreService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +23,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public List<StoreDto> getAllStores() {
         return storeRepository.findAll().stream()
-                .filter(store -> !"ROLE_HQ".equals(store.getRole()))
+        		.filter(store -> store.getRole() != null && !"ROLE_HQ".equals(store.getRole()))
                 .map(Store::toDto)
                 .collect(Collectors.toList());
     }

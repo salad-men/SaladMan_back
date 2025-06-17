@@ -2,13 +2,10 @@ package com.kosta.saladMan.controller.hq.inventroy;
 
 
 import com.kosta.saladMan.util.PageInfo;
+import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
-import com.kosta.saladMan.service.hq.inventory.HqDisposalService;
-import com.kosta.saladMan.service.hq.inventory.HqIngredientService;
-import com.kosta.saladMan.service.hq.inventory.HqIngredientSettingService;
-import com.kosta.saladMan.service.hq.inventory.HqInventoryExpirationService;
 import com.kosta.saladMan.service.inventory.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -45,12 +42,11 @@ public class HqInventoryController {
             Map<String,Object> res = new HashMap<>();
 
             if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
-                List<HqIngredientDto> hqList = inventoryService.searchHqInventory(pageInfo, category, name);
+            	List<HqIngredientDto> hqList = inventoryService.searchHqInventory(pageInfo, category, name, null, null);
                 res.put("hqInventory", hqList);
             }
             if ("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
-                List<StoreIngredientDto> storeList = inventoryService.searchStoreInventory(
-                        pageInfo, store, category, name);
+            	List<StoreIngredientDto> storeList = inventoryService.searchStoreInventory(pageInfo, store, category, name, null, null);
                 res.put("storeInventory", storeList);
             }
             res.put("pageInfo", pageInfo);
@@ -59,6 +55,8 @@ public class HqInventoryController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+    
+   
 
 
     //추가

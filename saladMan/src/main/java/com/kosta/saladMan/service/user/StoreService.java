@@ -1,4 +1,4 @@
-package com.kosta.saladMan.service;
+package com.kosta.saladMan.service.user;
 
 import com.kosta.saladMan.dto.store.StoreDto;
 
