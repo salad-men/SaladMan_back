@@ -1,6 +1,10 @@
 package com.kosta.saladMan.controller.hq.StoreManagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,46 +20,69 @@ import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.hq.StoreManagement.HqStoreManagementService;
 
- 
 @RestController
 @RequestMapping("/hq")
 public class HqStoreManageController {
-	
+
 	@Autowired
 	private HqStoreManagementService hqStoreManagementService;
-	
 
-	
 	@PostMapping("/storeRegister")
-	public ResponseEntity<Boolean> storeRegister(@RequestBody StoreDto storeDto){
+	public ResponseEntity<Boolean> storeRegister(@RequestBody StoreDto storeDto) {
 		try {
 			hqStoreManagementService.storeRegister(storeDto);
-			return new ResponseEntity<>(true,HttpStatus.OK);
-		
+			return new ResponseEntity<>(true, HttpStatus.OK);
+
 		} catch (Exception e) {
-            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
 		}
 
 	}
-	
+
 	@GetMapping("/checkStorename")
-	public ResponseEntity<Boolean> checkStorename(@RequestParam String name){
-        try {
-            Boolean isDuplicated = hqStoreManagementService.isStoreNameDouble(name);
-            return ResponseEntity.ok(isDuplicated);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(true); // 에러 시 true로 처리
-        }		
+	public ResponseEntity<Boolean> checkStorename(@RequestParam String name) {
+		try {
+			Boolean isDuplicated = hqStoreManagementService.isStoreNameDouble(name);
+			return ResponseEntity.ok(isDuplicated);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(true); // 에러 시 true로 처리
+		}
+	}
+
+	@GetMapping("/checkUsername")
+	public ResponseEntity<Boolean> checkUsername(@RequestParam String username) {
+		try {
+			Boolean isDuplicated = hqStoreManagementService.isStoreUsernameDouble(username);
+			return ResponseEntity.ok(isDuplicated);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(true); // 에러 시 true로 처리
+		}
+	}
+
+	@GetMapping("/storeAccountList")
+	public ResponseEntity<Page<StoreDto>> getStoreAccountList(@RequestParam(required = false, defaultValue = "전체 지역") String location,
+			@RequestParam(required = false) String status, @RequestParam(required = false) String keyword,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+		
+		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+		Page<StoreDto> storePage  = hqStoreManagementService.searchStores(location, status, keyword, pageable);
+		return ResponseEntity.ok(storePage);
+	
 	}
 	
-	@GetMapping("/checkUsername")
-	public ResponseEntity<Boolean> checkUsername(@RequestParam String username){
-        try {
-            Boolean isDuplicated = hqStoreManagementService.isStoreUsernameDouble(username);
-            return ResponseEntity.ok(isDuplicated);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(true); // 에러 시 true로 처리
-        }		
-	}	
+	@GetMapping("/storeAccountDetail")
+	public ResponseEntity<StoreDto> getStoreAccountDetail(@RequestParam Integer id){
+		
+		try {
+	        StoreDto store = hqStoreManagementService.getStoreDetail(id);
+	        return ResponseEntity.ok(store);			
+		} catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		
+		
+		
+		
+	}
 
 }
