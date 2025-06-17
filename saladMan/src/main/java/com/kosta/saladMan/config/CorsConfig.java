@@ -24,6 +24,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 // Vite 개발서버와 S3 호스팅 도메인 허용
+	        
                 .allowedOriginPatterns(
                     "http://localhost:5173",
                     "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com"
@@ -32,4 +33,5 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
+    
 }

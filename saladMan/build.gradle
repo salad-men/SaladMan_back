@@ -39,7 +39,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	// developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
 	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -54,7 +54,7 @@ dependencies {
 	
 	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	
+	implementation 'org.springframework.security:spring-security-crypto'
 	implementation "org.modelmapper:modelmapper:2.4.4"
 	
 	// QueryDSL
@@ -89,4 +89,8 @@ tasks.named('bootBuildImage') {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('compileQuerydsl') {
+    options.annotationProcessorPath = configurations.querydsl
 }
