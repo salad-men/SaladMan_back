@@ -26,32 +26,67 @@
 //    }
 //}
 
-
 package com.kosta.saladMan.config;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import com.kosta.saladMan.auth.PrincipalDetailsService;
+import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
+import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-          // ① WebMvcConfigurer/CorsConfigurationSource에 등록한 CORS 정책을 활성화
-          .cors()    
-        .and()
-          .csrf().disable()
-          .authorizeRequests()
-            // ② 프리플라이트(OPTIONS) 요청도 풀어주고
-            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            // ③ /hq/** 전체(하위 몇 단계든) 열어주고
-            .antMatchers("/hq/**").permitAll()
-            // 그 외는 인증 필요
-            .anyRequest().authenticated();
-        return http.build();
-    }
+	@Autowired
+	private CorsFilter corsFilter;
+
+	private final StoreRepository storeRepository;
+	private final PrincipalDetailsService principalDetailsService;
+
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+			throws Exception {
+		return authenticationConfiguration.getAuthenticationManager();
+	}
+
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
+			throws Exception {
+		http.addFilter(corsFilter) // 다른 도메인 접근 허용
+				.csrf().disable() // csrf 공격 비활성화
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // session비활성화
+
+		http.formLogin().disable() // 로그인 폼 비활성화
+				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
+				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
+						UsernamePasswordAuthenticationFilter.class);
+
+		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository)).authorizeRequests()
+//	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
+//	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
+				.anyRequest().permitAll();
+		return http.build();
+	}
+
 }

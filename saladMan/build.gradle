@@ -54,6 +54,9 @@ dependencies {
 	
 	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+	//jwt
+	implementation("com.auth0:java-jwt:3.19.2")	
 	
 	implementation "org.modelmapper:modelmapper:2.4.4"
 	

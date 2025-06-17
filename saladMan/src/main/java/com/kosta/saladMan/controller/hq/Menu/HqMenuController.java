@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.hq.Menus;
+package com.kosta.saladMan.controller.hq.Menu;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class HqMenuController {
 	private HqMenuService hqMenuService;
 	
 	// 전체 메뉴 조회
-	@GetMapping("/allMenus")
+	@GetMapping("/totalMenu")
 	public ResponseEntity<List<TotalMenuDto>> getAllMenus(@RequestParam(required = false) String sort) {
 	    try {
 	        List<TotalMenuDto> menus = hqMenuService.getAllMenus(sort);

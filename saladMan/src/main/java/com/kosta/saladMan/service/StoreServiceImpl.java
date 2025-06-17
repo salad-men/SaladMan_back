@@ -34,4 +34,5 @@ public class StoreServiceImpl implements StoreService {
         Page<Store> storePage = storeRepository.findByRoleNot("ROLE_HQ", PageRequest.of(page, size));
         return storePage.map(StoreDto::fromEntity);
     }
+
 }
