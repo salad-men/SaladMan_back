@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.user.store;
+package com.kosta.saladMan.controller.user;
 
 import java.util.List;
 
@@ -10,11 +10,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.store.StoreDto;
-import com.kosta.saladMan.service.StoreService;
+import com.kosta.saladMan.service.user.StoreService;
 
 @RestController
 @RequestMapping("/api/stores")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {
+	    "http://localhost:5173", 
+	    "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com"
+	}, allowCredentials = "true")
 public class StoreController {
 
     private final StoreService storeService;

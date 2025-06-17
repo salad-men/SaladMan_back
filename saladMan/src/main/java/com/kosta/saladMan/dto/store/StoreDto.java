@@ -57,13 +57,29 @@ public class StoreDto {
                 .build();
     }
     public static StoreDto fromEntity(Store store) {
-        StoreDto dto = new StoreDto();
-        dto.setId(store.getId());
-        dto.setName(store.getName());
-        dto.setAddress(store.getAddress());
-        dto.setLatitude(store.getLatitude());
-        dto.setLongitude(store.getLongitude());
-        return dto;
+        if (store == null) return null;
+
+        return StoreDto.builder()
+                .id(store.getId())
+                .name(store.getName())
+                .location(store.getLocation())
+                .address(store.getAddress())
+                .latitude(store.getLatitude())
+                .longitude(store.getLongitude())
+                .phoneNumber(store.getPhoneNumber())
+                .openTime(store.getOpenTime())
+                .closeTime(store.getCloseTime())
+                .breakDay(store.getBreakDay())
+                .createdAt(store.getCreatedAt())
+                .closedAt(store.getClosedAt())
+                .autoOrderEnabled(store.getAutoOrderEnabled())
+                .username(store.getUsername())
+                .password(store.getPassword())
+                .deliveryDay(store.getDeliveryDay())
+                .fcmToken(store.getFcmToken())
+                .role(store.getRole())
+                .build();
     }
+
 }
 

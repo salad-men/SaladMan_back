@@ -56,9 +56,11 @@ public class StoreIngredient {
                 .categoryId(category != null ? category.getId() : null)
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
                 .storeId(store != null ? store.getId() : null)
+                .storeName(store != null ? store.getName() : null)
                 .expiredQuantity(expiredQuantity)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
                 .build();
     }
+
 }
