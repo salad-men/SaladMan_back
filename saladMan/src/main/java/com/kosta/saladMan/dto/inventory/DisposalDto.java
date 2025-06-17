@@ -18,7 +18,13 @@ import lombok.NoArgsConstructor;
 public class DisposalDto {
     private Integer id;
     private Integer ingredientId;
+    private String ingredientName;   
+    private String categoryName;
+    private String unit;             
+
     private Integer storeId;
+    private String storeName;
+
     private Integer quantity;
     private String status;
     private LocalDate requestedAt;
