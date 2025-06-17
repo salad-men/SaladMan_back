@@ -1,6 +1,8 @@
 package com.kosta.saladMan.dto.inventory;
 
 
+import java.time.LocalDate;
+
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
 
@@ -19,6 +21,7 @@ public class IngredientDto {
     private String name;
     private String unit;
     private Boolean available;
+
 
     public Ingredient toEntity() {
         return Ingredient.builder()

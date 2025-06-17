@@ -1,5 +1,7 @@
 package com.kosta.saladMan.entity.inventory;
 
+import java.time.LocalDate;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -44,16 +46,23 @@ public class HqIngredient {
     private Integer minimumOrderUnit;
 
     private Integer quantity;  // hq_quantity
+    
+    @Column(nullable = false)
+    private LocalDate expiredDate;
 
     public HqIngredientDto toDto() {
         return HqIngredientDto.builder()
                 .id(id)
                 .categoryId(category != null ? category.getId() : null)
+                .categoryName(category != null ? category.getName() : null)         
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
+                .ingredientName(ingredient != null ? ingredient.getName() : null)     
                 .unitCost(unitCost)
                 .expiredQuantity(expiredQuantity)
                 .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
+                .expiredDate(expiredDate)
                 .build();
     }
+
 }

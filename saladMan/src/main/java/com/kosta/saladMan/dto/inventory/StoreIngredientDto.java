@@ -1,5 +1,7 @@
 package com.kosta.saladMan.dto.inventory;
 
+import java.time.LocalDate;
+
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
@@ -21,6 +23,8 @@ public class StoreIngredientDto {
     private Integer storeId;
     private Integer expiredQuantity;
     private Integer quantity;
+    private LocalDate expiredDate;
+
 
     public StoreIngredient toEntity() {
         return StoreIngredient.builder()
@@ -30,6 +34,7 @@ public class StoreIngredientDto {
                 .store(storeId != null ? Store.builder().id(storeId).build() : null)
                 .expiredQuantity(expiredQuantity)
                 .quantity(quantity)
+                .expiredDate(expiredDate)
                 .build();
     }
 }
