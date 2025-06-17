@@ -70,9 +70,14 @@ public class HqInventoryDslRepository {
 	@Transactional
 	public void updateHqIngredient(HqIngredientDto dto) {
 		QHqIngredient q = QHqIngredient.hqIngredient;
-		JPAUpdateClause clause = queryFactory.update(q).set(q.expiredQuantity, dto.getExpiredQuantity())
-				.set(q.minimumOrderUnit, dto.getMinimumOrderUnit()).set(q.unitCost, dto.getUnitCost())
-				.set(q.quantity, dto.getQuantity()).set(q.expiredDate, dto.getExpiredDate())
+		JPAUpdateClause clause = 
+				queryFactory
+				.update(q)
+				.set(q.expiredQuantity, dto.getExpiredQuantity())
+				.set(q.minimumOrderUnit, dto.getMinimumOrderUnit())
+				.set(q.unitCost, dto.getUnitCost())
+				.set(q.quantity, dto.getQuantity())
+				.set(q.expiredDate, dto.getExpiredDate())
 				.where(q.id.eq(dto.getId()));
 		clause.execute();
 	}
