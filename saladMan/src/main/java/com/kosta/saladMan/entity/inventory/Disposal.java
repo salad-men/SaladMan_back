@@ -15,6 +15,7 @@ import javax.persistence.ManyToOne;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.entity.store.Store;
 
 import lombok.AllArgsConstructor;
@@ -53,4 +54,18 @@ public class Disposal {
 
     @Column(length = 255)
     private String memo;
+    
+    
+    public DisposalDto toDto(Disposal entity) {
+        return DisposalDto.builder()
+                .id(entity.getId())
+                .ingredientId(entity.getIngredient() != null ? entity.getIngredient().getId() : null)
+                .storeId(entity.getStore() != null ? entity.getStore().getId() : null)
+                .quantity(entity.getQuantity())
+                .status(entity.getStatus())
+                .requestedAt(entity.getRequestedAt())
+                .processedAt(entity.getProcessedAt())
+                .memo(entity.getMemo())
+                .build();
+    }
 }

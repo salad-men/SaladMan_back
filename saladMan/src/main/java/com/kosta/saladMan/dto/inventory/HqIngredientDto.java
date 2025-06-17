@@ -23,7 +23,9 @@ public class HqIngredientDto {
     private Integer ingredientId;
     private String categoryName;   
     private String ingredientName;
+    private String storeName;
     private Integer unitCost;
+    private String unit; 
     private Integer expiredQuantity;
     private Integer minimumOrderUnit;
     private Integer quantity;

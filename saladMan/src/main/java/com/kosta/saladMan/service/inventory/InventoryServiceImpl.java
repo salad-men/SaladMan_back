@@ -1,89 +1,142 @@
 package com.kosta.saladMan.service.inventory;
 
+import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
-import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
-import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
-import com.kosta.saladMan.dto.store.StoreDto;
+import com.kosta.saladMan.entity.inventory.Disposal;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
-import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.store.Store;
-import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.inventory.DisposalRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
+import com.kosta.saladMan.repository.inventory.HqInventoryDslRepository;
+import com.kosta.saladMan.repository.inventory.StoreInventoryDslRepository;
+import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
-import com.kosta.saladMan.repository.inventory.InventoryDslRepository;
-import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.util.PageInfo;
-import lombok.RequiredArgsConstructor;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
-    private static final int PAGE_SIZE = 10;
-    
-    private final InventoryDslRepository dsl;
-    private final HqIngredientRepository hqRepo;
-    private final StoreIngredientRepository storeRepo;
-    private final IngredientRepository ingredientRepo;
 
-    
-    private final IngredientCategoryRepository  categoryRepo;
-    private final StoreRepository               storeMetaRepo;
+    private static final int PAGE_SIZE = 10;
+
+    private final HqInventoryDslRepository hqInventoryDslRepository;
+    private final StoreInventoryDslRepository storeInventoryDslRepository;
+    private final HqIngredientRepository hqIngredientRepository;
+    private final DisposalRepository disposalRepository;
+    private final IngredientCategoryRepository categoryRepository;
+    private final StoreRepository storeRepository;
+    private final IngredientRepository ingredientRepository;
 
     @Override
-    public List<HqIngredientDto> searchHqInventory(PageInfo pageInfo, String category, String name) {
+    public List<HqIngredientDto> searchHqInventory(PageInfo pageInfo, String category, String name, String startDateStr, String endDateStr) {
+        LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
+        LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
+
+        System.out.println("searchHqInventory called with: category=" + category + ", keyword=" + name + ", startDate=" + startDate + ", endDate=" + endDate);
+
         PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
-        long total = dsl.selectHqCount(category, name);
-        pageInfo.setAllPage((int) Math.ceil((double) total / PAGE_SIZE));
+
+        long totalCount = hqInventoryDslRepository.selectHqCountByExpirationFilters(category, name, startDate, endDate);
+        System.out.println("totalCount=" + totalCount);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        List<HqIngredient> entities = dsl.selectHqListByPaging(pageRequest, category, name);
+        List<HqIngredient> entities = hqInventoryDslRepository.selectHqListByExpirationFiltersPaging(category, name, startDate, endDate, pageRequest);
+        System.out.println("entities.size=" + entities.size());
+
         return entities.stream()
-            .map(entity -> {
-                HqIngredientDto dto = entity.toDto();
-                dto.setCategoryName(entity.getCategory().getName());
-                dto.setIngredientName(entity.getIngredient().getName());
-                return dto;
-            })
-            .collect(Collectors.toList());
+                .map(entity -> {
+                    HqIngredientDto dto = entity.toDto();
+                    dto.setStoreName("본사");  
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
 
-//    @Override
-//    @Transactional
-//    public void addHqIngredient(HqIngredientDto dto) {
-//        // save 방식: transient 엔티티로 ID만 세팅 후 save()
-//        hqRepo.save(HqIngredient.builder()
-//                .category(IngredientCategory.builder().id(dto.getCategoryId()).build())
-//                .ingredient(Ingredient.builder().id(dto.getIngredientId()).build())
-//                .quantity(dto.getQuantity())
-//                .minimumOrderUnit(dto.getMinimumOrderUnit())
-//                .unitCost(dto.getUnitCost())
-//                .expiredQuantity(dto.getExpiredQuantity())
-//                .expiredDate(dto.getExpiredDate())
-//                .build());
-//    }
-    
+    @Override
+    public List<StoreIngredientDto> searchStoreInventory(PageInfo pageInfo, String store, String category, String name, String startDateStr, String endDateStr) {
+        LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
+        LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
+
+        System.out.println("searchStoreInventory called with: store=" + store + ", category=" + category + ", keyword=" + name + ", startDate=" + startDate + ", endDate=" + endDate);
+
+        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+
+        long totalCount = storeInventoryDslRepository.selectStoreCountByExpirationFilters(store, category, name, startDate, endDate);
+        System.out.println("totalCount=" + totalCount);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
+        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
+        int end = Math.min(start + 9, pageInfo.getAllPage());
+        pageInfo.setStartPage(start);
+        pageInfo.setEndPage(end);
+
+        List<com.kosta.saladMan.entity.inventory.StoreIngredient> entities = storeInventoryDslRepository.selectStoreListByExpirationFiltersPaging(store, category, name, startDate, endDate, pageRequest);
+        System.out.println("entities.size=" + entities.size());
+
+        return entities.stream()
+                .map(com.kosta.saladMan.entity.inventory.StoreIngredient::toDto)
+                .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional
+    public void processDisposalRequest(List<DisposalDto> disposalList) {
+
+    	Store hqStore = storeRepository.findByName("본사계정")
+                .orElseThrow(() -> new IllegalArgumentException("본사 매장을 찾을 수 없습니다."));
+    	
+    	for (DisposalDto item : disposalList) {
+            HqIngredient hqIngredient = hqIngredientRepository.findById(item.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("재고 ID " + item.getId() + " 를 찾을 수 없습니다."));
+
+            int currentQty = hqIngredient.getQuantity() == null ? 0 : hqIngredient.getQuantity();
+            int disposalAmount = item.getQuantity();
+
+            if (disposalAmount <= 0) {
+                throw new IllegalArgumentException("폐기량은 0보다 커야 합니다. 재고 ID: " + item.getId());
+            }
+            if (disposalAmount > currentQty) {
+                throw new IllegalArgumentException("폐기량이 현재 재고량보다 많습니다. 재고 ID: " + item.getId());
+            }
+
+            hqIngredient.setQuantity(currentQty - disposalAmount);
+            hqIngredientRepository.save(hqIngredient);
+
+            Disposal disposal = Disposal.builder()
+                    .ingredient(hqIngredient.getIngredient())
+                    .store(hqStore)
+                    .quantity(disposalAmount)
+                    .status("신청")
+                    .requestedAt(LocalDate.now())
+                    .memo("유통기한 초과로 폐기 신청")
+                    .build();
+
+            disposalRepository.save(disposal);
+        }
+    }
+
+    @Override
     public void addHqIngredient(HqIngredientDto dto) {
-        // INSERT 시 연관 엔티티를 영속화된 상태로 조회하여 세팅
-        IngredientCategory category = categoryRepo.findById(dto.getCategoryId())
+        IngredientCategory category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 ID: " + dto.getCategoryId()));
-        Ingredient ingredient = ingredientRepo.findById(dto.getIngredientId())
+        Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료 ID: " + dto.getIngredientId()));
 
         HqIngredient entity = HqIngredient.builder()
@@ -96,50 +149,32 @@ public class InventoryServiceImpl implements InventoryService {
                 .expiredDate(dto.getExpiredDate())
                 .build();
 
-        hqRepo.save(entity);
-    }
-    
-    @Override
-    public List<StoreIngredientDto> searchStoreInventory(PageInfo pageInfo, String store, String category, String name) {
-        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
-        long total = dsl.selectStoreCount(store, category, name);
-        pageInfo.setAllPage((int) Math.ceil((double) total / PAGE_SIZE));
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
-        pageInfo.setStartPage(start);
-        pageInfo.setEndPage(end);
-
-        List<StoreIngredient> entities = dsl.selectStoreListByPaging(pageRequest, store, category, name);
-        return entities.stream()
-                .map(StoreIngredient::toDto)
-                .collect(Collectors.toList());
+        hqIngredientRepository.save(entity);
     }
 
     @Override
     public void updateHqIngredient(HqIngredientDto dto) {
-        dsl.updateHqIngredient(dto);
+        hqInventoryDslRepository.updateHqIngredient(dto);
     }
-    
-    
-    //카테고리
+
     @Override
-    public List<IngredientCategoryDto> getAllCategories() {
-        return categoryRepo.findAll().stream()
-                   .map(IngredientCategory::toDto)
-                   .collect(Collectors.toList());
+    public List<com.kosta.saladMan.dto.inventory.IngredientCategoryDto> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(com.kosta.saladMan.entity.inventory.IngredientCategory::toDto)
+                .collect(Collectors.toList());
     }
-    //매장(추후 매장레포짓에서 가져오기)
+
     @Override
-    public List<StoreDto> getAllStores() {
-        return storeMetaRepo.findAll().stream()
-                   .map(Store::toDto)
-                   .collect(Collectors.toList());
+    public List<com.kosta.saladMan.dto.store.StoreDto> getAllStores() {
+        return storeRepository.findAll().stream()
+                .map(com.kosta.saladMan.entity.store.Store::toDto)
+                .collect(Collectors.toList());
     }
-    
+
     @Override
-    public List<IngredientDto> getAllIngredients() {
-        return ingredientRepo.findAll().stream()
-                .map(Ingredient::toDto)
+    public List<com.kosta.saladMan.dto.inventory.IngredientDto> getAllIngredients() {
+        return ingredientRepository.findAll().stream()
+                .map(com.kosta.saladMan.entity.inventory.Ingredient::toDto)
                 .collect(Collectors.toList());
     }
 }

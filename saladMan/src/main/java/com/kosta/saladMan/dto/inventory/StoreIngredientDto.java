@@ -19,9 +19,14 @@ import lombok.NoArgsConstructor;
 public class StoreIngredientDto {
     private Integer id;
     private Integer categoryId;
-    private Integer ingredientId;
     private Integer storeId;
+    private Integer ingredientId;
+    private String categoryName;   
+    private String ingredientName;
+    private String storeName;
+    private Integer unitCost;
     private Integer expiredQuantity;
+    private Integer minimumOrderUnit;
     private Integer quantity;
     private LocalDate expiredDate;
 
@@ -37,4 +42,5 @@ public class StoreIngredientDto {
                 .expiredDate(expiredDate)
                 .build();
     }
+
 }
