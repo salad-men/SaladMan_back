@@ -9,8 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
+import com.kosta.saladMan.entity.inventory.Disposal;
+import com.kosta.saladMan.entity.inventory.QDisposal;
+import com.kosta.saladMan.entity.inventory.QIngredient;
+import com.kosta.saladMan.entity.inventory.QIngredientCategory;
 import com.kosta.saladMan.entity.inventory.QStoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
+import com.kosta.saladMan.entity.store.QStore;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -89,6 +94,7 @@ public class StoreInventoryDslRepository {
 	    Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
 	    return count == null ? 0L : count;
 	}
+	
 	// 매장 유통기한 목록
 	public List<StoreIngredient> selectStoreListByExpirationFiltersPaging(
 	        String store, String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
@@ -119,5 +125,44 @@ public class StoreInventoryDslRepository {
 	            .limit(pageRequest.getPageSize())
 	            .fetch();
 	}
+	
+	
+	 // 매장 폐기 총 개수
+    public int countStoreDisposals(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
+        QDisposal disposal = QDisposal.disposal;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (!"all".equals(store)) builder.and(disposal.store.name.eq(store));
+        if (!"all".equals(category)) builder.and(disposal.ingredient.category.name.eq(category));
+        if (keyword != null && !keyword.isEmpty()) builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
+        if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
+        Long count = queryFactory
+        	    .select(disposal.count())
+        	    .from(disposal)
+        	    .where(builder)
+        	    .fetchOne();
+        return count != null ? count.intValue() : 0;
+
+    }
+
+    // 매장 폐기 목록 조회
+    public List<Disposal> selectStoreDisposalListByFiltersPaging(String store, String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
+        QDisposal disposal = QDisposal.disposal;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (!"all".equals(store)) builder.and(disposal.store.name.eq(store));
+        if (!"all".equals(category)) builder.and(disposal.ingredient.category.name.eq(category));
+        if (keyword != null && !keyword.isEmpty()) builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
+        if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
+        return queryFactory.selectFrom(disposal)
+        	    .leftJoin(disposal.store).fetchJoin()
+        	    .leftJoin(disposal.ingredient).fetchJoin()
+        	    .leftJoin(disposal.ingredient.category)
+        	    .where(builder)
+        	    .orderBy(disposal.requestedAt.desc())
+        	    .offset(pageRequest.getOffset())
+        	    .limit(pageRequest.getPageSize())
+        	    .fetch();
+    }
 
 }

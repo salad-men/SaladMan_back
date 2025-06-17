@@ -56,16 +56,20 @@ public class Disposal {
     private String memo;
     
     
-    public DisposalDto toDto(Disposal entity) {
+    public DisposalDto toDto() {
         return DisposalDto.builder()
-                .id(entity.getId())
-                .ingredientId(entity.getIngredient() != null ? entity.getIngredient().getId() : null)
-                .storeId(entity.getStore() != null ? entity.getStore().getId() : null)
-                .quantity(entity.getQuantity())
-                .status(entity.getStatus())
-                .requestedAt(entity.getRequestedAt())
-                .processedAt(entity.getProcessedAt())
-                .memo(entity.getMemo())
-                .build();
+            .id(id)
+            .ingredientId(ingredient != null ? ingredient.getId() : null)
+            .ingredientName(ingredient != null ? ingredient.getName() : null)
+            .categoryName(ingredient != null && ingredient.getCategory() != null ? ingredient.getCategory().getName() : null)
+            .unit(ingredient != null ? ingredient.getUnit() : null)
+            .storeId(store != null ? store.getId() : null)
+            .storeName(store != null ? store.getName() : null)
+            .quantity(quantity)
+            .status(status)
+            .requestedAt(requestedAt)
+            .processedAt(processedAt)
+            .memo(memo)
+            .build();
     }
 }
