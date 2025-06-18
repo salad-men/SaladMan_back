@@ -6,6 +6,7 @@ import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
+import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.service.inventory.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -105,5 +106,20 @@ public class HqInventoryController {
         List<IngredientDto> list = inventoryService.getAllIngredients();
         return ResponseEntity.ok(Map.of("ingredients", list));
     }
+    
+    // 매장별 설정 리스트 조회
+    @GetMapping("/settings")
+    public ResponseEntity<List<StoreIngredientSettingDto>> getSettings(@RequestParam Integer storeId) {
+        List<StoreIngredientSettingDto> list = inventoryService.getSettingsByStoreId(storeId);
+        return ResponseEntity.ok(list);
+    }
+
+    // 저장 (신규 또는 수정)
+    @PostMapping("/settings-save")
+    public ResponseEntity<StoreIngredientSettingDto> saveSetting(@RequestBody StoreIngredientSettingDto dto) {
+        StoreIngredientSettingDto savedDto = inventoryService.saveSetting(dto);
+        return ResponseEntity.ok(savedDto);
+    }
+    
     
 }

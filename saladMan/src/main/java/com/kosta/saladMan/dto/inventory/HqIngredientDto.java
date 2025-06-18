@@ -30,6 +30,8 @@ public class HqIngredientDto {
     private Integer minimumOrderUnit;
     private Integer quantity;
     private LocalDate expiredDate;
+    private Integer minQuantity;  
+
 
     public HqIngredient toEntity() {
         return HqIngredient.builder()
