@@ -3,14 +3,17 @@ package com.kosta.saladMan.repository.inventory;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.entity.inventory.Disposal;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
+import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.QDisposal;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredientCategory;
 import com.kosta.saladMan.entity.inventory.QStoreIngredient;
+import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.store.QStore;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 
@@ -31,24 +34,45 @@ public class HqInventoryDslRepository {
 	private JPAQueryFactory queryFactory;
 
 	// HQ 재고 목록 조회
-	public List<HqIngredient> selectHqListByPaging(PageRequest pageRequest, String category, String name) {
+	public List<HqIngredientDto> selectHqListByPaging(PageRequest pageRequest, String category, String name) {
 		QHqIngredient q = QHqIngredient.hqIngredient;
+	    QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
+
 		BooleanBuilder builder = new BooleanBuilder();
 		if (category != null && !category.equals("all")) {
 			builder.and(q.category.name.eq(category));
 		}
+		
 		if (name != null && !name.isBlank()) {
 			builder.and(q.ingredient.name.contains(name));
 		}
-		return queryFactory
-				.selectFrom(q)
-				.leftJoin(q.ingredient).fetchJoin()
-				.leftJoin(q.category).fetchJoin()
-				.where(builder)
-				.orderBy(q.id.desc())
-				.offset(pageRequest.getOffset())
-				.limit(pageRequest.getPageSize())
-				.fetch();
+		
+		 return queryFactory
+		            .select(Projections.bean(
+		                HqIngredientDto.class,
+		                q.id,
+		                q.quantity,
+		                q.minimumOrderUnit,
+		                q.unitCost,
+		                q.expiredQuantity,
+		                q.expiredDate,
+		                q.ingredient.name.as("ingredientName"),
+		                q.category.name.as("categoryName"),
+		                s.minQuantity.as("minQuantity")  
+		            ))
+		            .from(q)
+		            .leftJoin(q.ingredient).fetchJoin()
+		            .leftJoin(q.category).fetchJoin()
+		            .leftJoin(s)
+		            .on(
+		                s.store.name.eq("본사계정")
+		                .and(s.ingredient.eq(q.ingredient))
+		            )
+		            .where(builder)
+		            .orderBy(q.id.desc())
+		            .offset(pageRequest.getOffset())
+		            .limit(pageRequest.getPageSize())
+		            .fetch();
 	}
 
 	// HQ 재고 전체 개수
@@ -180,6 +204,15 @@ public class HqInventoryDslRepository {
                 .where(disposal.id.in(disposalIds))
                 .execute();
     }
+    
+    public List<Ingredient> getAllIngredients() {
+        QIngredient ingredient = QIngredient.ingredient;
+        QIngredientCategory category = QIngredientCategory.ingredientCategory;
 
+        return queryFactory
+            .selectFrom(ingredient)
+            .leftJoin(ingredient.category, category).fetchJoin()
+            .fetch();
+    }
 
 }

@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.entity.store.Store;
 
 import lombok.AllArgsConstructor;
@@ -39,4 +40,16 @@ public class StoreIngredientSetting {
     private Integer minQuantity;
 
     private Integer maxQuantity;
+    
+    public StoreIngredientSettingDto toDto() {
+        return StoreIngredientSettingDto.builder()
+            .id(id)
+            .storeId(store.getId())
+            .ingredientId(ingredient.getId())
+            .minQuantity(minQuantity)
+            .maxQuantity(maxQuantity)
+            .categoryName(ingredient.getCategory() != null ? ingredient.getCategory().getName() : null)
+            .build();
+    }
+
 }

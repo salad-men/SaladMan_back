@@ -5,6 +5,7 @@ import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
+import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.util.PageInfo;
 
@@ -47,5 +48,10 @@ public interface InventoryService {
 
     // 폐기 반려 (상태 '반려됨' + 반려 사유 저장)
     void rejectDisposals(List<DisposalDto> rejectDtos);
+    
+    // 
+    List<StoreIngredientSettingDto> getSettingsByStoreId(Integer storeId);
+
+    StoreIngredientSettingDto saveSetting(StoreIngredientSettingDto dto);
     
 }
