@@ -58,6 +58,7 @@ public class HqIngredient {
                 .categoryName(category != null ? category.getName() : null)         
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
                 .ingredientName(ingredient != null ? ingredient.getName() : null)
+                .storeName("본사계정")
                 .unit(ingredient != null ? ingredient.getUnit() : null)
                 .unitCost(unitCost)
                 .minimumOrderUnit(minimumOrderUnit)

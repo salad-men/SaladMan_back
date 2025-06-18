@@ -52,71 +52,50 @@ public class InventoryServiceImpl implements InventoryService {
     private final StoreIngredientSettingRepository storeIngredientSettingRepository;
     
 
-    //본사 재고 목록 조회
-    @Override
-    public List<HqIngredientDto> searchHqInventory(PageInfo pageInfo, String category, String name, String startDateStr, String endDateStr) {
+    // 본사 재고(전체/유통기한) 조회
+    public List<HqIngredientDto> getHqInventory(
+            Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
+        // 본사만
+        if (storeId != null && storeId != 1) return List.of();
+
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
         LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
 
-
         PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
-
-        long totalCount = hqInventoryDslRepository.selectHqCountByExpirationFilters(category, name, startDate, endDate);
-        System.out.println("totalCount=" + totalCount);
+        long totalCount = hqInventoryDslRepository.countHqInventoryByFilters(category, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        List<HqIngredient> entities = hqInventoryDslRepository.selectHqListByExpirationFiltersPaging(category, name, startDate, endDate, pageRequest);
-
-        Integer hqStoreId = 1;
-        Map<Integer, Integer> ingredientIdToMinQuantity = storeIngredientSettingRepository
-                .findByStoreId(hqStoreId)
-                .stream()
-                .collect(Collectors.toMap(
-                    s -> s.getIngredient().getId(),
-                    StoreIngredientSetting::getMinQuantity
-                ));
-        
-        return entities.stream()
-                .map(entity -> {
-                    HqIngredientDto dto = entity.toDto();
-                    dto.setStoreName("본사");
-                    dto.setMinquantity(
-                        ingredientIdToMinQuantity.getOrDefault(dto.getIngredientId(), 0)
-                    );
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        return hqInventoryDslRepository.findHqInventoryByFilters(category, keyword, startDate, endDate, pageRequest);
     }
 
-    //매장 재고 목록 조회
-    @Override
-    public List<StoreIngredientDto> searchStoreInventory(PageInfo pageInfo, String store, String category, String name, String startDateStr, String endDateStr) {
+    // 매장 재고(전체/유통기한) 조회
+    public List<StoreIngredientDto> getStoreInventory(
+            Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
+        if (storeId == null || storeId == 1) return List.of();
+
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
         LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
 
-        System.out.println("searchStoreInventory called with: store=" + store + ", category=" + category + ", keyword=" + name + ", startDate=" + startDate + ", endDate=" + endDate);
-
         PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+        Store storeEntity = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + storeId));
 
-        long totalCount = storeInventoryDslRepository.selectStoreCountByExpirationFilters(store, category, name, startDate, endDate);
-        System.out.println("totalCount=" + totalCount);
+        long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(storeEntity.getName(), category, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        List<StoreIngredient> entities = storeInventoryDslRepository.selectStoreListByExpirationFiltersPaging(store, category, name, startDate, endDate, pageRequest);
-        System.out.println("entities.size=" + entities.size());
-
-        return entities.stream()
-                .map(StoreIngredient::toDto)
-                .collect(Collectors.toList());
+        return storeInventoryDslRepository.findStoreInventoryByFilters(
+                storeEntity.getName(), category, keyword, startDate, endDate, pageRequest)
+                .stream().map(StoreIngredient::toDto).collect(Collectors.toList());
     }
+
 
     //폐기신청
     @Override

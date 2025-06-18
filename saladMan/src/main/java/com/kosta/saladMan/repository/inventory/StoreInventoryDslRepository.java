@@ -25,42 +25,61 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
 public class StoreInventoryDslRepository {
 	@Autowired
 	private JPAQueryFactory queryFactory;
+	 // 매장 재고(전체/유통기한 등 필터) 목록 조회 (페이징)
+    public List<StoreIngredient> findStoreInventoryByFilters(
+            String storeName, String category, String keyword,
+            LocalDate startDate, LocalDate endDate, PageRequest pageRequest
+    ) {
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
 
-	// store 재고 목록 조회
-	public List<StoreIngredient> selectStoreListByPaging(PageRequest pageRequest, String store, String category,
-			String name) {
-		QStoreIngredient q = QStoreIngredient.storeIngredient;
-		BooleanBuilder builder = new BooleanBuilder();
-		if (store != null && !store.isBlank()) {
-			builder.and(q.store.name.eq(store));
-		}
-		if (category != null && !category.equals("all")) {
-			builder.and(q.category.name.eq(category));
-		}
-		if (name != null && !name.isBlank()) {
-			builder.and(q.ingredient.name.contains(name));
-		}
-		return queryFactory.selectFrom(q).leftJoin(q.ingredient).fetchJoin().leftJoin(q.category).fetchJoin()
-				.where(builder).orderBy(q.id.desc()).offset(pageRequest.getOffset()).limit(pageRequest.getPageSize())
-				.fetch();
-	}
+        if (storeName != null && !storeName.equals("all") && !storeName.isBlank()) {
+            builder.and(q.store.name.eq(storeName));
+        }
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
 
-	// store 재고 전체 개수
-	public long selectStoreCount(String store, String category, String name) {
-		QStoreIngredient q = QStoreIngredient.storeIngredient;
-		BooleanBuilder builder = new BooleanBuilder();
-		if (store != null && !store.isBlank()) {
-			builder.and(q.store.name.eq(store));
-		}
-		if (category != null && !category.equals("all")) {
-			builder.and(q.category.name.eq(category));
-		}
-		if (name != null && !name.isBlank()) {
-			builder.and(q.ingredient.name.contains(name));
-		}
-		Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
-		return count != null ? count : 0L;
-	}
+        return queryFactory
+                .selectFrom(q)
+                .leftJoin(q.ingredient).fetchJoin()
+                .leftJoin(q.category).fetchJoin()
+                .leftJoin(q.store).fetchJoin()
+                .where(builder)
+                .orderBy(q.expiredDate.asc())
+                .offset(pageRequest.getOffset())
+                .limit(pageRequest.getPageSize())
+                .fetch();
+    }
+
+    // 매장 재고 카운트 (필터 동일!)
+    public long countStoreInventoryByFilters(
+            String storeName, String category, String keyword,
+            LocalDate startDate, LocalDate endDate
+    ) {
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (storeName != null && !storeName.equals("all") && !storeName.isBlank()) {
+            builder.and(q.store.name.eq(storeName));
+        }
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
+        return count == null ? 0L : count;
+    }
 	
 	// 매장 재고 업데이트
 	@Transactional
@@ -72,61 +91,6 @@ public class StoreInventoryDslRepository {
 	}
 
 
-	//매장 유통기한 목록 개수
-	public long selectStoreCountByExpirationFilters(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
-	    QStoreIngredient q = QStoreIngredient.storeIngredient;
-	    BooleanBuilder builder = new BooleanBuilder();
-	    if (store != null && !store.isBlank()) {
-	        builder.and(q.store.name.eq(store));
-	    }
-	    if (category != null && !"all".equalsIgnoreCase(category)) {
-	        builder.and(q.category.name.eq(category));
-	    }
-	    if (keyword != null && !keyword.isBlank()) {
-	        builder.and(q.ingredient.name.containsIgnoreCase(keyword));
-	    }
-	    if (startDate != null) {
-	        builder.and(q.expiredDate.goe(startDate));
-	    }
-	    if (endDate != null) {
-	        builder.and(q.expiredDate.loe(endDate));
-	    }
-	    Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
-	    return count == null ? 0L : count;
-	}
-	
-	// 매장 유통기한 목록
-	public List<StoreIngredient> selectStoreListByExpirationFiltersPaging(
-	        String store, String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
-	    QStoreIngredient q = QStoreIngredient.storeIngredient;
-	    BooleanBuilder builder = new BooleanBuilder();
-	    if (store != null && !store.isBlank()) {
-	        builder.and(q.store.name.eq(store));
-	    }
-	    if (category != null && !"all".equalsIgnoreCase(category)) {
-	        builder.and(q.category.name.eq(category));
-	    }
-	    if (keyword != null && !keyword.isBlank()) {
-	        builder.and(q.ingredient.name.containsIgnoreCase(keyword));
-	    }
-	    if (startDate != null) {
-	        builder.and(q.expiredDate.goe(startDate));
-	    }
-	    if (endDate != null) {
-	        builder.and(q.expiredDate.loe(endDate));
-	    }
-	    return queryFactory.selectFrom(q)
-	            .leftJoin(q.ingredient).fetchJoin()
-	            .leftJoin(q.category).fetchJoin()
-	            .leftJoin(q.store).fetchJoin()
-	            .where(builder)
-	            .orderBy(q.expiredDate.asc())
-	            .offset(pageRequest.getOffset())
-	            .limit(pageRequest.getPageSize())
-	            .fetch();
-	}
-	
-	
 	 // 매장 폐기 총 개수
     public int countStoreDisposals(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
         QDisposal disposal = QDisposal.disposal;

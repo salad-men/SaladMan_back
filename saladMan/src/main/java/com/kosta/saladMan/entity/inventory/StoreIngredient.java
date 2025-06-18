@@ -57,6 +57,7 @@ public class StoreIngredient {
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
                 .storeId(store != null ? store.getId() : null)
                 .storeName(store != null ? store.getName() : null)
+                .unit(ingredient != null ? ingredient.getUnit() : null)
                 .expiredQuantity(expiredQuantity)
                 .quantity(quantity)
                 .expiredDate(expiredDate)

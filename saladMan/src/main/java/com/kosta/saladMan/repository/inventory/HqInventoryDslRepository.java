@@ -33,61 +33,70 @@ public class HqInventoryDslRepository {
 	@Autowired
 	private JPAQueryFactory queryFactory;
 
-	// HQ 재고 목록 조회
-	public List<HqIngredientDto> selectHqListByPaging(PageRequest pageRequest, String category, String name) {
-		QHqIngredient q = QHqIngredient.hqIngredient;
-	    QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
+    // HQ 재고(전체/유통기한/필터) 목록 조회 (페이징)
+    public List<HqIngredientDto> findHqInventoryByFilters(
+            String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
 
-		BooleanBuilder builder = new BooleanBuilder();
-		if (category != null && !category.equals("all")) {
-			builder.and(q.category.name.eq(category));
-		}
-		
-		if (name != null && !name.isBlank()) {
-			builder.and(q.ingredient.name.contains(name));
-		}
-		
-		 return queryFactory
-		            .select(Projections.bean(
-		                HqIngredientDto.class,
-		                q.id,
-		                q.quantity,
-		                q.minimumOrderUnit,
-		                q.unitCost,
-		                q.expiredQuantity,
-		                q.expiredDate,
-		                q.ingredient.name.as("ingredientName"),
-		                q.category.name.as("categoryName"),
-		                s.minQuantity.as("minQuantity")  
-		            ))
-		            .from(q)
-		            .leftJoin(q.ingredient).fetchJoin()
-		            .leftJoin(q.category).fetchJoin()
-		            .leftJoin(s)
-		            .on(
-		                s.store.name.eq("본사계정")
-		                .and(s.ingredient.eq(q.ingredient))
-		            )
-		            .where(builder)
-		            .orderBy(q.id.desc())
-		            .offset(pageRequest.getOffset())
-		            .limit(pageRequest.getPageSize())
-		            .fetch();
-	}
+        QHqIngredient q = QHqIngredient.hqIngredient;
+        QIngredient qi = QIngredient.ingredient;
+        QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
+        BooleanBuilder builder = new BooleanBuilder();
 
-	// HQ 재고 전체 개수
-	public long selectHqCount(String category, String name) {
-		QHqIngredient q = QHqIngredient.hqIngredient;
-		BooleanBuilder builder = new BooleanBuilder();
-		if (category != null && !category.equals("all")) {
-			builder.and(q.category.name.eq(category));
-		}
-		if (name != null && !name.isBlank()) {
-			builder.and(q.ingredient.name.contains(name));
-		}
-		Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
-		return count != null ? count : 0L;
-	}
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        return queryFactory
+            .select(Projections.bean(
+                HqIngredientDto.class,
+                q.id,
+                q.quantity,
+                q.minimumOrderUnit,
+                q.unitCost,
+                q.expiredDate,
+                //q.receivedDate,
+                q.ingredient.name.as("ingredientName"),
+                q.ingredient.unit.as("unit"),
+                q.category.name.as("categoryName"),
+                s.minQuantity.as("minquantity") // 매장별 최소수량
+            ))
+            .from(q)
+            .leftJoin(q.ingredient)
+            .leftJoin(q.category)
+            .leftJoin(s).on(
+                s.store.id.eq(1)  // 본사 세팅
+                .and(s.ingredient.eq(q.ingredient))
+            )
+            .where(builder)
+            .orderBy(q.id.desc())
+            .offset(pageRequest.getOffset())
+            .limit(pageRequest.getPageSize())
+            .fetch();
+    }
+
+    // HQ 재고 카운트 (필터 조건 동일하게!)
+    public long countHqInventoryByFilters(String category, String keyword, LocalDate startDate, LocalDate endDate) {
+        QHqIngredient q = QHqIngredient.hqIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
+        return count == null ? 0L : count;
+    }
+
 
 
 	// HQ 재고 업데이트
@@ -105,56 +114,6 @@ public class HqInventoryDslRepository {
 		clause.execute();
 	}
 
-	//본사 유통기한 개수
-	public long selectHqCountByExpirationFilters(String category, String keyword, LocalDate startDate, LocalDate endDate) {
-	    QHqIngredient q = QHqIngredient.hqIngredient;
-	    BooleanBuilder builder = new BooleanBuilder();
-	    if (category != null && !"all".equalsIgnoreCase(category)) {
-	        builder.and(q.category.name.eq(category));
-	    }
-	    if (keyword != null && !keyword.isBlank()) {
-	        builder.and(q.ingredient.name.containsIgnoreCase(keyword));
-	    }
-	    if (startDate != null) {
-	        builder.and(q.expiredDate.goe(startDate));
-	    }
-	    if (endDate != null) {
-	        builder.and(q.expiredDate.loe(endDate));
-	    }
-	    Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
-        System.out.println("selectHqCountByExpirationFilters count=" + (count == null ? 0L : count));
-	    return count == null ? 0L : count;
-	}
-
-	//매장 유통기한 목록
-	public List<HqIngredient> selectHqListByExpirationFiltersPaging(
-	        String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
-	    QHqIngredient q = QHqIngredient.hqIngredient;
-	    BooleanBuilder builder = new BooleanBuilder();
-	    if (category != null && !category.isBlank() && !"all".equalsIgnoreCase(category)) {
-	        builder.and(q.category.name.eq(category));
-	    }
-	    if (keyword != null && !keyword.isBlank()) {
-	        builder.and(q.ingredient.name.containsIgnoreCase(keyword));
-	    }
-	    if (startDate != null) {
-	        builder.and(q.expiredDate.goe(startDate));
-	    }
-	    if (endDate != null) {
-	        builder.and(q.expiredDate.loe(endDate));
-	    }
-	    List<HqIngredient> result = queryFactory.selectFrom(q)
-                .leftJoin(q.ingredient).fetchJoin()
-                .leftJoin(q.category).fetchJoin()
-                .where(builder)
-                .orderBy(q.expiredDate.asc())
-                .offset(pageRequest.getOffset())
-                .limit(pageRequest.getPageSize())
-                .fetch();
-
-        System.out.println("selectHqListByExpirationFiltersPaging result size=" + result.size());
-        return result;
-	}
 	
 	 // 폐기 총 개수 (필터)
     public int countHqDisposals(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
@@ -183,9 +142,10 @@ public class HqInventoryDslRepository {
         if (keyword != null && !keyword.isEmpty()) builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
         if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
         if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
+        
         return queryFactory.selectFrom(disposal)
-        	    .leftJoin(disposal.store).fetchJoin()
-        	    .leftJoin(disposal.ingredient).fetchJoin()
+        	    .leftJoin(disposal.store)
+        	    .leftJoin(disposal.ingredient)
         	    .leftJoin(disposal.ingredient.category)
         	    .where(builder)
         	    .orderBy(disposal.requestedAt.desc())
@@ -210,7 +170,7 @@ public class HqInventoryDslRepository {
 
         return queryFactory
             .selectFrom(ingredient)
-            .leftJoin(ingredient.category, category).fetchJoin()
+            .leftJoin(ingredient.category, category)
             .fetch();
     }
 
