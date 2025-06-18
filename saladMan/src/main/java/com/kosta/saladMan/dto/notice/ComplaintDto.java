@@ -20,7 +20,7 @@ public class ComplaintDto {
     private Integer storeId;
     private String title;
     private String content;
-    private LocalDate writerId;
+    private LocalDate writerDate;
     private String writerEmail;
     private String writerNickname;
     private Boolean isRead;
@@ -32,7 +32,7 @@ public class ComplaintDto {
                 .store(Store.builder().id(storeId).build())
                 .title(title)
                 .content(content)
-                .writerId(writerId)
+                .writerDate(writerDate)
                 .writerEmail(writerEmail)
                 .writerNickname(writerNickname)
                 .isRead(isRead)

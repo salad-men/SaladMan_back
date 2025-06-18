@@ -13,6 +13,7 @@ import javax.persistence.Lob;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.dto.notice.ComplaintDto;
 import com.kosta.saladMan.entity.store.Store;
 
 import lombok.Data;
@@ -41,7 +42,7 @@ public class Complaint {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private LocalDate writerId;
+    private LocalDate writerDate;
 
     private String writerEmail;
 
@@ -50,4 +51,19 @@ public class Complaint {
     private Boolean isRead;
 
     private Boolean isRelay;
+    
+    public ComplaintDto toDto() {
+        return ComplaintDto.builder()
+                .id(id)
+                .storeId(store.getId())
+                .title(title)
+                .content(content)
+                .writerDate(writerDate)
+                .writerEmail(writerEmail)
+                .writerNickname(writerNickname)
+                .isRead(isRead)
+                .isRelay(isRelay)
+                .build();
+    }
+
 }

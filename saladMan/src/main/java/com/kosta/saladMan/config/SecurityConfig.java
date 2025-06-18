@@ -74,39 +74,52 @@ import lombok.RequiredArgsConstructor;
 //}
 
 @Configuration
-@EnableWebSecurity
-@RequiredArgsConstructor
+//@EnableWebSecurity
+//@RequiredArgsConstructor
 public class SecurityConfig {
 
 	@Autowired
 	private CorsFilter corsFilter;
+//
+//	private final StoreRepository storeRepository;
+//	private final PrincipalDetailsService principalDetailsService;
+//
+//	@Bean
+//	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+//			throws Exception {
+//		return authenticationConfiguration.getAuthenticationManager();
+//	}
 
-	private final StoreRepository storeRepository;
-	private final PrincipalDetailsService principalDetailsService;
-
-	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-			throws Exception {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
-
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
-			throws Exception {
-		http.addFilter(corsFilter) // 다른 도메인 접근 허용
-				.csrf().disable() // csrf 공격 비활성화
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // session비활성화
-
-		http.formLogin().disable() // 로그인 폼 비활성화
-				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
-				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
-						UsernamePasswordAuthenticationFilter.class);
-
-		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository)).authorizeRequests()
-//	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
-//	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
-				.anyRequest().permitAll();
-		return http.build();
-	}
-
+//	@Bean
+//	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
+//			throws Exception {
+//		http.addFilter(corsFilter) // 다른 도메인 접근 허용
+//				.csrf().disable() // csrf 공격 비활성화
+//				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // session비활성화
+//
+//		http.formLogin().disable() // 로그인 폼 비활성화
+//				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
+//				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
+//						UsernamePasswordAuthenticationFilter.class);
+//
+//		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository)).authorizeRequests()
+////	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
+////	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
+//				.anyRequest().permitAll();
+//		return http.build();
+//	}
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.addFilter(corsFilter)
+            .csrf().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeRequests()
+                .anyRequest().permitAll()
+            .and()
+            .formLogin().disable()
+            .httpBasic().disable();
+        // JWT 필터 추가 없음
+        return http.build();
+    }
 }
