@@ -19,6 +19,7 @@ public class StoreIngredientSettingDto {
     private Integer ingredientId;
     private Integer minQuantity;
     private Integer maxQuantity;
+    private String categoryName;
 
     public StoreIngredientSetting toEntity() {
         return StoreIngredientSetting.builder()

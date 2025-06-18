@@ -1,4 +1,4 @@
-package com.kosta.saladMan.service.hq.StoreManagement;
+package com.kosta.saladMan.service.hq;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,5 +12,5 @@ public interface HqStoreManagementService {
 	Boolean isStoreUsernameDouble(String storeUsername) throws Exception;
     Page<StoreDto> searchStores(String region, String status, String keyword, Pageable pageable);
     StoreDto getStoreDetail(Integer id) throws Exception;
-	
+	Boolean updateStore(StoreDto storeDto) throws Exception;
 }
