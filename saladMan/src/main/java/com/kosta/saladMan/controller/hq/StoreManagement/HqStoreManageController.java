@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.Store;
-import com.kosta.saladMan.service.hq.StoreManagement.HqStoreManagementService;
+import com.kosta.saladMan.service.hq.HqStoreManagementService;
+import com.kosta.saladMan.service.user.StoreService;
 
 @RestController
 @RequestMapping("/hq")
@@ -78,11 +79,19 @@ public class HqStoreManageController {
 	        return ResponseEntity.ok(store);			
 		} catch (Exception e) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
-		
-		
-		
+		}	
 		
 	}
+	
+	@PostMapping("/storeUpdate")
+	public ResponseEntity<Boolean> updateStore(@RequestBody StoreDto storeDto){
+		try {
+			boolean result = hqStoreManagementService.updateStore(storeDto);
+			return new ResponseEntity<>(true, HttpStatus.OK);
+		}catch (Exception e) {
+            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
+        }
+	}
+	
 
 }

@@ -5,11 +5,14 @@ import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
+import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.inventory.Disposal;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
+import com.kosta.saladMan.entity.inventory.StoreIngredientSetting;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.inventory.DisposalRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
@@ -19,6 +22,7 @@ import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
+import com.kosta.saladMan.repository.inventory.StoreIngredientSettingRepository;
 import com.kosta.saladMan.util.PageInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +48,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final IngredientCategoryRepository categoryRepository;
     private final StoreRepository storeRepository;
     private final IngredientRepository ingredientRepository;
-    
+    private final StoreIngredientSettingRepository storeIngredientSettingRepository;
     
 
     //본사 재고 목록 조회
@@ -95,7 +99,7 @@ public class InventoryServiceImpl implements InventoryService {
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        List<com.kosta.saladMan.entity.inventory.StoreIngredient> entities = storeInventoryDslRepository.selectStoreListByExpirationFiltersPaging(store, category, name, startDate, endDate, pageRequest);
+        List<StoreIngredient> entities = storeInventoryDslRepository.selectStoreListByExpirationFiltersPaging(store, category, name, startDate, endDate, pageRequest);
         System.out.println("entities.size=" + entities.size());
 
         return entities.stream()
@@ -287,23 +291,52 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public List<IngredientCategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(com.kosta.saladMan.entity.inventory.IngredientCategory::toDto)
+                .map(IngredientCategory::toDto)
                 .collect(Collectors.toList());
     }
     
     //매장 가져오기
     @Override
-    public List<com.kosta.saladMan.dto.store.StoreDto> getAllStores() {
+    public List<StoreDto> getAllStores() {
         return storeRepository.findAll().stream()
-                .map(com.kosta.saladMan.entity.store.Store::toDto)
+                .map(Store::toDto)
                 .collect(Collectors.toList());
     }
 
-    //재료 가져오기
+    //재료설정 조회
+    @Override
+    public List<StoreIngredientSettingDto> getSettingsByStoreId(Integer storeId) {
+        return storeIngredientSettingRepository.findByStoreId(storeId)
+                .stream()
+                .map(StoreIngredientSetting::toDto)  
+                .collect(Collectors.toList());
+    }
+
+
+    
+    //재료설정 저장(추가/수정)
+    @Transactional
+    @Override
+    public StoreIngredientSettingDto saveSetting(StoreIngredientSettingDto dto) {
+        StoreIngredientSetting entity = storeIngredientSettingRepository.findByStoreIdAndIngredientId(dto.getStoreId(), dto.getIngredientId())
+                .map(existing -> {
+                    existing.setMinQuantity(dto.getMinQuantity());
+                    existing.setMaxQuantity(dto.getMaxQuantity());
+                    return existing;
+                })
+                .orElse(dto.toEntity());
+
+        StoreIngredientSetting saved = storeIngredientSettingRepository.save(entity);
+
+        return saved.toDto();   
+    }
+
     @Override
     public List<IngredientDto> getAllIngredients() {
-        return ingredientRepository.findAll().stream()
-                .map(com.kosta.saladMan.entity.inventory.Ingredient::toDto)
+        List<Ingredient> ingredients = hqInventoryDslRepository.getAllIngredients();
+
+        return ingredients.stream()
+                .map(Ingredient::toDto)   
                 .collect(Collectors.toList());
     }
 }
