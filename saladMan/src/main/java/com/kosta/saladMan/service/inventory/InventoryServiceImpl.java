@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +58,6 @@ public class InventoryServiceImpl implements InventoryService {
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
         LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
 
-        System.out.println("searchHqInventory called with: category=" + category + ", keyword=" + name + ", startDate=" + startDate + ", endDate=" + endDate);
 
         PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
 
@@ -70,12 +70,23 @@ public class InventoryServiceImpl implements InventoryService {
         pageInfo.setEndPage(end);
 
         List<HqIngredient> entities = hqInventoryDslRepository.selectHqListByExpirationFiltersPaging(category, name, startDate, endDate, pageRequest);
-        System.out.println("entities.size=" + entities.size());
 
+        Integer hqStoreId = 1;
+        Map<Integer, Integer> ingredientIdToMinQuantity = storeIngredientSettingRepository
+                .findByStoreId(hqStoreId)
+                .stream()
+                .collect(Collectors.toMap(
+                    s -> s.getIngredient().getId(),
+                    StoreIngredientSetting::getMinQuantity
+                ));
+        
         return entities.stream()
                 .map(entity -> {
                     HqIngredientDto dto = entity.toDto();
-                    dto.setStoreName("본사");  
+                    dto.setStoreName("본사");
+                    dto.setMinquantity(
+                        ingredientIdToMinQuantity.getOrDefault(dto.getIngredientId(), 0)
+                    );
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -188,23 +199,17 @@ public class InventoryServiceImpl implements InventoryService {
     //재고 추가
     @Override
     public void addHqIngredient(HqIngredientDto dto) {
+        // 유효성 검사: categoryId, ingredientId 존재 확인
         IngredientCategory category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 ID: " + dto.getCategoryId()));
         Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료 ID: " + dto.getIngredientId()));
 
-        HqIngredient entity = HqIngredient.builder()
-                .category(category)
-                .ingredient(ingredient)
-                .quantity(dto.getQuantity())
-                .minimumOrderUnit(dto.getMinimumOrderUnit())
-                .unitCost(dto.getUnitCost())
-                .expiredQuantity(dto.getExpiredQuantity())
-                .expiredDate(dto.getExpiredDate())
-                .build();
+        HqIngredient entity = dto.toEntity();
 
         hqIngredientRepository.save(entity);
     }
+
 
     //재고 수정
     @Override

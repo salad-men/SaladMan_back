@@ -97,7 +97,6 @@ public class HqInventoryDslRepository {
 		JPAUpdateClause clause = 
 				queryFactory
 				.update(q)
-				.set(q.expiredQuantity, dto.getExpiredQuantity())
 				.set(q.minimumOrderUnit, dto.getMinimumOrderUnit())
 				.set(q.unitCost, dto.getUnitCost())
 				.set(q.quantity, dto.getQuantity())
