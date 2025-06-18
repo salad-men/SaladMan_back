@@ -72,7 +72,8 @@ jobs:
         
       - name: 압축하기
         working-directory: saladMan
-        run: tar -czvf $GITHUB_SHA.tar.gz appspec.yml scripts
+        run: tar -czvf ../$GITHUB_SHA.tar.gz appspec.yml scripts
+
 
       - name: S3에 프로젝트 폴더 업로드하기
         run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.tar.gz s3://saladman-server/$GITHUB_SHA.tar.gz
