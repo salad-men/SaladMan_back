@@ -41,6 +41,8 @@ public class HqInventoryDslRepository {
         QIngredient qi = QIngredient.ingredient;
         QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
         BooleanBuilder builder = new BooleanBuilder();
+        QStore store = QStore.store;
+
 
         if (category != null && !category.equals("all") && !category.isBlank()) {
             builder.and(q.category.name.eq(category));
@@ -63,13 +65,16 @@ public class HqInventoryDslRepository {
                 q.ingredient.name.as("ingredientName"),
                 q.ingredient.unit.as("unit"),
                 q.category.name.as("categoryName"),
+                store.name.as("storeName"),  // 매장 이름 반드시 포함!
+
                 s.minQuantity.as("minquantity") // 매장별 최소수량
             ))
             .from(q)
             .leftJoin(q.ingredient)
             .leftJoin(q.category)
+            .leftJoin(q.store, store)
             .leftJoin(s).on(
-                s.store.id.eq(1)  // 본사 세팅
+                s.store.id.eq(store.id)  
                 .and(s.ingredient.eq(q.ingredient))
             )
             .where(builder)
