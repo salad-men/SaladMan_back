@@ -26,12 +26,11 @@ public class HqIngredientDto {
     private String storeName;
     private Integer unitCost;
     private String unit; 
-    private Integer expiredQuantity;
     private Integer minimumOrderUnit;
     private Integer quantity;
     private LocalDate expiredDate;
-    private Integer minQuantity;  
-
+    private Integer minquantity;  
+    private LocalDate receivedDate;
 
     public HqIngredient toEntity() {
         return HqIngredient.builder()
@@ -39,10 +38,10 @@ public class HqIngredientDto {
                 .category(IngredientCategory.builder().id(categoryId).build())
                 .ingredient(Ingredient.builder().id(ingredientId).build())
                 .unitCost(unitCost)
-                .expiredQuantity(expiredQuantity)
                 .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
+                .receivedDate(receivedDate)
                 .build();
     }
 }

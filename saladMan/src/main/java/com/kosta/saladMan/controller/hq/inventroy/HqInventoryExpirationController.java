@@ -24,39 +24,29 @@ public class HqInventoryExpirationController {
 
     private final InventoryService inventoryService;
 
+ // 전체/유통기한/페이징 공통
     @PostMapping("/expiration-list")
-    public ResponseEntity<Map<String,Object>> getExpirationInventory(@RequestBody Map<String,Object> param) {
+    public ResponseEntity<Map<String, Object>> getExpirationInventory(@RequestBody Map<String, Object> param) {
         try {
-            String store = (String) param.getOrDefault("store", "all");
-            String category = (String) param.getOrDefault("category", "");
-            if ("all".equalsIgnoreCase(category)) category = "";
+            String storeParam = (String) param.getOrDefault("store", "all");
+            Integer storeId = "all".equals(storeParam) ? null : Integer.valueOf(storeParam);
 
+            String category = (String) param.getOrDefault("category", "");
             String keyword = (String) param.getOrDefault("keyword", "");
             String startDate = (String) param.getOrDefault("startDate", "");
             String endDate = (String) param.getOrDefault("endDate", "");
             int page = param.get("page") == null ? 1 : (int) param.get("page");
-
             PageInfo pageInfo = new PageInfo(page);
 
-            Map<String,Object> res = new HashMap<>();
-
-            if ("본사".equalsIgnoreCase(store)) {
-                List<HqIngredientDto> hqList = inventoryService.searchHqInventory(pageInfo, category, keyword, startDate, endDate);
-                res.put("hqInventory", hqList);
-            } else if ("all".equalsIgnoreCase(store)) {
-                List<HqIngredientDto> hqList = inventoryService.searchHqInventory(pageInfo, category, keyword, startDate, endDate);
-                List<StoreIngredientDto> storeList = inventoryService.searchStoreInventory(pageInfo, store, category, keyword, startDate, endDate);
-                res.put("hqInventory", hqList);
-                res.put("storeInventory", storeList);
-            } else {
-                List<StoreIngredientDto> storeList = inventoryService.searchStoreInventory(pageInfo, store, category, keyword, startDate, endDate);
-                res.put("storeInventory", storeList);
-            }
-
+            List<HqIngredientDto> hqInventory = inventoryService.getHqInventory(storeId, category, keyword, startDate, endDate, pageInfo);
+            List<StoreIngredientDto> storeInventory = inventoryService.getStoreInventory(storeId, category, keyword, startDate, endDate, pageInfo);
+            
+            Map<String, Object> res = new HashMap<>();
+            res.put("hqInventory", hqInventory);
+            res.put("storeInventory", storeInventory);
             res.put("pageInfo", pageInfo);
 
             return ResponseEntity.ok(res);
-
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

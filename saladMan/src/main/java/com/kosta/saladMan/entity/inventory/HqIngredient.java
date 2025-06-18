@@ -41,14 +41,15 @@ public class HqIngredient {
     @Column(nullable = false)
     private Integer unitCost;
 
-    private Integer expiredQuantity;
-
     private Integer minimumOrderUnit;
 
     private Integer quantity;  // hq_quantity
     
     @Column(nullable = false)
     private LocalDate expiredDate;
+    
+    @Column(nullable = false)
+    private LocalDate receivedDate;
 
     public HqIngredientDto toDto() {
         return HqIngredientDto.builder()
@@ -57,12 +58,13 @@ public class HqIngredient {
                 .categoryName(category != null ? category.getName() : null)         
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
                 .ingredientName(ingredient != null ? ingredient.getName() : null)
+                .storeName("본사계정")
                 .unit(ingredient != null ? ingredient.getUnit() : null)
                 .unitCost(unitCost)
-                .expiredQuantity(expiredQuantity)
                 .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
+                .receivedDate(receivedDate)
                 .build();
     }
 

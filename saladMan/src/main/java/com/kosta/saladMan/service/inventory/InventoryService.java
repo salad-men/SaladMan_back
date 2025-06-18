@@ -14,11 +14,12 @@ import java.util.List;
 public interface InventoryService {
 
     // 본사 재고 조회 (유통기한 필터 선택적 적용)
-    List<HqIngredientDto> searchHqInventory(PageInfo pageInfo, String category, String name, String startDate, String endDate);
+    List<HqIngredientDto> getHqInventory(Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo);
+
 
     // 매장 재고 조회 (유통기한 필터 선택적 적용)
-    List<StoreIngredientDto> searchStoreInventory(PageInfo pageInfo, String store, String category, String name, String startDate, String endDate);
-
+    List<StoreIngredientDto> getStoreInventory(Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo);
+    
     // 본사 재고 추가
     void addHqIngredient(HqIngredientDto dto);
 
