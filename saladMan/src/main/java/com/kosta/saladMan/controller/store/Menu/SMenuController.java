@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.hq.Menu;
+package com.kosta.saladMan.controller.store.Menu;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,11 +17,11 @@ import com.kosta.saladMan.service.menu.SMenuService;
 import com.kosta.saladMan.util.PageInfo;
 
 @RestController
-@RequestMapping("/hq")
-public class HqMenuController {
+@RequestMapping("/store")
+public class SMenuController {
 	
 	@Autowired
-	private SMenuService hqMenuService;
+	private SMenuService MenuService;
 	
 	// 전체 메뉴 조회
 	@GetMapping("/totalMenu")
@@ -36,7 +36,7 @@ public class HqMenuController {
 		}
 		
 	    try {
-	        List<TotalMenuDto> totalMenu = hqMenuService.getTotalMenu(pageInfo, sort);
+	        List<TotalMenuDto> totalMenu = MenuService.getTotalMenu(pageInfo, sort);
 	        Map<String, Object> res = new HashMap<>();
 	        res.put("menus", totalMenu);
 	        res.put("pageInfo", pageInfo);
