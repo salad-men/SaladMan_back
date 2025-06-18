@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import org.hibernate.annotations.DynamicInsert;
 
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
+import com.kosta.saladMan.entity.store.Store;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,10 @@ public class HqIngredient {
     @JoinColumn(nullable = false, name = "ingredient_id")
     private Ingredient ingredient;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "store_id")
+    private Store store;
+    
     @Column(nullable = false)
     private Integer unitCost;
 
@@ -58,7 +63,7 @@ public class HqIngredient {
                 .categoryName(category != null ? category.getName() : null)         
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
                 .ingredientName(ingredient != null ? ingredient.getName() : null)
-                .storeName("본사계정")
+                .storeName(store != null ? store.getName() : null)  
                 .unit(ingredient != null ? ingredient.getUnit() : null)
                 .unitCost(unitCost)
                 .minimumOrderUnit(minimumOrderUnit)
