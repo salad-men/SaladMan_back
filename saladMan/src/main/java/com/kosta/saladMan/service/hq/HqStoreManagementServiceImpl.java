@@ -1,4 +1,4 @@
-package com.kosta.saladMan.service.hq.StoreManagement;
+package com.kosta.saladMan.service.hq;
 
 import java.util.Optional;
 
@@ -67,6 +67,24 @@ public class HqStoreManagementServiceImpl implements HqStoreManagementService {
 		StoreDto storeDto = store.toDto();
 		storeDto.setPassword(null); // 비밀번호 제거
 		return storeDto;
+	}
+
+	@Override
+	public Boolean updateStore(StoreDto storeDto) throws Exception {
+        Optional<Store> optional = storeRepository.findById(storeDto.getId());
+        if (optional.isEmpty()) return false;
+
+        Store store = optional.get();
+        store.setName(storeDto.getName());
+        store.setAddress(storeDto.getAddress());
+        store.setPhoneNumber(storeDto.getPhoneNumber());
+        store.setUsername(storeDto.getUsername());
+        store.setLocation(storeDto.getLocation());
+        store.setLatitude(storeDto.getLatitude());
+        store.setLongitude(storeDto.getLongitude());
+
+        storeRepository.save(store);
+        return true;
 	}
 
 }
