@@ -29,7 +29,7 @@ public class CorsConfig implements WebMvcConfigurer {
 //    @Override
 //    public void addCorsMappings(CorsRegistry registry) {
 //        registry.addMapping("/**")
-//                // Vite 개발서버와 S3 호스팅 도메인 허용
+//                // Vite 개발서버와 S3 호스팅 도메인 허용s
 //	        
 //                .allowedOriginPatterns(
 //                    "http://localhost:5173",
