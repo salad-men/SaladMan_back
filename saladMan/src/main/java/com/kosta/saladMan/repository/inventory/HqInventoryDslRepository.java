@@ -120,7 +120,7 @@ public class HqInventoryDslRepository {
 	}
 
 	
-	 // 폐기 총 개수 (필터)
+	 // 폐기 총 개수
     public int countHqDisposals(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
         QDisposal disposal = QDisposal.disposal;
         BooleanBuilder builder = new BooleanBuilder();
