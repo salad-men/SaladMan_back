@@ -43,7 +43,7 @@ docker run -d \
 # 4) Health 체크 (최대 12회, 5초 간격)
 echo ">> Health check on port $NEXT_PORT"
 for i in {1..12}; do
-  if curl -sSf http://localhost:$NEXT_PORT/health >/dev/null; then
+  if curl -sSf http://localhost:$NEXT_PORT/actuator/health >/dev/null; then
     echo "   → OK"
     break
   fi
