@@ -91,31 +91,46 @@ public class SecurityConfig {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
-			throws Exception {
-		http.addFilter(corsFilter) // 다른 도메인 접근 허용
-				.csrf().disable() // csrf 공격 비활성화
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // session비활성화
-
-		http.formLogin().disable() // 로그인 폼 비활성화
-				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
-				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
-						UsernamePasswordAuthenticationFilter.class);
-
-		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
-				.authorizeRequests()
-			//	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
-			//	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
-				.antMatchers("/actuator/health").permitAll() // ✅ actuator 허용
-				.anyRequest().permitAll();
-		return http.build();
-	}
+//	@Bean
+//	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
+//			throws Exception {
+//		http.addFilter(corsFilter) // 다른 도메인 접근 허용
+//				.csrf().disable() // csrf 공격 비활성화
+//				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // session비활성화
+//
+//		http.formLogin().disable() // 로그인 폼 비활성화
+//				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
+//				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
+//						UsernamePasswordAuthenticationFilter.class);
+//
+//		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
+//				.authorizeRequests()
+//			//	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
+//			//	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
+//				.antMatchers("/actuator/health").permitAll() // ✅ actuator 허용
+//				.anyRequest().permitAll();
+//		return http.build();
+//	}
+	//test
+	  @Bean
+	  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	    http
+	      .csrf().disable()
+	      .authorizeRequests()
+	        .anyRequest().permitAll()   // **모두 허용**
+	      .and()
+	      .formLogin().disable()
+	      .httpBasic().disable();
+	    // JWT 필터 등록 모두 주석 처리
+	    return http.build();
+	  }
 	
-	@Bean
-	public WebSecurityCustomizer webSecurityCustomizer() {
-	    return (web) -> web.ignoring().antMatchers("/actuator/health");
-	}
+	
+	
+//	@Bean
+//	public WebSecurityCustomizer webSecurityCustomizer() {
+//	    return (web) -> web.ignoring().antMatchers("/actuator/health");
+//	}
 
 	
 	
