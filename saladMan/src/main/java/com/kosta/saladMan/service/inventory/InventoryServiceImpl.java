@@ -199,7 +199,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
 
-    //재고 수정
+    //재고 수정정
     @Override
     public void updateHqIngredient(HqIngredientDto dto) {
         hqInventoryDslRepository.updateHqIngredient(dto);
