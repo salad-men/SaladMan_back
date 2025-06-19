@@ -30,8 +30,8 @@ echo ">>> Deploying to port $NEXT_PORT (현재: $CURRENT_PORT)"
 
 # 3) 컨테이너 실행
 echo ">> Pull & run container on $NEXT_PORT"
-aws ecr get-login-password --region ap-northeast-2 \
-  | docker login --username AWS --password-stdin $ECR_REGISTRY
+# aws ecr get-login-password --region ap-northeast-2 \
+# | docker login --username AWS --password-stdin $ECR_REGISTRY
 
 docker pull $ECR_REGISTRY/$IMAGE_NAME
 docker run -d \
