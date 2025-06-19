@@ -130,7 +130,7 @@ public class SecurityConfig {
 //            .and()
 //            .formLogin().disable()
 //            .httpBasic().disable();
-//        // JWT 필터 추가 없음
+//        // JWT 필터 추가 없음..
 //        return http.build();
 //    }
 	
