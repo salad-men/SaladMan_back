@@ -20,9 +20,9 @@ public class OrderServiceImpl implements OrderService {
 	private IngredientRepository ingredientRepository;
 
 	@Override
-	public Page<IngredientItemDto> getIngredientList(Boolean available, int page, int size) throws Exception {
+	public Page<IngredientItemDto> getIngredientList(Boolean available, String category, String keyword, int page, int size) throws Exception {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-		return ingredientDslRepository.ingredientList(available, pageable);
+		return ingredientDslRepository.ingredientList(available,category,keyword, pageable);
 	}
 
 	@Override

@@ -23,7 +23,7 @@ public class PurchaseOrderDto {
     private String status;
     private String requestedBy;
     private Integer totalPrice;
-    private String category;
+    private String purType; //발주유형
     private String qrImg;
 
     public PurchaseOrder toEntity() {
@@ -34,7 +34,7 @@ public class PurchaseOrderDto {
                 .status(status)
                 .requestedBy(requestedBy)
                 .totalPrice(totalPrice)
-                .category(category)
+                .purType(purType)
                 .qrImg(qrImg)
                 .build();
     }

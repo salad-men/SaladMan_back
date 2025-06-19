@@ -26,7 +26,8 @@ public class OrderController {
 	private OrderService orderService;
 
 	@GetMapping("/ingredients")
-	public ResponseEntity<Map<String, Object>> getAllIngredients(@RequestParam(required = false) String available,
+	public ResponseEntity<Map<String, Object>> getAllIngredients(@RequestParam(required = false) String available,    @RequestParam(required = false) String category,
+		    @RequestParam(required = false) String keyword,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "6") int size) throws Exception {
 		System.out.println("available: " + available + ", page: " + page + ", size: " + size);
 	    Boolean availableBoolean = null;
@@ -37,7 +38,7 @@ public class OrderController {
 	        availableBoolean = false;
 	    }
 	    
-		Page<IngredientItemDto> ingredientPage = orderService.getIngredientList(availableBoolean, page, size);
+		Page<IngredientItemDto> ingredientPage = orderService.getIngredientList(availableBoolean, category, keyword, page, size);
 		System.out.println("조회된 개수: " + ingredientPage.getTotalElements());
 
 
