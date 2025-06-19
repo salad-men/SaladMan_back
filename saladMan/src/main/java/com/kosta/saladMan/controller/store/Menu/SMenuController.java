@@ -7,11 +7,13 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.service.menu.SMenuService;
 import com.kosta.saladMan.util.PageInfo;
@@ -21,7 +23,7 @@ import com.kosta.saladMan.util.PageInfo;
 public class SMenuController {
 	
 	@Autowired
-	private SMenuService MenuService;
+	private SMenuService menuService;
 	
 	// 전체 메뉴 조회
 	@GetMapping("/totalMenu")
@@ -36,7 +38,7 @@ public class SMenuController {
 		}
 		
 	    try {
-	        List<TotalMenuDto> totalMenu = MenuService.getTotalMenu(pageInfo, sort);
+	        List<TotalMenuDto> totalMenu = menuService.getTotalMenu(pageInfo, sort);
 	        Map<String, Object> res = new HashMap<>();
 	        res.put("menus", totalMenu);
 	        res.put("pageInfo", pageInfo);
@@ -47,5 +49,13 @@ public class SMenuController {
 	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	    }
 	}
+	
+//	@GetMapping("/storeStatus")
+//	public ResponseEntity<List<TotalMenuDto>> getMenus(Authentication authentication) {
+//	    PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
+//	    Integer storeId = principal.getStore().getId();
+//	    return ResponseEntity.ok(menuService.getStoreStatus(storeId));
+//	}
+
 
 }
