@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+cd /home/ubuntu/saladman-server
 
 #----------------------------------------
 # Blue/Green 무중단 배포 스크립트
