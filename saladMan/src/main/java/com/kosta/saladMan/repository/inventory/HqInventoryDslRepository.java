@@ -84,7 +84,7 @@ public class HqInventoryDslRepository {
             .fetch();
     }
 
-    // HQ 재고 카운트 (필터 조건 동일하게!)
+    // HQ 재고 카운트 
     public long countHqInventoryByFilters(String category, String keyword, LocalDate startDate, LocalDate endDate) {
         QHqIngredient q = QHqIngredient.hqIngredient;
         BooleanBuilder builder = new BooleanBuilder();
