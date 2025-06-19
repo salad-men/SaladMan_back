@@ -65,7 +65,7 @@ public class HqInventoryDslRepository {
                 q.ingredient.name.as("ingredientName"),
                 q.ingredient.unit.as("unit"),
                 q.category.name.as("categoryName"),
-                store.name.as("storeName"),  // 매장 이름 반드시 포함!
+                store.name.as("storeName"),  // 매장 이름
 
                 s.minQuantity.as("minquantity") // 매장별 최소수량
             ))
