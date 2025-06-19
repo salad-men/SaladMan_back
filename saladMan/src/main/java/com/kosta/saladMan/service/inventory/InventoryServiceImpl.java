@@ -4,6 +4,7 @@ import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
+import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.dto.store.StoreDto;
@@ -11,6 +12,7 @@ import com.kosta.saladMan.entity.inventory.Disposal;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
+import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientSetting;
 import com.kosta.saladMan.entity.store.Store;
@@ -21,6 +23,7 @@ import com.kosta.saladMan.repository.inventory.StoreInventoryDslRepository;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
+import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientSettingRepository;
 import com.kosta.saladMan.util.PageInfo;
@@ -51,7 +54,10 @@ public class InventoryServiceImpl implements InventoryService {
     private final IngredientRepository ingredientRepository;
     private final StoreIngredientSettingRepository storeIngredientSettingRepository;
     
+    private final InventoryRecordRepository recordRepository;
 
+    
+    @Override
     // 본사 재고(전체/유통기한) 조회
     public List<HqIngredientDto> getHqInventory(
             Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
@@ -80,8 +86,10 @@ public class InventoryServiceImpl implements InventoryService {
 
         return list;
     }
-
+    
+    
     // 매장 재고(전체/유통기한) 조회
+    @Override
     public List<StoreIngredientDto> getStoreInventory(
             Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
         if (storeId == null || storeId == 1) return List.of();
@@ -93,17 +101,41 @@ public class InventoryServiceImpl implements InventoryService {
         Store storeEntity = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + storeId));
 
-        long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(storeEntity.getName(), category, keyword, startDate, endDate);
+        long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(
+        	    storeEntity.getId(), category, keyword, startDate, endDate
+        	);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
+        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
+        int end = Math.min(start + 9, pageInfo.getAllPage());
+        pageInfo.setStartPage(start);
+        pageInfo.setEndPage(end);
+        
+        System.out.println("Store ID: " + storeId + ", Name: " + storeEntity.getName());
+
+        return storeInventoryDslRepository.findStoreInventoryByFilters(
+        	    storeEntity.getId(), category, keyword, startDate, endDate, pageRequest
+        	).stream().map(StoreIngredient::toDto).collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<StoreIngredientDto> getAllStoreInventory(String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
+        LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
+        LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
+
+        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+
+        long totalCount = storeInventoryDslRepository.countAllStoreInventoryByFilters(category, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        return storeInventoryDslRepository.findStoreInventoryByFilters(
-                storeEntity.getName(), category, keyword, startDate, endDate, pageRequest)
-                .stream().map(StoreIngredient::toDto).collect(Collectors.toList());
+        List<StoreIngredient> list = storeInventoryDslRepository.findAllStoreInventoryByFilters(category, keyword, startDate, endDate, pageRequest);
+
+        return list.stream().map(StoreIngredient::toDto).collect(Collectors.toList());
     }
+
 
 
     //폐기신청
@@ -323,7 +355,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         return saved.toDto();   
     }
-
+    //전체 재료 조회
     @Override
     public List<IngredientDto> getAllIngredients() {
         List<Ingredient> ingredients = hqInventoryDslRepository.getAllIngredients();
@@ -331,5 +363,24 @@ public class InventoryServiceImpl implements InventoryService {
         return ingredients.stream()
                 .map(Ingredient::toDto)   
                 .collect(Collectors.toList());
+    }
+    
+    //재고기록 추가
+    @Override
+    public void addRecord(InventoryRecordDto dto) {
+        Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
+                .orElseThrow(() -> new IllegalArgumentException("재료 ID 오류: " + dto.getIngredientId()));
+
+        Store store = storeRepository.findById(dto.getStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("매장 ID 오류: " + dto.getStoreId()));
+
+        InventoryRecord record = dto.toEntity(ingredient, store);
+        recordRepository.save(record);
+    }
+    //재고 기록 조회
+    @Override
+    public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String type) {
+        List<InventoryRecord> records = recordRepository.findByStoreIdAndChangeType(storeId, type);
+        return records.stream().map(InventoryRecord::toDto).collect(Collectors.toList());
     }
 }
