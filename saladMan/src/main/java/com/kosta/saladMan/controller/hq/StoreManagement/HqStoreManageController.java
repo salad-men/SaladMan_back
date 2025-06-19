@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.store.StoreDto;
+import com.kosta.saladMan.dto.store.StoreUpdateDto;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.hq.HqStoreManagementService;
 import com.kosta.saladMan.service.user.StoreService;
@@ -84,10 +85,10 @@ public class HqStoreManageController {
 	}
 	
 	@PostMapping("/storeUpdate")
-	public ResponseEntity<Boolean> updateStore(@RequestBody StoreDto storeDto){
+	public ResponseEntity<Boolean> updateStore(@RequestBody StoreUpdateDto storeUpdateDto){
 		try {
-			boolean result = hqStoreManagementService.updateStore(storeDto);
-			return new ResponseEntity<>(true, HttpStatus.OK);
+			boolean result = hqStoreManagementService.updateStore(storeUpdateDto);
+			return new ResponseEntity<>(result, HttpStatus.OK);
 		}catch (Exception e) {
             return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
         }
