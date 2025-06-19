@@ -12,7 +12,7 @@ ACTIVE_FILE=/home/ubuntu/saladman-server/active_port
 ECR_REGISTRY=362717844282.dkr.ecr.ap-northeast-2.amazonaws.com
 IMAGE_NAME=saladman-server:latest
 
-# 1) 현재 활성 포트 확인 (없으면 BLUE 기본)
+# 1) 현재 활성 포트 확인 (없으면 BLUE 기본1)
 if [ -f "$ACTIVE_FILE" ]; then
   CURRENT_PORT=$(cat "$ACTIVE_FILE")
 else
