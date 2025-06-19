@@ -58,10 +58,12 @@ jobs:
 
       # 5) S3에 번들 업로드
       - name: S3에 번들 업로드
-        run: aws s3 cp \
-          --region ap-northeast-2 \
-          ./${GITHUB_SHA}.tar.gz \
-          s3://saladman-server/${GITHUB_SHA}.tar.gz
+        run: |
+          aws s3 cp \
+            --region ap-northeast-2 \
+            ./${GITHUB_SHA}.tar.gz \
+            s3://saladman-server/${GITHUB_SHA}.tar.gz
+
 
       # 6) CodeDeploy로 배포 트리거
       - name: CodeDeploy 배포 시작
