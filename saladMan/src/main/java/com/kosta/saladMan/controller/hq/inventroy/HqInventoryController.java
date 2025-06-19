@@ -28,7 +28,7 @@ public class HqInventoryController {
 
     @GetMapping("/list2")
     public ResponseEntity<String> testList() {
-        return ResponseEntity.ok("POST로 정상 동작합니다!");
+        return ResponseEntity.ok("POST로 정상d 동작합니다!test");
     }
     
     @PostMapping("/list")
