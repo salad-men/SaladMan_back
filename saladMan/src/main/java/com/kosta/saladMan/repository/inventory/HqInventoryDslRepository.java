@@ -1,136 +1,182 @@
-package com.kosta.saladMan.controller.hq.inventroy;
+package com.kosta.saladMan.repository.inventory;
 
-
-import com.kosta.saladMan.util.PageInfo;
-import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
-import com.kosta.saladMan.dto.inventory.IngredientDto;
-import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
-import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
-import com.kosta.saladMan.service.inventory.InventoryService;
+import com.kosta.saladMan.entity.inventory.Disposal;
+import com.kosta.saladMan.entity.inventory.HqIngredient;
+import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.QDisposal;
+import com.kosta.saladMan.entity.inventory.QHqIngredient;
+import com.kosta.saladMan.entity.inventory.QIngredient;
+import com.kosta.saladMan.entity.inventory.QIngredientCategory;
+import com.kosta.saladMan.entity.inventory.QStoreIngredient;
+import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
+import com.kosta.saladMan.entity.inventory.StoreIngredient;
+import com.kosta.saladMan.entity.store.QStore;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.impl.JPAUpdateClause;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
+import javax.transaction.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
+import org.springframework.data.domain.PageRequest;
 
-@RestController
-@RequestMapping("/hq/inventory")
-@RequiredArgsConstructor
-public class HqInventoryController {
+@Repository
+public class HqInventoryDslRepository {
+
+	@Autowired
+	private JPAQueryFactory queryFactory;
+
+    // HQ 재고(전체/유통기한/필터) 목록 조회 (페이징)
+    public List<HqIngredientDto> findHqInventoryByFilters(
+            String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
+
+        QHqIngredient q = QHqIngredient.hqIngredient;
+        QIngredient qi = QIngredient.ingredient;
+        QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
+        BooleanBuilder builder = new BooleanBuilder();
+        QStore store = QStore.store;
 
 
-    private final InventoryService inventoryService;
-
-    @GetMapping("/list2")
-    public ResponseEntity<String> testList() {
-        return ResponseEntity.ok("POST로 정상d 동작합니다!test");
-    }
-    
-    @PostMapping("/list")
-    public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
-        try {
-            String scope = (String) param.getOrDefault("scope", "all");
-            String storeStr = (String) param.getOrDefault("store", "all");
-            String category = (String) param.getOrDefault("category", "all");
-            String name = (String) param.getOrDefault("name", "");
-            int page = param.get("page") == null ? 1 : (int) param.get("page");
-
-            // 매장 ID ("all" 또는 매장ID(1/2/3/...))
-            Integer storeId = null;
-            if (!"all".equalsIgnoreCase(storeStr) && storeStr != null && !storeStr.isBlank()) {
-                try {
-                    storeId = Integer.valueOf(storeStr);
-                } catch (NumberFormatException e) {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-            }
-
-            PageInfo pageInfo = new PageInfo(page);
-            Map<String, Object> res = new HashMap<>();
-
-            // HQ(본사) 조회 (storeId==null 또는 1)
-            if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope) || (storeId != null && storeId == 1)) {
-                List<HqIngredientDto> hqList = inventoryService.getHqInventory(storeId, category, name, null, null, pageInfo);
-                res.put("hqInventory", hqList);
-            }
-            // 매장 재고조회 (storeId!=null && storeId!=1)
-            if (("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) && storeId != null && storeId != 1) {
-                List<StoreIngredientDto> storeList = inventoryService.getStoreInventory(storeId, category, name, null, null, pageInfo);
-                res.put("storeInventory", storeList);
-            }
-            res.put("pageInfo", pageInfo);
-            return new ResponseEntity<>(res, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
         }
-    }
-
-    //추가
-    @PostMapping("/add")
-    public ResponseEntity<Void> add(@RequestBody HqIngredientDto dto) {
-        try {
-            inventoryService.addHqIngredient(dto);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e) {
-        	e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
         }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        return queryFactory
+            .select(Projections.bean(
+                HqIngredientDto.class,
+                q.id,
+                q.quantity,
+                q.minimumOrderUnit,
+                q.unitCost,
+                q.expiredDate,
+                //q.receivedDate,
+                q.ingredient.name.as("ingredientName"),
+                q.ingredient.unit.as("unit"),
+                q.category.name.as("categoryName"),
+                store.name.as("storeName"),  // 매장 이름
+
+                s.minQuantity.as("minquantity") // 매장별 최소수량
+            ))
+            .from(q)
+            .leftJoin(q.ingredient)
+            .leftJoin(q.category)
+            .leftJoin(q.store, store)
+            .leftJoin(s).on(
+                s.store.id.eq(store.id)  
+                .and(s.ingredient.eq(q.ingredient))
+            )
+            .where(builder)
+            .orderBy(q.id.desc())
+            .offset(pageRequest.getOffset())
+            .limit(pageRequest.getPageSize())
+            .fetch();
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<Void> update(@RequestBody HqIngredientDto dto) {
-        try {
-            inventoryService.updateHqIngredient(dto);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e) {
-        	e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    // HQ 재고 카운트 
+    public long countHqInventoryByFilters(String category, String keyword, LocalDate startDate, LocalDate endDate) {
+        QHqIngredient q = QHqIngredient.hqIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
         }
-    }
-    
-    
-    //카테고리 조회
-    @GetMapping("/categories")
-    public ResponseEntity<Map<String, Object>> categories() {
-        return ResponseEntity.ok(Map.of(
-            "categories", inventoryService.getAllCategories()
-        ));
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
+        return count == null ? 0L : count;
     }
 
-    //매장 조회(추후 변경)
-    @GetMapping("/stores")
-    public ResponseEntity<Map<String, Object>> stores() {
-        return ResponseEntity.ok(Map.of(
-            "stores", inventoryService.getAllStores()
-        ));
-    }
-    
-    //재료 조회
-    @GetMapping("/ingredients")
-    public ResponseEntity<Map<String, Object>> ingredients() {
-        List<IngredientDto> list = inventoryService.getAllIngredients();
-        return ResponseEntity.ok(Map.of("ingredients", list));
-    }
-    
-    // 매장별 설정 리스트 조회
-    @GetMapping("/settings")
-    public ResponseEntity<List<StoreIngredientSettingDto>> getSettings(@RequestParam Integer storeId) {
-        List<StoreIngredientSettingDto> list = inventoryService.getSettingsByStoreId(storeId);
-        return ResponseEntity.ok(list);
+
+
+	// HQ 재고 업데이트
+	@Transactional
+	public void updateHqIngredient(HqIngredientDto dto) {
+		QHqIngredient q = QHqIngredient.hqIngredient;
+		JPAUpdateClause clause = 
+				queryFactory
+				.update(q)
+				.set(q.minimumOrderUnit, dto.getMinimumOrderUnit())
+				.set(q.unitCost, dto.getUnitCost())
+				.set(q.quantity, dto.getQuantity())
+				.set(q.expiredDate, dto.getExpiredDate())
+				.where(q.id.eq(dto.getId()));
+		clause.execute();
+	}
+
+	
+	 // 폐기 총 개수
+    public int countHqDisposals(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
+        QDisposal disposal = QDisposal.disposal;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (!"all".equals(store)) builder.and(disposal.store.name.eq(store));
+        if (!"all".equals(category)) builder.and(disposal.ingredient.category.name.eq(category));
+        if (keyword != null && !keyword.isEmpty()) builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
+        if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
+        
+        Long count = queryFactory
+        	    .select(disposal.count())
+        	    .from(disposal)
+        	    .where(builder)
+        	    .fetchOne();
+        return count != null ? count.intValue() : 0;
     }
 
-    // 저장 (추가 또는 수정)
-    @PostMapping("/settings-save")
-    public ResponseEntity<StoreIngredientSettingDto> saveSetting(@RequestBody StoreIngredientSettingDto dto) {
-        StoreIngredientSettingDto savedDto = inventoryService.saveSetting(dto);
-        return ResponseEntity.ok(savedDto);
+    // 본사 폐기 목록 조회
+    public List<Disposal> selectHqDisposalListByFiltersPaging(String store, String category, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
+        QDisposal disposal = QDisposal.disposal;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (!"all".equals(store)) builder.and(disposal.store.name.eq(store));
+        if (!"all".equals(category)) builder.and(disposal.ingredient.category.name.eq(category));
+        if (keyword != null && !keyword.isEmpty()) builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
+        if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
+        
+        return queryFactory.selectFrom(disposal)
+        	    .leftJoin(disposal.store)
+        	    .leftJoin(disposal.ingredient)
+        	    .leftJoin(disposal.ingredient.category)
+        	    .where(builder)
+        	    .orderBy(disposal.requestedAt.desc())
+        	    .offset(pageRequest.getOffset())
+        	    .limit(pageRequest.getPageSize())
+        	    .fetch();
+    }
+
+    // 상태 변경 (승인/반려)
+    public void updateDisposalStatus(List<Integer> disposalIds, String status, String memo) {
+        QDisposal disposal = QDisposal.disposal;
+        queryFactory.update(disposal)
+                .set(disposal.status, status)
+                .set(disposal.memo, memo)
+                .where(disposal.id.in(disposalIds))
+                .execute();
     }
     
-    
+    public List<Ingredient> getAllIngredients() {
+        QIngredient ingredient = QIngredient.ingredient;
+        QIngredientCategory category = QIngredientCategory.ingredientCategory;
+
+        return queryFactory
+            .selectFrom(ingredient)
+            .leftJoin(ingredient.category, category)
+            .fetch();
+    }
+
 }
