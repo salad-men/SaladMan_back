@@ -26,13 +26,17 @@ else
   NEXT_PORT=$BLUE_PORT
 fi
 
-echo ">>> Deploying to port $NEXT_PORT (현재: $CURRENT_PORT)"
+echo ""
+echo "🔵 CURRENT_PORT = $CURRENT_PORT"
+echo "🟢 NEXT_PORT    = $NEXT_PORT"
+echo "🚀 Starting Blue/Green deployment..."
 
-# 3) 컨테이너 실행
-echo ">> Pull & run container on $NEXT_PORT"
-# aws ecr get-login-password --region ap-northeast-2 \
-# | docker login --username AWS --password-stdin $ECR_REGISTRY
+# 3) 기존 동일 이름 컨테이너가 남아 있다면 제거
+echo "🧹 Removing existing container with name saladman-$NEXT_PORT (if any)"
+docker rm -f saladman-$NEXT_PORT || true
 
+# 4) 새 컨테이너 실행
+echo "🐳 Pulling & Running container on port $NEXT_PORT"
 docker pull $ECR_REGISTRY/$IMAGE_NAME
 docker run -d \
   --name saladman-$NEXT_PORT \
@@ -40,38 +44,42 @@ docker run -d \
   -p $NEXT_PORT:8090 \
   $ECR_REGISTRY/$IMAGE_NAME
 
-# 4) Health 체크 (최대 12회, 5초 간격)
-echo ">> Health check on port $NEXT_PORT"
+# 5) Health 체크
+echo "💓 Running health check on http://localhost:$NEXT_PORT/actuator/health"
 for i in {1..12}; do
   if curl -sSf http://localhost:$NEXT_PORT/actuator/health >/dev/null; then
-    echo "   → OK"
+    echo "✅ Health check succeeded!"
     break
   fi
-  echo "   → retry $i"
+  echo "   ⏳ retry $i..."
   sleep 5
   if [ $i -eq 12 ]; then
-    echo "!!! Health check failed. Aborting."
+    echo "❌ Health check failed. Aborting deployment."
     exit 1
   fi
 done
 
-# 5) Nginx upstream 설정 교체 & reload
-echo ">> Updating Nginx upstream to $NEXT_PORT"
+# 6) Nginx proxy 전환
+echo "🔁 Switching Nginx upstream to port $NEXT_PORT"
 cat <<EOF > /etc/nginx/conf.d/upstream-saladman.conf
 upstream saladman_backend {
     server 127.0.0.1:$NEXT_PORT;
 }
 EOF
 
+echo "📎 Nginx config:"
+cat /etc/nginx/conf.d/upstream-saladman.conf
+
+echo "📦 Reloading nginx..."
 nginx -t
 systemctl reload nginx
 
-# 6) 이전 컨테이너 정리
-echo ">> Stopping old container on port $CURRENT_PORT"
+# 7) 이전 컨테이너 정리
+echo "🗑 Stopping & Removing old container: saladman-$CURRENT_PORT"
 docker stop saladman-$CURRENT_PORT || true
 docker rm   saladman-$CURRENT_PORT || true
 
-# 7) 활성 포트 기록 갱신
-echo $NEXT_PORT > "$ACTIVE_FILE"
+# 8) 포트 기록 갱신
+echo "$NEXT_PORT" > "$ACTIVE_FILE"
 
-echo ">>> Deployment to $NEXT_PORT completed."
+echo "✅ Blue/Green Deployment Completed: Now serving on port $NEXT_PORT"
