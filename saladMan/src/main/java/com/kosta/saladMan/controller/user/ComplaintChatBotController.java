@@ -9,7 +9,7 @@ import com.kosta.saladMan.service.notice.ComplaintService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/chatbot/complaints")
+@RequestMapping("/user/chatbot/complaints")
 @RequiredArgsConstructor
 public class ComplaintChatBotController {
 
