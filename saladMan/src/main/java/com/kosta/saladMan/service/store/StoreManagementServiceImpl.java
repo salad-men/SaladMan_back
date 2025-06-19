@@ -1,4 +1,4 @@
-package com.kosta.saladMan.service.hq;
+package com.kosta.saladMan.service.store;
 
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.storeManagement.StoreDslRepository;
 
 @Service
-public class HqStoreManagementServiceImpl implements HqStoreManagementService {
+public class StoreManagementServiceImpl implements StoreManagementService {
 
 	@Autowired
 	private StoreRepository storeRepository;

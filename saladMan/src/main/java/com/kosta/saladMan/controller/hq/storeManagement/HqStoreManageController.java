@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.hq.StoreManagement;
+package com.kosta.saladMan.controller.hq.storeManagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.dto.store.StoreUpdateDto;
 import com.kosta.saladMan.entity.store.Store;
-import com.kosta.saladMan.service.hq.HqStoreManagementService;
+import com.kosta.saladMan.service.store.StoreManagementService;
 import com.kosta.saladMan.service.user.StoreService;
 
 @RestController
@@ -27,7 +27,7 @@ import com.kosta.saladMan.service.user.StoreService;
 public class HqStoreManageController {
 
 	@Autowired
-	private HqStoreManagementService hqStoreManagementService;
+	private StoreManagementService hqStoreManagementService;
 
 	@PostMapping("/storeRegister")
 	public ResponseEntity<Boolean> storeRegister(@RequestBody StoreDto storeDto) {
