@@ -38,6 +38,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -105,9 +106,17 @@ public class SecurityConfig {
 		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository)).authorizeRequests()
 //	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
 //	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
+				.antMatchers("/actuator/health").permitAll() // ✅ actuator 허용
 				.anyRequest().permitAll();
 		return http.build();
 	}
+	
+	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer() {
+	    return (web) -> web.ignoring().antMatchers("/actuator/health");
+	}
+
+	
 	
 //    @Bean
 //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -123,4 +132,6 @@ public class SecurityConfig {
 //        // JWT 필터 추가 없음
 //        return http.build();
 //    }
+	
+	
 }

@@ -15,6 +15,6 @@ permissions:
 
 hooks:
   ApplicationStart:
-    - location: scripts/start-server.sh
-      timeout: 60
+    - location: scripts/deploy_blue_green.sh
+      timeout: 300
       runas: ubuntu

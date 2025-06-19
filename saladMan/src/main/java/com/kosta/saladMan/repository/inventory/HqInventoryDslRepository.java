@@ -65,7 +65,7 @@ public class HqInventoryDslRepository {
                 q.ingredient.name.as("ingredientName"),
                 q.ingredient.unit.as("unit"),
                 q.category.name.as("categoryName"),
-                store.name.as("storeName"),  // 매장 이름 반드시 포함!
+                store.name.as("storeName"),  // 매장 이름
 
                 s.minQuantity.as("minquantity") // 매장별 최소수량
             ))
@@ -84,7 +84,7 @@ public class HqInventoryDslRepository {
             .fetch();
     }
 
-    // HQ 재고 카운트 (필터 조건 동일하게!)
+    // HQ 재고 카운트 
     public long countHqInventoryByFilters(String category, String keyword, LocalDate startDate, LocalDate endDate) {
         QHqIngredient q = QHqIngredient.hqIngredient;
         BooleanBuilder builder = new BooleanBuilder();
@@ -120,7 +120,7 @@ public class HqInventoryDslRepository {
 	}
 
 	
-	 // 폐기 총 개수 (필터)
+	 // 폐기 총 개수
     public int countHqDisposals(String store, String category, String keyword, LocalDate startDate, LocalDate endDate) {
         QDisposal disposal = QDisposal.disposal;
         BooleanBuilder builder = new BooleanBuilder();
