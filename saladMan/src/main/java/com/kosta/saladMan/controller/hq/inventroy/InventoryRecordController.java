@@ -1,7 +1,10 @@
 package com.kosta.saladMan.controller.hq.inventroy;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,13 +42,17 @@ public class InventoryRecordController {
 
 
     @GetMapping("/record")
-    public ResponseEntity<List<InventoryRecordDto>> getList(@RequestParam Integer storeId, @RequestParam String type) {
+    public ResponseEntity<Map<String, Object>> getList(@RequestParam Integer storeId, @RequestParam String type) {
         try {
             List<InventoryRecordDto> list = inventoryService.getRecordsByStoreAndType(storeId, type);
-            return ResponseEntity.ok(list);
+
+            Map<String, Object> res = new HashMap<>();
+            res.put("records", list); 
+            return new ResponseEntity<>(res, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
 }

@@ -25,16 +25,16 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
 public class StoreInventoryDslRepository {
 	@Autowired
 	private JPAQueryFactory queryFactory;
-	 // 매장 재고(전체/유통기한 등 필터) 목록 조회 (페이징)
+	 // 매장 재고(전체/유통기한 등 필터) 목록 조회
     public List<StoreIngredient> findStoreInventoryByFilters(
-            String storeName, String category, String keyword,
+            Integer storeId, String category, String keyword,
             LocalDate startDate, LocalDate endDate, PageRequest pageRequest
     ) {
         QStoreIngredient q = QStoreIngredient.storeIngredient;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (storeName != null && !storeName.equals("all") && !storeName.isBlank()) {
-            builder.and(q.store.name.eq(storeName));
+        if (storeId != null) {
+            builder.and(q.store.id.eq(storeId)); 
         }
         if (category != null && !category.equals("all") && !category.isBlank()) {
             builder.and(q.category.name.eq(category));
@@ -57,16 +57,16 @@ public class StoreInventoryDslRepository {
                 .fetch();
     }
 
-    // 매장 재고 카운트 (필터 동일!)
+    // 매장 재고 카운트
     public long countStoreInventoryByFilters(
-            String storeName, String category, String keyword,
+            Integer storeId, String category, String keyword,
             LocalDate startDate, LocalDate endDate
     ) {
         QStoreIngredient q = QStoreIngredient.storeIngredient;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (storeName != null && !storeName.equals("all") && !storeName.isBlank()) {
-            builder.and(q.store.name.eq(storeName));
+        if (storeId != null) {
+            builder.and(q.store.id.eq(storeId)); 
         }
         if (category != null && !category.equals("all") && !category.isBlank()) {
             builder.and(q.category.name.eq(category));
@@ -80,6 +80,62 @@ public class StoreInventoryDslRepository {
         Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
         return count == null ? 0L : count;
     }
+    
+    //매장 전체 조회
+    public List<StoreIngredient> findAllStoreInventoryByFilters(
+            String category, String keyword,
+            LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
+
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        return queryFactory.selectFrom(q)
+                .leftJoin(q.ingredient).fetchJoin()
+                .leftJoin(q.category).fetchJoin()
+                .leftJoin(q.store).fetchJoin()
+                .where(builder)
+                .orderBy(q.expiredDate.asc())
+                .offset(pageRequest.getOffset())
+                .limit(pageRequest.getPageSize())
+                .fetch();
+    }
+
+    // 매장 전체 재고 카운트
+    public long countAllStoreInventoryByFilters(
+            String category, String keyword,
+            LocalDate startDate, LocalDate endDate
+    ) {
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // storeId 조건 제거 → 전체 지점 대상
+        // 카테고리 필터
+        if (category != null && !category.equals("all") && !category.isBlank()) {
+            builder.and(q.category.name.eq(category));
+        }
+        // 키워드 필터
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        // 유통기한 시작일 필터
+        if (startDate != null) builder.and(q.expiredDate.goe(startDate));
+        // 유통기한 종료일 필터
+        if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+
+        Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
+
+        return count == null ? 0L : count;
+    }
+
 	
 	// 매장 재고 업데이트
 	@Transactional
