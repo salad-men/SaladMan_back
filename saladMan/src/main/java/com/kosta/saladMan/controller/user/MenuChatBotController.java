@@ -17,7 +17,7 @@ public class MenuChatBotController {
 
     private final MenuChatBotService menuChatBotService;
 
-    @GetMapping("/api/chatbot/menus")
+    @GetMapping("/user/chatbot/menus")
     public List<MenuChatBotDto> getMenusByKeyword(@RequestParam String keyword) {
         return menuChatBotService.getMenusByKeyword(keyword);
     }

@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/menus")
+@RequestMapping("/user/menus")
 @RequiredArgsConstructor
 public class MenuController {
 
     private final MenuService menuService;
 
-    // GET /api/menus?categoryId=1
+    // GET /user/menus?categoryId=1
     @GetMapping
     public List<TotalMenuDto> getMenusByCategory(@RequestParam Integer categoryId) {
         return menuService.getMenusByCategory(categoryId);

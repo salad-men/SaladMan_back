@@ -17,7 +17,7 @@ public class StoreChatBotController {
 
     private final StoreChatBotService storeChatBotService;
 
-    @GetMapping("/api/chatbot/stores")
+    @GetMapping("/user/chatbot/stores")
     public List<StoreDto> getStoresByKeyword(@RequestParam String keyword) {
         return storeChatBotService.searchStores(keyword);
     }

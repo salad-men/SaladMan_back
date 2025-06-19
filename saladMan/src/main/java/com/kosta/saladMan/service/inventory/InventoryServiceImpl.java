@@ -69,7 +69,16 @@ public class InventoryServiceImpl implements InventoryService {
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        return hqInventoryDslRepository.findHqInventoryByFilters(category, keyword, startDate, endDate, pageRequest);
+        List<HqIngredientDto> list = hqInventoryDslRepository.findHqInventoryByFilters(category, keyword, startDate, endDate, pageRequest);
+        
+        // 본사 Store 엔티티 조회해서 이름 직접 세팅
+        Store hqStore = storeRepository.findById(1) // 본사 ID가 1이라 가정
+                .orElseThrow(() -> new IllegalArgumentException("본사 매장을 찾을 수 없습니다."));
+        String hqStoreName = hqStore.getName();
+
+        list.forEach(dto -> dto.setStoreName(hqStoreName));
+
+        return list;
     }
 
     // 매장 재고(전체/유통기한) 조회
@@ -162,7 +171,7 @@ public class InventoryServiceImpl implements InventoryService {
 
                 Disposal disposal = Disposal.builder()
                         .ingredient(storeIngredient.getIngredient())
-                        .store(store)  // 해당 매장 Store 엔티티
+                        .store(store) 
                         .quantity(disposalAmount)
                         .status("신청")
                         .requestedAt(LocalDate.now())
@@ -202,11 +211,11 @@ public class InventoryServiceImpl implements InventoryService {
     public List<DisposalDto> searchHqDisposals(PageInfo pageInfo,String category, String keyword, String startDateStr, String endDateStr) {
         LocalDate startDate = (startDateStr != null && !startDateStr.isBlank()) ? LocalDate.parse(startDateStr) : null;
         LocalDate endDate = (endDateStr != null && !endDateStr.isBlank()) ? LocalDate.parse(endDateStr) : null;
-        String store="본사계정";
+        String store="본사";
         
         int totalCount = hqInventoryDslRepository.countHqDisposals(store, category, keyword, startDate, endDate);
-        pageInfo.setAllPage((int)Math.ceil((double)totalCount / 10));   // 한 페이지 10개 기준(필요시 pageInfo에서 rowSize getter 사용)
-        int block = 5; // 페이지네이션 블록(한 번에 몇 개 버튼 보여줄지)
+        pageInfo.setAllPage((int)Math.ceil((double)totalCount / 10));   
+        int block = 5; 
         int curPage = pageInfo.getCurPage() == null ? 1 : pageInfo.getCurPage();
         int allPage = pageInfo.getAllPage() == null ? 1 : pageInfo.getAllPage();
 
@@ -220,7 +229,7 @@ public class InventoryServiceImpl implements InventoryService {
         // 목록 조회
         List<Disposal> result = hqInventoryDslRepository.selectHqDisposalListByFiltersPaging(
             store, category, keyword, startDate, endDate,
-            PageRequest.of(curPage - 1, 10) // rowSize 직접 쓰거나 pageInfo.getRowSize()
+            PageRequest.of(curPage - 1, 10)
         );
 
         return result.stream().map(Disposal::toDto).collect(Collectors.toList());

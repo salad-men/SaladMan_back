@@ -62,21 +62,25 @@ jobs:
           docker tag saladman-server ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
           docker push ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
 
-      - name: EC2에서 Docker 컨테이너 재기
-        uses: appleboy/ssh-action@v1.0.3
+      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script_stop: true
-          script: |
-            docker stop saladMan-server || true
-            docker rm saladMan-server || true
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-            docker pull ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
+        
+      - name: 압축하기
+        working-directory: saladMan
+        run: tar -czvf ../$GITHUB_SHA.tar.gz appspec.yml scripts
 
-            docker run -d \
-              --name saladMan-server \
-              -p 8090:8090 \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
+
+      - name: S3에 프로젝트 폴더 업로드하기
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.tar.gz s3://saladman-server/$GITHUB_SHA.tar.gz
+
+      - name: Code Deploy를 활용해 EC2에 프로젝트 코드 배포
+        run: aws deploy create-deployment
+          --application-name saladman-server
+          --deployment-config-name CodeDeployDefault.AllAtOnce
+          --deployment-group-name Production
+          --s3-location bucket=saladman-server,bundleType=tgz,key=$GITHUB_SHA.tar.gz
