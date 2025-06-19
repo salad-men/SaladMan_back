@@ -20,7 +20,7 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+      - name: AWS 자격증명 설정
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-northeast-2
@@ -47,20 +47,16 @@ jobs:
         with:
           registry-type: private
 
-      - name: Docker 이미지 빌드드
+      - name: Docker 이미지 빌드
         working-directory: saladMan
         run: docker build -t saladman-server .
-
-      - name: 현재 위치 확인
-        working-directory: saladMan
-        run: pwd && ls -la
 
       - name: Docker 태그 & 푸시
         run: |
           docker tag saladman-server ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
           docker push ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
 
-      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+      - name: AWS 자격증명 재설정
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ap-northeast-2
@@ -74,12 +70,13 @@ jobs:
       - name: S3에 프로젝트 폴더 업로드하기
         run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.tar.gz s3://saladman-server/$GITHUB_SHA.tar.gz
 
-      - name: Code Deploy를 활용해 EC2에 프로젝트 코드 배포
-        run: aws deploy create-deployment \
-          --application-name saladman-server \
-          --deployment-config-name CodeDeployDefault.AllAtOnce \
-          --deployment-group-name Production \
-          --s3-location bucket=saladman-server,bundleType=tgz,key=$GITHUB_SHA.tar.gz
+      - name: CodeDeploy로 EC2에 배포
+        run: |
+          aws deploy create-deployment \
+            --application-name saladman-server \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --deployment-group-name Production \
+            --s3-location bucket=saladman-server,bundleType=tgz,key=$GITHUB_SHA.tar.gz
 
       - name: Nginx HTTPS 인증서 발급 (Certbot)
         run: |
