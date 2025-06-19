@@ -1,4 +1,4 @@
-name: EC2에 Docker로 배포하는 워크플로우
+name: 백엔드 서버 자동배포
 
 on:
   push:
@@ -37,7 +37,6 @@ jobs:
         working-directory: saladMan
         run: chmod +x gradlew
 
-
       - name: Gradle 빌드
         working-directory: saladMan
         run: ./gradlew clean build -x test
@@ -56,7 +55,6 @@ jobs:
         working-directory: saladMan
         run: pwd && ls -la
 
-
       - name: Docker 태그 & 푸시
         run: |
           docker tag saladman-server ${{ steps.login-ecr.outputs.registry }}/saladman-server:latest
@@ -69,25 +67,32 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-        
       - name: 압축하기
         working-directory: saladMan
         run: tar -czvf ../$GITHUB_SHA.tar.gz appspec.yml scripts
-
 
       - name: S3에 프로젝트 폴더 업로드하기
         run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.tar.gz s3://saladman-server/$GITHUB_SHA.tar.gz
 
       - name: Code Deploy를 활용해 EC2에 프로젝트 코드 배포
-        run: aws deploy create-deployment
-          --application-name saladman-server
-          --deployment-config-name CodeDeployDefault.AllAtOnce
-          --deployment-group-name Production
+        run: aws deploy create-deployment \
+          --application-name saladman-server \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --deployment-group-name Production \
           --s3-location bucket=saladman-server,bundleType=tgz,key=$GITHUB_SHA.tar.gz
 
-      # (빌드 성공 Slack 알림)
+      - name: Nginx HTTPS 인증서 발급 (Certbot)
+        run: |
+          sudo certbot --nginx -d api.jscode.p-e.kr --non-interactive --agree-tos -m your-email@example.com || true
+
+      - name: Nginx 설정 테스트
+        run: sudo nginx -t
+
+      - name: Nginx 설정 반영 (Reload)
+        run: sudo nginx -s reload
+
       - name: 빌드 성공 Slack 알림
-        if: success()  # 빌드 성공 시에만 실행
+        if: success()
         uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
@@ -97,7 +102,6 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # (배포 성공 Slack 알림)
       - name: 배포 성공 Slack 알림
         if: success()
         uses: slackapi/slack-github-action@v1.25.0
@@ -109,7 +113,6 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # (실패 시 Slack 알림)
       - name: 실패 Slack 알림
         if: failure()
         uses: slackapi/slack-github-action@v1.25.0
@@ -120,4 +123,3 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      
