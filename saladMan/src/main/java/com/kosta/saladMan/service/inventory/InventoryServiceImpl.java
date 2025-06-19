@@ -4,6 +4,7 @@ import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
+import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.dto.store.StoreDto;
@@ -11,6 +12,7 @@ import com.kosta.saladMan.entity.inventory.Disposal;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
+import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientSetting;
 import com.kosta.saladMan.entity.store.Store;
@@ -21,6 +23,7 @@ import com.kosta.saladMan.repository.inventory.StoreInventoryDslRepository;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
+import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientSettingRepository;
 import com.kosta.saladMan.util.PageInfo;
@@ -50,6 +53,9 @@ public class InventoryServiceImpl implements InventoryService {
     private final StoreRepository storeRepository;
     private final IngredientRepository ingredientRepository;
     private final StoreIngredientSettingRepository storeIngredientSettingRepository;
+    
+    private final InventoryRecordRepository recordRepository;
+
     
 
     // 본사 재고(전체/유통기한) 조회
@@ -331,5 +337,24 @@ public class InventoryServiceImpl implements InventoryService {
         return ingredients.stream()
                 .map(Ingredient::toDto)   
                 .collect(Collectors.toList());
+    }
+    
+    
+    @Override
+    public void addRecord(InventoryRecordDto dto) {
+        Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
+                .orElseThrow(() -> new IllegalArgumentException("재료 ID 오류: " + dto.getIngredientId()));
+
+        Store store = storeRepository.findById(dto.getStoreId())
+                .orElseThrow(() -> new IllegalArgumentException("매장 ID 오류: " + dto.getStoreId()));
+
+        InventoryRecord record = dto.toEntity(ingredient, store);
+        recordRepository.save(record);
+    }
+
+    @Override
+    public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String type) {
+        List<InventoryRecord> records = recordRepository.findByStoreIdAndChangeType(storeId, type);
+        return records.stream().map(InventoryRecord::toDto).collect(Collectors.toList());
     }
 }
