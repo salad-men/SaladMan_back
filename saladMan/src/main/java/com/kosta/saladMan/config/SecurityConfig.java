@@ -103,9 +103,10 @@ public class SecurityConfig {
 				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
 						UsernamePasswordAuthenticationFilter.class);
 
-		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository)).authorizeRequests()
-//	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
-//	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
+		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
+				.authorizeRequests()
+			//	.antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 ADMIN이거나 MANAGER 만 허용 
+			//	.antMatchers("/manager/**").access("hasRole('ROLE_MANAGER')")//로그인 필수 && 권한이 MANAGER 만 허용
 				.antMatchers("/actuator/health").permitAll() // ✅ actuator 허용
 				.anyRequest().permitAll();
 		return http.build();
