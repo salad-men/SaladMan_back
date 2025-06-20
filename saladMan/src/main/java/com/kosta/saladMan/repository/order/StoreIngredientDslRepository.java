@@ -60,8 +60,8 @@ public class StoreIngredientDslRepository {
 	
 	//발주 신청을 위한 재료 리스트 
 	public List<StoreOrderItemDto> findAvailableOrderItemsByStore(Integer id,String category,String keyword){
-		QHqIngredient hq = QHqIngredient.hqIngredient;
 		QIngredient ing = QIngredient.ingredient;
+		QHqIngredient hq = QHqIngredient.hqIngredient;
 		QStoreIngredient si = QStoreIngredient.storeIngredient;
 		QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
@@ -85,14 +85,15 @@ public class StoreIngredientDslRepository {
 		        hq.unitCost,
 		        hq.minimumOrderUnit
 		    ))
-		    .from(hq)
-		    .join(hq.ingredient, ing)
+		    .from(ing)
 		    .leftJoin(si).on(
 		        si.store.id.eq(id),
 		        si.ingredient.id.eq(ing.id)
 		    )
+		    .leftJoin(hq).on(
+		        hq.ingredient.id.eq(ing.id)
+		    )
 		    .where(
-		        // 필터 조건
 		        category != null && !category.equals("전체")
 		            ? ing.category.name.eq(category) : null,
 		        keyword != null && !keyword.isBlank()
