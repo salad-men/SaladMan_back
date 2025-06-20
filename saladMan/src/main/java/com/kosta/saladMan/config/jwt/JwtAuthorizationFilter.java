@@ -38,6 +38,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
  		String uri = request.getRequestURI();
+ 		
+ 	    if ("/actuator/health".equals(uri)) {
+ 	        chain.doFilter(request, response);
+ 	        return;
+ 	    }
+ 	    
  		System.out.println(uri);
  		
  		if (uri.startsWith("/user")) {
