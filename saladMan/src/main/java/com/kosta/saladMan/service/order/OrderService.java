@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 
 public interface OrderService {
 
@@ -15,7 +16,7 @@ public interface OrderService {
     
     //매장 
     //발주 수량 미달 확인
-    List<LowStockItemDto> getLowStockItems(Integer storeId)throws Exception;
-
+    List<LowStockItemDto> getLowStockItems(Integer id) throws Exception;
+    List<StoreOrderItemDto>getOrderItems(Integer id, String category, String keyword)throws Exception;
 
 }

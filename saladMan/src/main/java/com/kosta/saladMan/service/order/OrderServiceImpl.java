@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.order.IngredientDslRepository;
@@ -57,6 +58,11 @@ public class OrderServiceImpl implements OrderService {
 		
 		return storeIngredientDslRepository.findLowStockIngredientsByStore(storeId);
 	
+	}
+
+	@Override
+	public List<StoreOrderItemDto> getOrderItems(Integer id, String category, String keyword) throws Exception {
+		return storeIngredientDslRepository.findAvailableOrderItemsByStore(id, category, keyword);
 	}
 
 }
