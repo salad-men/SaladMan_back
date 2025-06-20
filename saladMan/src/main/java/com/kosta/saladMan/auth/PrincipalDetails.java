@@ -37,6 +37,7 @@ public class PrincipalDetails implements UserDetails {
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		Collection<GrantedAuthority> collect = new ArrayList<>();
 		collect.add(()->store.getRole());
+		System.out.println("권한 체크: " + store.getRole());
 		return collect;
 	}
 
