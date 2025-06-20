@@ -70,6 +70,15 @@ dependencies {
 	//actuator,health!
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	
+	// S3 클라이언트 & Presigner 모듈
+	implementation 'software.amazon.awssdk:s3:2.25.12'
+    implementation 'software.amazon.awssdk:auth'
+    implementation 'software.amazon.awssdk:regions'
+    implementation 'software.amazon.awssdk:s3:2.25.12' 
+    // 필요시 aws sdk core
+    implementation 'software.amazon.awssdk:auth'
+    implementation 'software.amazon.awssdk:regions'
+	
 }
 
 def querydslDir = "$buildDir/generated/querydsl"

@@ -327,6 +327,14 @@ public class InventoryServiceImpl implements InventoryService {
                 .map(Store::toDto)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public List<StoreDto> getStoresExceptHQ() {
+        return storeRepository.findAll().stream()
+                .filter(store -> store.getId() != 1)  // 본사(storeId=1) 제외
+                .map(Store::toDto)
+                .collect(Collectors.toList());
+    }
 
     //재료설정 조회
     @Override

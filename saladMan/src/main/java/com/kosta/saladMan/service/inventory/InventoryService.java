@@ -33,6 +33,9 @@ public interface InventoryService {
     // 매장 조회
     List<StoreDto> getAllStores();
     
+    //매장 조회(본사제외)
+    List<StoreDto> getStoresExceptHQ();
+
     // 매장 전체 조회
     List<StoreIngredientDto> getAllStoreInventory(String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo);
 
