@@ -45,7 +45,7 @@ public class PurchaseOrder {
 
     private Integer totalPrice;
 
-    private String category;
+    private String purType; //발주유형
 
     private String qrImg;
 
@@ -57,7 +57,7 @@ public class PurchaseOrder {
                 .status(status)
                 .requestedBy(requestedBy)
                 .totalPrice(totalPrice)
-                .category(category)
+                .purType(purType)
                 .qrImg(qrImg)
                 .build();
     }

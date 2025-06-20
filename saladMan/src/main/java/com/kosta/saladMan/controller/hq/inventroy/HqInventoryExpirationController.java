@@ -28,27 +28,54 @@ public class HqInventoryExpirationController {
         public ResponseEntity<Map<String, Object>> getExpirationInventory(@RequestBody Map<String, Object> param) {
             try {
                 String scope = (String) param.getOrDefault("scope", "all");
+                String category = (String) param.getOrDefault("category", "all");
                 String storeParam = (String) param.getOrDefault("store", "all");
-                Integer storeId = "all".equals(storeParam) ? null : Integer.valueOf(storeParam);
+                String name = (String) param.getOrDefault("name", "");
 
-                String category = (String) param.getOrDefault("category", "");
                 String keyword = (String) param.getOrDefault("keyword", "");
                 String startDate = (String) param.getOrDefault("startDate", "");
                 String endDate = (String) param.getOrDefault("endDate", "");
                 int page = param.get("page") == null ? 1 : (int) param.get("page");
+                Object storeObj = param.get("store");
+
+
+
+                Integer storeId = null;
+
+                try {
+                    if (storeObj != null && !"all".equals(storeObj.toString().trim())) {
+                        storeId = Integer.valueOf(storeObj.toString().trim());
+                    }
+                } catch (NumberFormatException e) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
+                
                 PageInfo pageInfo = new PageInfo(page);
 
                 Map<String, Object> res = new HashMap<>();
 
+                //본사 조회
                 if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope) || (storeId != null && storeId == 1)) {
                     List<HqIngredientDto> hqInventory = inventoryService.getHqInventory(storeId, category, keyword, startDate, endDate, pageInfo);
                     res.put("hqInventory", hqInventory);
                 }
-
-                if ("store".equalsIgnoreCase(scope) || ("all".equalsIgnoreCase(scope) && storeId != null && storeId != 1)) {
-                    List<StoreIngredientDto> storeInventory = inventoryService.getStoreInventory(storeId, category, keyword, startDate, endDate, pageInfo);
-                    res.put("storeInventory", storeInventory);
+                
+                // 매장 재고 조회
+                if ("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
+                    List<StoreIngredientDto> storeList;
+                    if (storeId == null) {
+                        // storeId == null 이면 전체 지점 재고 조회 메서드 호출 (아래 메서드는 별도로 구현 필요)
+                        storeList = inventoryService.getAllStoreInventory(category, name, null, null, pageInfo);
+                    } else if (storeId != 1) {
+                        // 특정 지점 재고 조회
+                        storeList = inventoryService.getStoreInventory(storeId, category, name, null, null, pageInfo);
+                    } else {
+                        // 본사(storeId == 1)일 경우는 무시 또는 빈 리스트
+                        storeList = List.of();
+                    }
+                    res.put("storeInventory", storeList);
                 }
+
 
                 res.put("pageInfo", pageInfo);
                 return ResponseEntity.ok(res);

@@ -1,4 +1,4 @@
-package com.kosta.saladMan.service.hq;
+package com.kosta.saladMan.service.store;
 
 import java.util.Optional;
 
@@ -9,12 +9,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.store.StoreDto;
+import com.kosta.saladMan.dto.store.StoreUpdateDto;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.storeManagement.StoreDslRepository;
 
 @Service
-public class HqStoreManagementServiceImpl implements HqStoreManagementService {
+public class StoreManagementServiceImpl implements StoreManagementService {
 
 	@Autowired
 	private StoreRepository storeRepository;
@@ -70,20 +71,27 @@ public class HqStoreManagementServiceImpl implements HqStoreManagementService {
 	}
 
 	@Override
-	public Boolean updateStore(StoreDto storeDto) throws Exception {
-        Optional<Store> optional = storeRepository.findById(storeDto.getId());
+	public Boolean updateStore(StoreUpdateDto storeUpdateDto) throws Exception {
+        Optional<Store> optional = storeRepository.findById(storeUpdateDto.getId());
         if (optional.isEmpty()) return false;
 
         Store store = optional.get();
-        store.setName(storeDto.getName());
-        store.setAddress(storeDto.getAddress());
-        store.setPhoneNumber(storeDto.getPhoneNumber());
-        store.setUsername(storeDto.getUsername());
-        store.setLocation(storeDto.getLocation());
-        store.setLatitude(storeDto.getLatitude());
-        store.setLongitude(storeDto.getLongitude());
-
+       
+        store.setName(storeUpdateDto.getName());
+        store.setAddress(storeUpdateDto.getAddress());
+        store.setPhoneNumber(storeUpdateDto.getPhoneNumber());
+        store.setUsername(storeUpdateDto.getUsername());
+        store.setLocation(storeUpdateDto.getLocation());
+        store.setLatitude(storeUpdateDto.getLatitude());
+        store.setLongitude(storeUpdateDto.getLongitude());
+        store.setOpenTime(storeUpdateDto.getOpenTime());
+        store.setCloseTime(storeUpdateDto.getCloseTime());
+        store.setBreakDay(storeUpdateDto.getBreakDay());
+        store.setUsername(storeUpdateDto.getUsername());
+        store.setDeliveryDay(storeUpdateDto.getDeliveryDay());
+        
         storeRepository.save(store);
+        
         return true;
 	}
 
