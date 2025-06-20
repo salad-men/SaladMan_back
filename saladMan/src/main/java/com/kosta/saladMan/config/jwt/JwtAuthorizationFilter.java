@@ -37,23 +37,14 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
+		
  		String uri = request.getRequestURI();
+ 	    System.out.println("▶ Authorization 헤더: " + request.getHeader("Authorization"));
  		
  	    if ("/actuator/health".equals(uri)) {
  	        chain.doFilter(request, response);
  	        return;
  	    }
- 	    
- 		System.out.println(uri);
- 		
- 		if (uri.startsWith("/user")) {
- 		    chain.doFilter(request, response); // 인증 없이 통과시킴
- 		    return;
- 		}
- 		
- 		
- 	
-
  		
  		//로그인(인증)이 필요없는 요청은 그대로 진행
  		if(!(uri.contains("/store") || uri.contains("/hq"))) {
@@ -61,24 +52,16 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
  			return;
  		}
  		
-		String authentication = request.getHeader(JwtProperties.HEADER_STRING);
-		if(authentication==null) {
+ 		String accessTokenHeader = request.getHeader(JwtProperties.HEADER_STRING);
+	    String refreshTokenHeader = request.getHeader("X-Refresh-Token");
+	   
+		if(accessTokenHeader==null || !accessTokenHeader.startsWith(JwtProperties.TOKEN_PREFIX)) {
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED,"로그인 필요1");
 			return;
-		}
+		}		
 		
-		ObjectMapper objectMapper = new ObjectMapper();
-		Map<String,String> token = objectMapper.readValue(authentication,Map.class);
-		System.out.println(token);
+		String accessToken = accessTokenHeader.replace(JwtProperties.TOKEN_PREFIX, "").trim();
 		
-		//access_token : header로부터 accessToken가져와 bear check
-		String accessToken = token.get("access_token");
-		if(!accessToken.startsWith(JwtProperties.TOKEN_PREFIX)) {
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요2");
-			return;
-		}
-		
-		accessToken = accessToken.replace(JwtProperties.TOKEN_PREFIX, "");
 		try {
 			//1. access token check
 			//1-1. 보안키, 만료시간 체크
@@ -87,16 +70,17 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 						.verify(accessToken)
 						.getClaim("sub")
 						.asString();
-			System.out.println(username);
+			System.out.println("username from accessToken: " +username);
 			if(username==null || username.equals("")) {
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요3");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요2");
 				return;
 			}
 			
 			//1-2. username check		
 			Optional<Store> ostore = storeRepository.findByUsername(username);
 			if(ostore.isEmpty()) {
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요4");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요3");
+				System.out.println("role from DB: " + ostore.get().getRole());
 				return;
 			}
 			
@@ -111,50 +95,52 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 			
 		} catch(Exception e) {
 			e.printStackTrace();
+			System.out.println("Access Token 만료됨 → refresh 로직 진입 여부 확인");
+			//2. Refresh Token check : Access Token invalidate 일 경우
+			if(refreshTokenHeader == null || !refreshTokenHeader.startsWith(JwtProperties.TOKEN_PREFIX)) {
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요4");
+				return;
+			}
+				
 			try {
-				//2. Refresh Token check : Access Token invalidate 일 경우
-				String refreshToken = token.get("refresh_token");
-				if(!refreshToken.startsWith(JwtProperties.TOKEN_PREFIX)) {
-					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요5");
-					return;
-				}
-				
-				refreshToken = refreshToken.replace(JwtProperties.TOKEN_PREFIX, "");
 				//2-1. 보안키, 만료시간 check
+				String refreshToken = refreshTokenHeader.replace(JwtProperties.TOKEN_PREFIX, "").trim();
 				String username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET))
-					.build()
-					.verify(refreshToken)
-					.getClaim("sub")
-					.asString();
-				
+						.build()
+						.verify(refreshToken)
+						.getClaim("sub")
+						.asString();
+					
 				//2-2. username check
 				Optional<Store> ostore = storeRepository.findByUsername(username);
 				if(ostore.isEmpty()) {
-					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요6");
+					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요5");
 					return;
 				}
 				
 				//3-3. refresh token이 invalidate일 경우 accessToken, refreshToken 새로 만들어서 보낸다.
 				String reAccessToken = jwtToken.makeAccessToken(username);
 				String reRefreshToken = jwtToken.makeRefreshToken(username);
-				
-				Map<String,String> map = new HashMap<>();
-				map.put("access_token", JwtProperties.TOKEN_PREFIX+reAccessToken);
-				map.put("refresh_token", JwtProperties.TOKEN_PREFIX+reRefreshToken);
-
+	
 				PrincipalDetails principalDetails = new PrincipalDetails(ostore.get());
 				UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principalDetails, null,
 						principalDetails.getAuthorities());
 				SecurityContextHolder.getContext().setAuthentication(auth);
-				
-				String reToken = objectMapper.writeValueAsString(map);				
-				response.addHeader(JwtProperties.HEADER_STRING, reToken);				
+					
+				// 새 토큰 헤더에 담아 응답
+	            response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + reAccessToken);
+	            response.addHeader("X-Refresh-Token", JwtProperties.TOKEN_PREFIX + reRefreshToken);
+	
+	            chain.doFilter(request, response);
+	            return;
+            
 			} catch(Exception e2) {
 				e2.printStackTrace();
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요7");
+				System.out.println("Refresh Token 만료 → 로그인 필요");
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 필요6");
+				return;
 			}
 		}
 		
-		super.doFilterInternal(request, response, chain);
 	}
 }
