@@ -25,6 +25,11 @@ public class PurchaseOrderDto {
     private Integer totalPrice;
     private String purType; //발주유형
     private String qrImg;
+    
+    private String productNameSummary; //이름 요약 ex.양상추 외 3
+    private String quantitySummary; //수량 요약 5/7
+    private boolean receiptAvailable;    // 입고 상태면 true
+
 
     public PurchaseOrder toEntity() {
         return PurchaseOrder.builder()
@@ -36,6 +41,7 @@ public class PurchaseOrderDto {
                 .totalPrice(totalPrice)
                 .purType(purType)
                 .qrImg(qrImg)
+                
                 .build();
     }
 }
