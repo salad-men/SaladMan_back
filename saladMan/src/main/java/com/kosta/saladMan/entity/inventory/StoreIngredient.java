@@ -44,7 +44,6 @@ public class StoreIngredient {
     @JoinColumn(nullable = false, name = "store_id")
     private Store store;
 
-    private Integer expiredQuantity;
 
     private Integer quantity;  // s_quantity
     
@@ -70,7 +69,6 @@ public class StoreIngredient {
                 .unit(ingredient != null ? ingredient.getUnit() : null)
                 .unitCost(unitCost)                
                 .minimumOrderUnit(minimumOrderUnit)
-                .expiredQuantity(expiredQuantity)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
                 .receivedDate(receivedDate)

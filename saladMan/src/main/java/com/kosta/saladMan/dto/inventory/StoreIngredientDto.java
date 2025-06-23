@@ -26,7 +26,6 @@ public class StoreIngredientDto {
     private String storeName;
     private Integer unitCost;
     private String unit;
-    private Integer expiredQuantity;
     private Integer minimumOrderUnit;
     private Integer quantity;
     private LocalDate expiredDate;
@@ -41,7 +40,6 @@ public class StoreIngredientDto {
                 .store(storeId != null ? Store.builder().id(storeId).build() : null)
                 .unitCost(unitCost)
                 .minimumOrderUnit(minimumOrderUnit)
-                .expiredQuantity(expiredQuantity)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
                 .receivedDate(receivedDate)  
