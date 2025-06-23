@@ -9,12 +9,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.auth.PrincipalDetails;
+import com.kosta.saladMan.dto.menu.RecipeDto;
+import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
+import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.menu.SMenuService;
 import com.kosta.saladMan.util.PageInfo;
 
@@ -50,12 +55,41 @@ public class SMenuController {
 	    }
 	}
 	
-//	@GetMapping("/storeStatus")
-//	public ResponseEntity<List<TotalMenuDto>> getMenus(Authentication authentication) {
-//	    PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
-//	    Integer storeId = principal.getStore().getId();
-//	    return ResponseEntity.ok(menuService.getStoreStatus(storeId));
-//	}
+	@GetMapping("/menuStatus")
+	public ResponseEntity<List<StoreMenuStatusDto>> getMenus(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+	    Store store = principalDetails.getStore();
+	    Integer storeId = store.getId();
+	    try {
+	    	List<StoreMenuStatusDto> menuList = menuService.getStoreStuatus(storeId);
+	    	return new ResponseEntity<>(menuList, HttpStatus.OK);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+	    }   
+	}
+	
+//	@PatchMapping("/menuStatus/toggle")
+//    public ResponseEntity<Boolean> toggleMenuStatus(@RequestBody MenuToggleRequest request,
+//                                                     @AuthenticationPrincipal PrincipalDetails principalDetails) {
+//		try {
+//			Integer storeId = principalDetails.getStore().getId();
+//	        boolean result = menuService.toggleMenuStatus(storeId, request.getMenuId());
+//	        return new ResponseEntity<>(result, HttpStatus.OK);
+//		} catch (Exception e) {
+//	        e.printStackTrace();
+//	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//	    } 
+//    }
 
-
+	//레시피 조회
+	@GetMapping("/recipe")
+    public ResponseEntity<List<RecipeDto>> getAllMenuRecipes() {
+        try {
+			return ResponseEntity.ok(menuService.getAllMenuRecipes());
+		} catch (Exception e) {
+			e.printStackTrace();
+	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+    }
+	
 }

@@ -1,11 +1,16 @@
 package com.kosta.saladMan.controller.hq.order;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.service.order.OrderService;
 
 @RestController
@@ -58,5 +64,29 @@ public class OrderController {
 	    result.put("available", updatedAvailable);
 	    System.out.println(result);
 	    return ResponseEntity.ok(result);
+	}
+	
+	@GetMapping("/orderRequestList")
+	public ResponseEntity<Map<String, Object>> getOrderRequests(
+			@RequestParam(required = false) String storeName,
+	        @RequestParam(required = false) String status,
+	        @RequestParam(required = false) String approval,
+	        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+	        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size
+	){
+		
+        try {
+        	 PageRequest pageable = PageRequest.of(page, size, Sort.by("orderDateTime").descending());
+        	    Map<String, Object> result = orderService.getOrderListByHq(
+        	            storeName, status, approval, startDate, endDate, pageable);
+                return new ResponseEntity<>(result,HttpStatus.OK);
+
+            
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 	}
 }

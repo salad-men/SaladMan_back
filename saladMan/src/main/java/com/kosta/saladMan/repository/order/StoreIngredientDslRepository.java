@@ -67,39 +67,48 @@ public class StoreIngredientDslRepository {
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
 
 		return jpaQueryFactory
-		    .select(Projections.constructor(
-		        StoreOrderItemDto.class,
-		        ing.id,
-		        ing.name,
-		        ing.category.name,
-		        si.quantity.coalesce(0),
-		        JPAExpressions.select(poi.orderedQuantity.sum().coalesce(0))
-		            .from(poi)
-		            .join(poi.purchaseOrder, po)
-		            .where(
-		                poi.ingredient.id.eq(ing.id),
-		                po.store.id.eq(id),
-		                po.status.in("입고대기", "승인됨")
-		            ),
-		        ing.unit,
-		        hq.unitCost,
-		        hq.minimumOrderUnit
-		    ))
-		    .from(ing)
-		    .leftJoin(si).on(
-		        si.store.id.eq(id),
-		        si.ingredient.id.eq(ing.id)
-		    )
-		    .leftJoin(hq).on(
-		        hq.ingredient.id.eq(ing.id)
-		    )
-		    .where(
-		        category != null && !category.equals("전체")
-		            ? ing.category.name.eq(category) : null,
-		        keyword != null && !keyword.isBlank()
-		            ? ing.name.containsIgnoreCase(keyword) : null
-		    )
-		    .fetch();
+			    .select(Projections.constructor(
+			        StoreOrderItemDto.class,
+			        ing.id,
+			        ing.name,
+			        ing.category.name,
+			        si.quantity.coalesce(0),
+			        JPAExpressions.select(poi.orderedQuantity.sum().coalesce(0))
+			            .from(poi)
+			            .join(poi.purchaseOrder, po)
+			            .where(
+			                poi.ingredient.id.eq(ing.id),
+			                po.store.id.eq(id),
+			                po.status.in("대기중", "승인됨")
+			            ),
+			        ing.unit,
+			        hq.unitCost.coalesce(0),           // max 단가로 대표값 처리
+			        hq.minimumOrderUnit.coalesce(0),    // 여러 개일 경우도 방지
+			        hq.quantity.coalesce(0),
+			        ing.available
+			    ))
+			    .from(ing)
+			    .leftJoin(si).on(
+			        si.store.id.eq(id),
+			        si.ingredient.id.eq(ing.id)
+			    )
+			    .leftJoin(hq).on(
+			        hq.ingredient.id.eq(ing.id)
+			    )
+			    .where(
+			        category != null && !category.equals("전체")
+			            ? ing.category.name.eq(category) : null,
+			        keyword != null && !keyword.isBlank()
+			            ? ing.name.containsIgnoreCase(keyword) : null
+			    )
+			    .groupBy(
+			        ing.id,
+			        ing.name,
+			        ing.category.name,
+			        si.quantity,
+			        ing.unit
+			    )
+			    .fetch();
 	}
 
 }
