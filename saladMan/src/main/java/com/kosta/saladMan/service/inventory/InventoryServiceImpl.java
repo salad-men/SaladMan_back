@@ -135,7 +135,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public void processDisposalRequest(List<DisposalDto> disposalList) {
         // 본사 Store 엔티티 조회 (ID로 고정)
-        Store hqStore = storeRepository.findByName("본사계정")
+        Store hqStore = storeRepository.findByName("본사")
                 .orElseThrow(() -> new IllegalArgumentException("본사 매장을 찾을 수 없습니다."));
         
         Integer hqStoreId = hqStore.getId();
