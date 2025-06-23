@@ -1,6 +1,7 @@
 package com.kosta.saladMan.service.menu;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,15 +10,25 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.menu.RecipeDto;
+import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
+import com.kosta.saladMan.entity.menu.StoreMenu;
 import com.kosta.saladMan.entity.menu.TotalMenu;
+import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.MenuRepository;
+import com.kosta.saladMan.repository.menu.SMenuDslRepository;
+import com.kosta.saladMan.repository.menu.SMenuRepository;
 import com.kosta.saladMan.util.PageInfo;
 @Service
 public class SMenuServiceImpl implements SMenuService {
 	
 	@Autowired
 	private MenuRepository menuRepository;
+	@Autowired
+	private SMenuRepository sMenuRepository;
+	@Autowired
+	private SMenuDslRepository sMenuDslRepository;
 
 	@Override
 	public List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort) throws Exception {
@@ -50,6 +61,42 @@ public class SMenuServiceImpl implements SMenuService {
 	            .stream()
 	            .map(TotalMenuDto::fromEntity)
 	            .collect(Collectors.toList());
+	}
+
+	@Override
+	public List<StoreMenuStatusDto> getStoreStuatus(Integer storeId) throws Exception {
+		return sMenuDslRepository.findMenuWithStoreStatus(storeId);
+	}
+
+//	@Override
+//	public boolean toggleMenuStatus(Integer storeId, Integer menuId) throws Exception {
+//	    Optional<StoreMenu> optional = menuRepository.findByStoreIdAndMenuId(storeId, menuId);
+//
+//	    if (optional.isPresent()) {
+//	        StoreMenu storeMenu = optional.get();
+//	        storeMenu.setStatus(!storeMenu.getStatus());
+//	        menuRepository.save(storeMenu);
+//	    } else {
+//	        Store store = storeRepository.findById(storeId)
+//	                .orElseThrow(() -> new Exception("매장 정보가 없습니다."));
+//
+//	        TotalMenu menu = menuRepository.findById(menuId)
+//	                .orElseThrow(() -> new Exception("메뉴 정보가 없습니다."));
+//
+//	        StoreMenu newStoreMenu = StoreMenu.builder()
+//	                .store(store)
+//	                .menu(menu)
+//	                .status(true)
+//	                .build();
+//
+//	        menuRepository.save(newStoreMenu);
+//	    }
+//	    return true;
+//	}
+	
+	@Override
+	public List<RecipeDto> getAllMenuRecipes() throws Exception {
+		return sMenuDslRepository.findAllMenusWithIngredients();
 	}
 
 }
