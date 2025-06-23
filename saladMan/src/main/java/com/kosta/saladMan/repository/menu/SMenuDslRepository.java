@@ -8,9 +8,11 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.menu.MenuIngredientDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
+import com.kosta.saladMan.entity.inventory.QIngredient;
 import com.kosta.saladMan.entity.menu.QMenuIngredient;
 import com.kosta.saladMan.entity.menu.QStoreMenu;
 import com.kosta.saladMan.entity.menu.QTotalMenu;
@@ -23,6 +25,7 @@ public class SMenuDslRepository {
 	QTotalMenu tm = QTotalMenu.totalMenu;
 	QStoreMenu sm = QStoreMenu.storeMenu;
 	QMenuIngredient mi = QMenuIngredient.menuIngredient;
+	QIngredient ing = QIngredient.ingredient;
 	
 	@Autowired
     private JPAQueryFactory queryFactory;
@@ -53,10 +56,12 @@ public class SMenuDslRepository {
                 tm.name,
                 tm.img,
                 mi.menu,
-                mi.quantity
+                mi.quantity,
+                ing.name
             )
             .from(tm)
             .join(mi).on(mi.menu.id.eq(tm.id))
+            .join(ing).on(ing.id.eq(mi.ingredient.id))
             .fetch();
 
         Map<Integer, RecipeDto> resultMap = new LinkedHashMap<>();
@@ -71,13 +76,13 @@ public class SMenuDslRepository {
                     .ingredients(new ArrayList<>())
                     .build()
             );
-            
+
             dto.getIngredients().add(
-                    MenuIngredientDto.builder()
-                        .id(row.get(mi.id))
-                        .quantity(row.get(mi.quantity))
-                        .build()
-                );
+                IngredientDto.builder()
+                    .quantity(row.get(mi.quantity))
+                    .name(row.get(ing.name))
+                    .build()
+            );
         }
 
         return new ArrayList<>(resultMap.values());
