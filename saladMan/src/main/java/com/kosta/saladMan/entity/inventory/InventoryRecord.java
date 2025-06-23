@@ -54,7 +54,7 @@ public class InventoryRecord {
                 .quantity(quantity)
                 .memo(memo)
                 .changeType(changeType)
-                .date(date.toString())
+                .date(date)
                 .build();
     }
 }

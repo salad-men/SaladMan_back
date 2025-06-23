@@ -58,27 +58,22 @@ public class InventoryServiceImpl implements InventoryService {
 
     
     @Override
-    // 본사 재고(전체/유통기한) 조회
-    public List<HqIngredientDto> getHqInventory(
-            Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
-        // 본사만
-        if (storeId != null && storeId != 1) return List.of();
-
+    public List<HqIngredientDto> getHqInventory(Integer storeId, Integer categoryId, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
         LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
 
         PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
-        long totalCount = hqInventoryDslRepository.countHqInventoryByFilters(category, keyword, startDate, endDate);
+        long totalCount = hqInventoryDslRepository.countHqInventoryByFilters(categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
+
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        List<HqIngredientDto> list = hqInventoryDslRepository.findHqInventoryByFilters(category, keyword, startDate, endDate, pageRequest);
-        
-        // 본사 Store 엔티티 조회해서 이름 직접 세팅
-        Store hqStore = storeRepository.findById(1) // 본사 ID가 1이라 가정
+        List<HqIngredientDto> list = hqInventoryDslRepository.findHqInventoryByFilters(categoryId, keyword, startDate, endDate, pageRequest);
+
+        Store hqStore = storeRepository.findById(1)
                 .orElseThrow(() -> new IllegalArgumentException("본사 매장을 찾을 수 없습니다."));
         String hqStoreName = hqStore.getName();
 
@@ -86,12 +81,11 @@ public class InventoryServiceImpl implements InventoryService {
 
         return list;
     }
-    
-    
-    // 매장 재고(전체/유통기한) 조회
+
+
     @Override
     public List<StoreIngredientDto> getStoreInventory(
-            Integer storeId, String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
+            Integer storeId, Integer categoryId, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
         if (storeId == null || storeId == 1) return List.of();
 
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
@@ -102,38 +96,36 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + storeId));
 
         long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(
-        	    storeEntity.getId(), category, keyword, startDate, endDate
-        	);
+                storeEntity.getId(), categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
-        
-        System.out.println("Store ID: " + storeId + ", Name: " + storeEntity.getName());
 
         return storeInventoryDslRepository.findStoreInventoryByFilters(
-        	    storeEntity.getId(), category, keyword, startDate, endDate, pageRequest
-        	).stream().map(StoreIngredient::toDto).collect(Collectors.toList());
+                storeEntity.getId(), categoryId, keyword, startDate, endDate, pageRequest);
     }
+
     
     @Override
-    public List<StoreIngredientDto> getAllStoreInventory(String category, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
+    public List<StoreIngredientDto> getAllStoreInventory(
+            Integer categoryId, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
+
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
         LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
 
-        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
-
-        long totalCount = storeInventoryDslRepository.countAllStoreInventoryByFilters(category, keyword, startDate, endDate);
+        long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(
+                null, categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
         int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
         int end = Math.min(start + 9, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
-        List<StoreIngredient> list = storeInventoryDslRepository.findAllStoreInventoryByFilters(category, keyword, startDate, endDate, pageRequest);
-
-        return list.stream().map(StoreIngredient::toDto).collect(Collectors.toList());
+        return storeInventoryDslRepository.findStoreInventoryByFilters(
+                null, categoryId, keyword, startDate, endDate,
+                PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE));
     }
 
 
@@ -215,43 +207,70 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
     
-
     //재고 추가
     @Override
     public void addHqIngredient(HqIngredientDto dto) {
-        // 유효성 검사: categoryId, ingredientId 존재 확인
         IngredientCategory category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 ID: " + dto.getCategoryId()));
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 ID: " + dto.getCategoryId()));
         Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료 ID: " + dto.getIngredientId()));
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료 ID: " + dto.getIngredientId()));
+
+        // 실제 DB에서 Store 조회
+        Store store = storeRepository.findById(dto.getStoreId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + dto.getStoreId()));
 
         HqIngredient entity = dto.toEntity();
+
+        entity.setStore(store);
 
         hqIngredientRepository.save(entity);
     }
 
 
-    //재고 수정정
+    //본사 재고 수정
     @Override
+    @Transactional
     public void updateHqIngredient(HqIngredientDto dto) {
         hqInventoryDslRepository.updateHqIngredient(dto);
     }
-
     
- // 본사 폐기 목록 조회
+    //매장 재고 수정
     @Override
-    public List<DisposalDto> searchHqDisposals(PageInfo pageInfo,String category, String keyword, String startDateStr, String endDateStr) {
+    @Transactional
+    public void updateStoreIngredient(StoreIngredientDto dto) {
+        // 매장 재고 엔티티 조회
+        StoreIngredient entity = storeIngredientRepository.findById(dto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 재고 ID: " + dto.getId()));
+
+        // 필요한 필드만 수정 (수량, 단가, 최소주문단위, 유통기한, 입고날짜 등)
+        entity.setQuantity(dto.getQuantity());
+        entity.setUnitCost(dto.getUnitCost());
+        entity.setMinimumOrderUnit(dto.getMinimumOrderUnit());
+        entity.setExpiredDate(dto.getExpiredDate());
+        entity.setReceivedDate(dto.getReceivedDate());
+
+        // 저장
+        storeIngredientRepository.save(entity);
+    }
+
+
+    //폐기목록 조회(본사)
+    @Override
+    public List<DisposalDto> searchHqDisposals(PageInfo pageInfo, Integer categoryId, String keyword, String startDateStr, String endDateStr) {
         LocalDate startDate = (startDateStr != null && !startDateStr.isBlank()) ? LocalDate.parse(startDateStr) : null;
         LocalDate endDate = (endDateStr != null && !endDateStr.isBlank()) ? LocalDate.parse(endDateStr) : null;
-        String store="본사";
         
-        int totalCount = hqInventoryDslRepository.countHqDisposals(store, category, keyword, startDate, endDate);
-        pageInfo.setAllPage((int)Math.ceil((double)totalCount / 10));   
-        int block = 5; 
+        // 본사 storeId (예: 1)
+        Integer hqStoreId = 1;
+
+        // 총 개수 조회
+        int totalCount = hqInventoryDslRepository.countHqDisposals(hqStoreId, categoryId, keyword, startDate, endDate);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / 10));
+
+        int block = 5;
         int curPage = pageInfo.getCurPage() == null ? 1 : pageInfo.getCurPage();
         int allPage = pageInfo.getAllPage() == null ? 1 : pageInfo.getAllPage();
 
-        // 블록 계산
         int startPage = ((curPage - 1) / block) * block + 1;
         int endPage = Math.min(startPage + block - 1, allPage);
 
@@ -260,22 +279,22 @@ public class InventoryServiceImpl implements InventoryService {
 
         // 목록 조회
         List<Disposal> result = hqInventoryDslRepository.selectHqDisposalListByFiltersPaging(
-            store, category, keyword, startDate, endDate,
+            hqStoreId, categoryId, keyword, startDate, endDate,
             PageRequest.of(curPage - 1, 10)
         );
 
         return result.stream().map(Disposal::toDto).collect(Collectors.toList());
-        
     }
 
-    // 매장 폐기 목록 조회
+
+    //폐기목록 조회(매장)
     @Override
-    public List<DisposalDto> searchStoreDisposals(PageInfo pageInfo, String store, String category, String keyword, String startDateStr, String endDateStr) {
+    public List<DisposalDto> searchStoreDisposals(PageInfo pageInfo, Integer storeId, Integer categoryId, String keyword, String startDateStr, String endDateStr) {
         LocalDate startDate = (startDateStr != null && !startDateStr.isBlank()) ? LocalDate.parse(startDateStr) : null;
         LocalDate endDate = (endDateStr != null && !endDateStr.isBlank()) ? LocalDate.parse(endDateStr) : null;
 
-        int totalCount = storeInventoryDslRepository.countStoreDisposals(store, category, keyword, startDate, endDate);
-        pageInfo.setAllPage((int)Math.ceil((double)totalCount / 10));
+        int totalCount = storeInventoryDslRepository.countStoreDisposals(storeId, categoryId, keyword, startDate, endDate);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / 10));
         int block = 5;
         int curPage = pageInfo.getCurPage() == null ? 1 : pageInfo.getCurPage();
         int allPage = pageInfo.getAllPage() == null ? 1 : pageInfo.getAllPage();
@@ -287,7 +306,7 @@ public class InventoryServiceImpl implements InventoryService {
         pageInfo.setEndPage(endPage);
 
         List<Disposal> result = storeInventoryDslRepository.selectStoreDisposalListByFiltersPaging(
-            store, category, keyword, startDate, endDate,
+            storeId, categoryId, keyword, startDate, endDate,
             PageRequest.of(curPage - 1, 10)
         );
 
@@ -327,7 +346,8 @@ public class InventoryServiceImpl implements InventoryService {
                 .map(Store::toDto)
                 .collect(Collectors.toList());
     }
-    
+
+    //매장 가져오기(본사제외)
     @Override
     public List<StoreDto> getStoresExceptHQ() {
         return storeRepository.findAll().stream()
@@ -336,13 +356,47 @@ public class InventoryServiceImpl implements InventoryService {
                 .collect(Collectors.toList());
     }
 
-    //재료설정 조회
     @Override
-    public List<StoreIngredientSettingDto> getSettingsByStoreId(Integer storeId) {
-        return storeIngredientSettingRepository.findByStoreId(storeId)
-                .stream()
-                .map(StoreIngredientSetting::toDto)  
-                .collect(Collectors.toList());
+    public List<StoreIngredientSettingDto> getHqSettingsByFilters(Integer storeId, Integer categoryId, String keyword, PageInfo pageInfo) {
+        // curPage가 0 또는 음수면 1로 기본 설정
+        if (pageInfo.getCurPage() <= 0) {
+            pageInfo.setCurPage(1);
+        }
+        
+        long totalCount = hqInventoryDslRepository.countHqSettingsByFilters(storeId, categoryId, keyword);
+
+        int allPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+        int startPage = ((pageInfo.getCurPage() - 1) / 10) * 10 + 1;
+        int endPage = Math.min(startPage + 9, allPage);
+
+        pageInfo.setStartPage(startPage);
+        pageInfo.setEndPage(endPage);
+        pageInfo.setAllPage(allPage);
+
+        int offset = (pageInfo.getCurPage() - 1) * PAGE_SIZE;
+
+        return hqInventoryDslRepository.findHqSettingsByFilters(storeId, categoryId, keyword, offset, PAGE_SIZE);
+    }
+
+    @Override
+    public List<StoreIngredientSettingDto> getStoreSettingsByFilters(Integer storeId, Integer categoryId, String keyword, PageInfo pageInfo) {
+        if (pageInfo.getCurPage() <= 0) {
+            pageInfo.setCurPage(1);
+        }
+        
+        long totalCount = storeInventoryDslRepository.countStoreSettingsByFilters(storeId, categoryId, keyword);
+
+        int allPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+        int startPage = ((pageInfo.getCurPage() - 1) / 10) * 10 + 1;
+        int endPage = Math.min(startPage + 9, allPage);
+
+        pageInfo.setStartPage(startPage);
+        pageInfo.setEndPage(endPage);
+        pageInfo.setAllPage(allPage);
+
+        int offset = (pageInfo.getCurPage() - 1) * PAGE_SIZE;
+
+        return storeInventoryDslRepository.findStoreSettingsByFilters(storeId, categoryId, keyword, offset, PAGE_SIZE);
     }
 
 
@@ -387,8 +441,20 @@ public class InventoryServiceImpl implements InventoryService {
     }
     //재고 기록 조회
     @Override
-    public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String type) {
-        List<InventoryRecord> records = recordRepository.findByStoreIdAndChangeType(storeId, type);
-        return records.stream().map(InventoryRecord::toDto).collect(Collectors.toList());
+    public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo) {
+        if (storeId == null) return List.of();
+
+        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+
+        if (storeId == 1) {
+            // 본사 인벤토리 기록 조회
+            return hqInventoryDslRepository.findHqInventoryRecords(changeType, pageRequest);
+        } else {
+            // 매장 인벤토리 기록 조회
+            return storeInventoryDslRepository.findStoreInventoryRecords(storeId, changeType, pageRequest);
+        }
     }
+
+
+    
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.service.inventory.InventoryService;
+import com.kosta.saladMan.util.PageInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,17 +43,26 @@ public class InventoryRecordController {
 
 
     @GetMapping("/record")
-    public ResponseEntity<Map<String, Object>> getList(@RequestParam Integer storeId, @RequestParam String type) {
+    public ResponseEntity<Map<String, Object>> getList(
+        @RequestParam Integer storeId,
+        @RequestParam String type,
+        @RequestParam(defaultValue = "1") int page
+    ) {
         try {
-            List<InventoryRecordDto> list = inventoryService.getRecordsByStoreAndType(storeId, type);
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setCurPage(page);
+
+            List<InventoryRecordDto> list = inventoryService.getRecordsByStoreAndType(storeId, type, pageInfo);
 
             Map<String, Object> res = new HashMap<>();
-            res.put("records", list); 
-            return new ResponseEntity<>(res, HttpStatus.OK);
+            res.put("records", list);
+            res.put("pageInfo", pageInfo);  
+            return ResponseEntity.ok(res);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
     }
+
 
 }

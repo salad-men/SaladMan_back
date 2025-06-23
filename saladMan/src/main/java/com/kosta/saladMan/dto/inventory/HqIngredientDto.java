@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
+import com.kosta.saladMan.entity.store.Store;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class HqIngredientDto {
     private String categoryName;   
     private String ingredientName;
     private String storeName;
+    private Integer storeId;
     private Integer unitCost;
     private String unit; 
     private Integer minimumOrderUnit;
@@ -37,11 +39,13 @@ public class HqIngredientDto {
                 .id(id)
                 .category(IngredientCategory.builder().id(categoryId).build())
                 .ingredient(Ingredient.builder().id(ingredientId).build())
+                .store(Store.builder().id(storeId).build())
                 .unitCost(unitCost)
                 .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
-                .expiredDate(expiredDate)
-                .receivedDate(receivedDate)
+                .expiredDate(expiredDate != null ? expiredDate : LocalDate.now())  
+                .receivedDate(receivedDate != null ? receivedDate : LocalDate.now()) 
                 .build();
     }
+
 }
