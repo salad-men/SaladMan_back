@@ -28,9 +28,9 @@ public class PurchaseOrderDto {
     
     private String productNameSummary; //이름 요약 ex.양상추 외 3
     private String quantitySummary; //수량 요약 5/7
-    private boolean receiptAvailable;    // 입고 상태면 true
-
-
+    private Boolean receiptAvailable;    // 입고 상태면 true 발주서용
+    private String storeName;
+    
     public PurchaseOrder toEntity() {
         return PurchaseOrder.builder()
                 .id(id)
