@@ -47,6 +47,7 @@ public class StoreInventoryDslRepository {
         if (storeId != null) {
             builder.and(q.store.id.eq(storeId));
         }
+        
         if (categoryId != null) {
             builder.and(q.category.id.eq(categoryId));
         }

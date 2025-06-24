@@ -39,7 +39,9 @@ public class PurchaseOrder {
     @CreationTimestamp
     private LocalDateTime orderDateTime;
 
-    private String status;
+    private String status; //
+    
+    private String orderStatus;
 
     private String requestedBy;
 
@@ -55,6 +57,7 @@ public class PurchaseOrder {
                 .storeId(store != null ? store.getId() : null)
                 .orderDateTime(orderDateTime)
                 .status(status)
+                .orderStatus(status)
                 .requestedBy(requestedBy)
                 .totalPrice(totalPrice)
                 .purType(purType)
