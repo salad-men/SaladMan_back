@@ -7,6 +7,9 @@ import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
+import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
+import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.service.inventory.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -123,6 +126,15 @@ public class HqInventoryController {
             "categories", inventoryService.getAllCategories()
         ));
     }
+    
+    // 카테고리 추가
+    @PostMapping("/category-add")
+    public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, Object> body) {
+        String name = (String) body.get("name");
+        Integer id = inventoryService.addCategory(name);
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
 
     //매장 조회(추후 변경)
     @GetMapping("/stores")
@@ -138,7 +150,16 @@ public class HqInventoryController {
         List<IngredientDto> list = inventoryService.getAllIngredients();
         return ResponseEntity.ok(Map.of("ingredients", list));
     }
-    
+ // 재료 추가
+    @PostMapping("/ingredient-add")
+    public ResponseEntity<Map<String, Object>> addIngredient(@RequestBody Map<String, Object> body) {
+        String name = (String) body.get("name");
+        Integer categoryId = (Integer) body.get("categoryId");
+        String unit = (String) body.get("unit");
+        Integer id = inventoryService.addIngredient(name, categoryId, unit);
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
     //재료 설정
     @GetMapping("/settings")
     public ResponseEntity<Map<String, Object>> getSettings(

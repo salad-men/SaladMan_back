@@ -145,8 +145,19 @@ public class InventoryServiceImpl implements InventoryService {
         HqIngredient entity = dto.toEntity();
 
         entity.setStore(store);
-
+        // 재고 저장
         hqIngredientRepository.save(entity);
+        
+        // 입고기록 추가
+        InventoryRecord record = InventoryRecord.builder()
+            .ingredient(ingredient)
+            .store(store)
+            .quantity(dto.getQuantity())
+            .changeType("입고")
+            .memo("신규 입고")
+            .date(LocalDateTime.now())
+            .build();
+        recordRepository.save(record);
     }
 
 
@@ -503,5 +514,34 @@ public class InventoryServiceImpl implements InventoryService {
             // 매장 인벤토리 기록 조회
             return storeInventoryDslRepository.findStoreInventoryRecords(storeId, changeType, pageRequest);
         }
+    }
+    
+    //카테고리 추가
+    @Override
+    @Transactional
+    public Integer addCategory(String name) {
+        IngredientCategory cat = categoryRepository.findByName(name).orElse(null);
+        if (cat == null) {
+            cat = new IngredientCategory();   
+            cat.setName(name);                
+            cat = categoryRepository.save(cat);
+        }
+        return cat.getId();
+    }
+
+    //재료추가
+    @Override
+    @Transactional
+    public Integer addIngredient(String name, Integer categoryId, String unit) {
+        Ingredient ingredient = ingredientRepository.findByNameAndCategoryId(name, categoryId).orElse(null);
+        if (ingredient == null) {
+            IngredientCategory cat = categoryRepository.findById(categoryId).orElseThrow();
+            ingredient = new Ingredient();    
+            ingredient.setName(name);
+            ingredient.setCategory(cat);
+            ingredient.setUnit(unit);
+            ingredient = ingredientRepository.save(ingredient);
+        }
+        return ingredient.getId();
     }
 }

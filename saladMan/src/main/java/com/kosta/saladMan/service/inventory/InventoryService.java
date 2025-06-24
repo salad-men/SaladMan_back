@@ -81,4 +81,10 @@ public interface InventoryService {
     //재고기록 조회(출고or입고)
     public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo);
 
+    
+    //카테고리 추가
+    Integer addCategory(String name);
+    
+    Integer addIngredient(String name, Integer categoryId, String unit);
+
 }
