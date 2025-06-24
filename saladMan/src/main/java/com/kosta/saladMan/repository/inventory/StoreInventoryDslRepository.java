@@ -55,6 +55,8 @@ public class StoreInventoryDslRepository {
         }
         if (startDate != null) builder.and(q.expiredDate.goe(startDate));
         if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+	    
+        builder.and(q.quantity.gt(0));
 
         return queryFactory
                 .select(Projections.bean(
