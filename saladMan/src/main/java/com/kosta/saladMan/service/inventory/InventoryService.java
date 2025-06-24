@@ -69,7 +69,11 @@ public interface InventoryService {
     List<StoreIngredientSettingDto> getStoreSettingsByFilters(Integer storeId, Integer categoryId, String keyword, PageInfo pageInfo);
 
     //매장별 재고 저장
-    StoreIngredientSettingDto saveSetting(StoreIngredientSettingDto dto);
+    StoreIngredientSettingDto addSetting(StoreIngredientSettingDto dto);
+    
+    //매장별 재고 수정
+    void updateSetting(StoreIngredientSettingDto dto);
+
     
     //재고 기록 저장
     void addRecord(InventoryRecordDto dto);

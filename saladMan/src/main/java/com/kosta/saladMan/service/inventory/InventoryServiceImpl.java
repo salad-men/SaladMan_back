@@ -355,7 +355,8 @@ public class InventoryServiceImpl implements InventoryService {
                 .map(Store::toDto)
                 .collect(Collectors.toList());
     }
-
+    
+    //재료설정 조회(본사)
     @Override
     public List<StoreIngredientSettingDto> getHqSettingsByFilters(Integer storeId, Integer categoryId, String keyword, PageInfo pageInfo) {
         // curPage가 0 또는 음수면 1로 기본 설정
@@ -378,6 +379,7 @@ public class InventoryServiceImpl implements InventoryService {
         return hqInventoryDslRepository.findHqSettingsByFilters(storeId, categoryId, keyword, offset, PAGE_SIZE);
     }
 
+    //재료설정 조회(매장)
     @Override
     public List<StoreIngredientSettingDto> getStoreSettingsByFilters(Integer storeId, Integer categoryId, String keyword, PageInfo pageInfo) {
         if (pageInfo.getCurPage() <= 0) {
@@ -401,22 +403,37 @@ public class InventoryServiceImpl implements InventoryService {
 
 
     
-    //재료설정 저장(추가/수정)
+    // 수정
     @Transactional
-    @Override
-    public StoreIngredientSettingDto saveSetting(StoreIngredientSettingDto dto) {
-        StoreIngredientSetting entity = storeIngredientSettingRepository.findByStoreIdAndIngredientId(dto.getStoreId(), dto.getIngredientId())
-                .map(existing -> {
-                    existing.setMinQuantity(dto.getMinQuantity());
-                    existing.setMaxQuantity(dto.getMaxQuantity());
-                    return existing;
-                })
-                .orElse(dto.toEntity());
+    public void updateSetting(StoreIngredientSettingDto dto) {
+        if (dto.getId() == null) throw new IllegalArgumentException("id는 필수입니다");
+        StoreIngredientSetting entity = storeIngredientSettingRepository.findById(dto.getId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 id: " + dto.getId()));
 
-        StoreIngredientSetting saved = storeIngredientSettingRepository.save(entity);
+        entity.setMinQuantity(dto.getMinQuantity());
+        entity.setMaxQuantity(dto.getMaxQuantity());
 
-        return saved.toDto();   
+        storeIngredientSettingRepository.save(entity);
     }
+
+    // 추가
+    @Transactional
+    public StoreIngredientSettingDto addSetting(StoreIngredientSettingDto dto) {
+        Store store = storeRepository.findById(dto.getStoreId())
+            .orElseThrow(() -> new IllegalArgumentException("매장 없음"));
+        Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
+            .orElseThrow(() -> new IllegalArgumentException("재료 없음"));
+
+        StoreIngredientSetting entity = StoreIngredientSetting.builder()
+            .store(store)
+            .ingredient(ingredient)
+            .minQuantity(dto.getMinQuantity())
+            .maxQuantity(dto.getMaxQuantity())
+            .build();
+        StoreIngredientSetting saved = storeIngredientSettingRepository.save(entity);
+        return saved.toDto();
+    }
+
     //전체 재료 조회
     @Override
     public List<IngredientDto> getAllIngredients() {
@@ -439,6 +456,7 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryRecord record = dto.toEntity(ingredient, store);
         recordRepository.save(record);
     }
+    
     //재고 기록 조회
     @Override
     public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo) {
@@ -454,7 +472,4 @@ public class InventoryServiceImpl implements InventoryService {
             return storeInventoryDslRepository.findStoreInventoryRecords(storeId, changeType, pageRequest);
         }
     }
-
-
-    
 }

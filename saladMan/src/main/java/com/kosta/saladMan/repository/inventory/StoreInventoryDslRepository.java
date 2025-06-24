@@ -81,7 +81,7 @@ public class StoreInventoryDslRepository {
                 )
                 .leftJoin(hq)
                 .on(hq.ingredient.eq(q.ingredient)
-                        .and(hq.store.id.eq(1)))  // 본사 storeId=1
+                        .and(hq.store.id.eq(1)))  
                 .where(builder)
                 .orderBy(q.expiredDate.asc())
                 .offset(pageRequest.getOffset())
