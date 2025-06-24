@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
@@ -73,11 +74,12 @@ public class OrderServiceImpl implements OrderService {
 		return ingredient.getAvailable(); // 변경된 상태 반환
 
 	}
-
+	
+	//발주 신청 목록
 	@Override
-	public Map<String, Object> getOrderListByHq(String storeName, String status, String approval, LocalDate startDate,
+	public Map<String, Object> getOrderListByHq(String storeName, String status, LocalDate startDate,
 			LocalDate endDate, Pageable pageable) throws Exception {
-		Page<PurchaseOrderDto> resultPage = purchaseOrderDslRepository.findOrderApplyList(storeName, status, approval,
+		Page<PurchaseOrderDto> resultPage = purchaseOrderDslRepository.findOrderApplyList(storeName, status,
 				startDate, endDate, pageable);
 
 		Map<String, Object> response = new HashMap<>();
@@ -88,6 +90,52 @@ public class OrderServiceImpl implements OrderService {
 		response.put("pageSize", resultPage.getSize());
 		return response;
 
+	}
+	
+	//발주 신청 상세
+	@Override
+	public List<PurchaseOrderItemDto> getOrderDetailByHq(Integer purchaseOrderId) throws Exception {
+		return purchaseOrderDslRepository.orderApplyDetail(purchaseOrderId);
+	}
+	
+	//발주 신청 수락
+	@Transactional
+	@Override
+	public void updateOrderItems(List<PurchaseOrderItemDto> items) throws Exception {
+	    if (items == null || items.isEmpty()) return;
+	    
+	    Integer orderId = items.get(0).getPurchaseOrderId();
+	    List<PurchaseOrderItem> orderItems = purchaseOrderItemRepository.findByPurchaseOrderId(orderId);
+	    
+	    for(PurchaseOrderItem item : orderItems ) {
+	    	PurchaseOrderItemDto dto = items.stream()
+	    			.filter(d -> d.getId().equals(item.getId()))
+	    			.findFirst().orElse(null);
+	    	if(dto != null) {
+	    		item.setApprovalStatus(dto.getApprovalStatus());
+	    		item.setRejectionReason(dto.getRejectionReason());
+	    	}
+	    }
+	 // orderStatus 판단
+	    Long approved = orderItems.stream().filter(i -> "승인".equals(i.getApprovalStatus())).count();
+	    Long rejected = orderItems.stream().filter(i -> "반려".equals(i.getApprovalStatus())).count();
+
+	    PurchaseOrder order = orderItems.get(0).getPurchaseOrder();
+	    if (approved > 0 && rejected > 0) {
+	        order.setOrderStatus("부분승인");
+	    } else if (approved > 0) {
+	        order.setOrderStatus("승인");
+	    } else if (approved<=0){
+	        order.setOrderStatus("반려");
+	    }
+
+	    // status = 입고완료 처리 (반려가 아닌 것이 하나라도 있다면)
+	    if (approved > 0) {
+	        order.setStatus("입고완료");
+	    }
+	    else if (approved<=0) {
+	        order.setStatus("주문취소");
+	    }
 	}
 
 	// -----------------매장-------------------------
@@ -146,5 +194,19 @@ public class OrderServiceImpl implements OrderService {
 
 		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, startDate, endDate, pageable);
 	}
+	//입고검수
+	@Override
+	public List<PurchaseOrderItemDto> getInspectionInfo(Integer orderId) throws Exception {
+
+		return purchaseOrderDslRepository.getInspectionInfo(orderId);
+	}
+
+	@Override
+	public void saveInspectionResults(List<PurchaseOrderItemDto> items) throws Exception {
+		
+	}
+
+
+
 
 }

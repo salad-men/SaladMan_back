@@ -73,6 +73,12 @@ public class ComplaintServiceImpl implements ComplaintService {
     public ComplaintDto detailComplaint(Integer id) throws Exception {
         Complaint entity = complaintRepository.findById(id)
                 .orElseThrow(() -> new Exception("불편사항 없음"));
+        
+        // 미열람 상태라면, 열람으로 바꿔주기 (한 번만)
+        if (!entity.getIsRead()) {
+            entity.setIsRead(true);
+            complaintRepository.save(entity);
+        }
         return entity.toDto();
     }
 

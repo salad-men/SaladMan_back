@@ -23,6 +23,17 @@ public class PurchaseOrderItemDto {
     private Integer totalPrice;
     private String inspection;
     private String inspectionNote;
+    
+    private String approvalStatus; // 승인, 반려, 대기중
+    private String rejectionReason; // 반려 사유 (nullable)
+    private String ingredientName;
+    private String categoryName;
+    private Integer unitCost;
+    private String orderStatus;
+	private String storeName;
+
+    
+
 
     public PurchaseOrderItem toEntity() {
         return PurchaseOrderItem.builder()

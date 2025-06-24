@@ -7,6 +7,9 @@ import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
+import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
+import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.service.inventory.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -123,6 +126,15 @@ public class HqInventoryController {
             "categories", inventoryService.getAllCategories()
         ));
     }
+    
+    // 카테고리 추가
+    @PostMapping("/category-add")
+    public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, Object> body) {
+        String name = (String) body.get("name");
+        Integer id = inventoryService.addCategory(name);
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
 
     //매장 조회(추후 변경)
     @GetMapping("/stores")
@@ -138,7 +150,17 @@ public class HqInventoryController {
         List<IngredientDto> list = inventoryService.getAllIngredients();
         return ResponseEntity.ok(Map.of("ingredients", list));
     }
-    
+ // 재료 추가
+    @PostMapping("/ingredient-add")
+    public ResponseEntity<Map<String, Object>> addIngredient(@RequestBody Map<String, Object> body) {
+        String name = (String) body.get("name");
+        Integer categoryId = (Integer) body.get("categoryId");
+        String unit = (String) body.get("unit");
+        Integer id = inventoryService.addIngredient(name, categoryId, unit);
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
+    //재료 설정
     @GetMapping("/settings")
     public ResponseEntity<Map<String, Object>> getSettings(
         @RequestParam Integer storeId,
@@ -163,12 +185,24 @@ public class HqInventoryController {
         return ResponseEntity.ok(res);
     }
 
-    // 저장 (신규 또는 수정)
-    @PostMapping("/settings-save")
-    public ResponseEntity<StoreIngredientSettingDto> saveSetting(@RequestBody StoreIngredientSettingDto dto) {
-        StoreIngredientSettingDto savedDto = inventoryService.saveSetting(dto);
-        return ResponseEntity.ok(savedDto);
+    // 여러 건 수정(배열, id 必)
+    @PostMapping("/settings-update")
+    public ResponseEntity<Void> updateSettings(@RequestBody List<StoreIngredientSettingDto> dtos) {
+        for (StoreIngredientSettingDto dto : dtos) {
+            // 반드시 id 있는 경우만!
+            if (dto.getId() == null) continue;
+            inventoryService.updateSetting(dto); 
+        }
+        return ResponseEntity.ok().build();
     }
+
+    // 단일 추가(id 없이 신규)
+    @PostMapping("/settings-add")
+    public ResponseEntity<StoreIngredientSettingDto> addSetting(@RequestBody StoreIngredientSettingDto dto) {
+        StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
+        return ResponseEntity.ok(saved);
+    }
+
     
     
 }

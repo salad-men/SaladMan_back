@@ -123,15 +123,22 @@ public class StoreInventoryController {
         }
     }
 
-    // 7. 재료 설정 저장 (추가/수정)
-    @PostMapping("/settings-save")
-    public ResponseEntity<StoreIngredientSettingDto> saveSetting(@RequestBody StoreIngredientSettingDto dto) {
-        try {
-            StoreIngredientSettingDto savedDto = inventoryService.saveSetting(dto);
-            return ResponseEntity.ok(savedDto);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    // 여러 건 수정(배열, id 必)
+    @PostMapping("/settings-update")
+    public ResponseEntity<Void> updateSettings(@RequestBody List<StoreIngredientSettingDto> dtos) {
+        for (StoreIngredientSettingDto dto : dtos) {
+            // 반드시 id 있는 경우만!
+            if (dto.getId() == null) continue;
+            inventoryService.updateSetting(dto); 
         }
+        return ResponseEntity.ok().build();
     }
+
+    // 단일 추가(id 없이 신규)
+    @PostMapping("/settings-add")
+    public ResponseEntity<StoreIngredientSettingDto> addSetting(@RequestBody StoreIngredientSettingDto dto) {
+        StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
+        return ResponseEntity.ok(saved);
+    }
+
 }
