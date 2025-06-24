@@ -56,6 +56,8 @@ public class StoreInventoryDslRepository {
         }
         if (startDate != null) builder.and(q.expiredDate.goe(startDate));
         if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+	    
+        builder.and(q.quantity.gt(0));
 
         return queryFactory
                 .select(Projections.bean(
@@ -82,7 +84,7 @@ public class StoreInventoryDslRepository {
                 )
                 .leftJoin(hq)
                 .on(hq.ingredient.eq(q.ingredient)
-                        .and(hq.store.id.eq(1)))  // 본사 storeId=1
+                        .and(hq.store.id.eq(1)))  
                 .where(builder)
                 .orderBy(q.expiredDate.asc())
                 .offset(pageRequest.getOffset())

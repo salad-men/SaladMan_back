@@ -27,9 +27,11 @@ public class StoreIngredientDto {
     private Integer unitCost;
     private String unit;
     private Integer minimumOrderUnit;
+    private Integer minQuantity;
     private Integer quantity;
     private LocalDate expiredDate;
     private LocalDate receivedDate;
+    
 
 
     public StoreIngredient toEntity() {
