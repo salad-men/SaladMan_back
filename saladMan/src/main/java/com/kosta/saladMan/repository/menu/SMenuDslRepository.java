@@ -79,7 +79,7 @@ public class SMenuDslRepository {
 
             dto.getIngredients().add(
                 IngredientDto.builder()
-                    .quantity(row.get(mi.quantity))
+//                    .quantity(row.get(mi.quantity))
                     .name(row.get(ing.name))
                     .build()
             );

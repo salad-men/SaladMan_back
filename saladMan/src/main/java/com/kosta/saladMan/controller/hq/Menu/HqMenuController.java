@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
-import com.kosta.saladMan.service.menu.SMenuService;
+import com.kosta.saladMan.service.menu.StoreMenuService;
 import com.kosta.saladMan.util.PageInfo;
 
 @RestController
@@ -21,7 +21,7 @@ import com.kosta.saladMan.util.PageInfo;
 public class HqMenuController {
 	
 	@Autowired
-	private SMenuService hqMenuService;
+	private StoreMenuService hqMenuService;
 	
 	// 전체 메뉴 조회
 	@GetMapping("/totalMenu")

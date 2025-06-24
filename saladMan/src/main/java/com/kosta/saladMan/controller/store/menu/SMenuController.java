@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.store.Menu;
+package com.kosta.saladMan.controller.store.menu;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.auth.PrincipalDetails;
+import com.kosta.saladMan.dto.menu.MenuToggleDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.entity.store.Store;
-import com.kosta.saladMan.service.menu.SMenuService;
+import com.kosta.saladMan.service.menu.StoreMenuService;
 import com.kosta.saladMan.util.PageInfo;
 
 @RestController
@@ -28,7 +29,7 @@ import com.kosta.saladMan.util.PageInfo;
 public class SMenuController {
 	
 	@Autowired
-	private SMenuService menuService;
+	private StoreMenuService menuService;
 	
 	// 전체 메뉴 조회
 	@GetMapping("/totalMenu")
@@ -55,12 +56,13 @@ public class SMenuController {
 	    }
 	}
 	
+	// 판매 메뉴 관리
 	@GetMapping("/menuStatus")
 	public ResponseEntity<List<StoreMenuStatusDto>> getMenus(@AuthenticationPrincipal PrincipalDetails principalDetails) {
 	    Store store = principalDetails.getStore();
 	    Integer storeId = store.getId();
 	    try {
-	    	List<StoreMenuStatusDto> menuList = menuService.getStoreStuatus(storeId);
+	    	List<StoreMenuStatusDto> menuList = menuService.getMenuStatus(storeId);
 	    	return new ResponseEntity<>(menuList, HttpStatus.OK);
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -68,18 +70,19 @@ public class SMenuController {
 	    }   
 	}
 	
-//	@PatchMapping("/menuStatus/toggle")
-//    public ResponseEntity<Boolean> toggleMenuStatus(@RequestBody MenuToggleRequest request,
-//                                                     @AuthenticationPrincipal PrincipalDetails principalDetails) {
-//		try {
-//			Integer storeId = principalDetails.getStore().getId();
-//	        boolean result = menuService.toggleMenuStatus(storeId, request.getMenuId());
-//	        return new ResponseEntity<>(result, HttpStatus.OK);
-//		} catch (Exception e) {
-//	        e.printStackTrace();
-//	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//	    } 
-//    }
+	@PatchMapping("/menuStatus/toggle")
+    public ResponseEntity<Boolean> toggleMenuStatus(@RequestBody MenuToggleDto menuToggle,
+                                                     @AuthenticationPrincipal PrincipalDetails principalDetails) {
+		try {
+			Integer storeId = principalDetails.getStore().getId();
+			boolean newStatus = menuService.toggleMenuStatus(storeId, menuToggle.getMenuId());
+			
+	        return new ResponseEntity<>(newStatus, HttpStatus.OK);
+		} catch (Exception e) {
+	        e.printStackTrace();
+	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+	    } 
+    }
 
 	//레시피 조회
 	@GetMapping("/recipe")

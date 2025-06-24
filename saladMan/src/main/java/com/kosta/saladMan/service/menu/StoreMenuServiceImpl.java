@@ -17,18 +17,21 @@ import com.kosta.saladMan.entity.menu.StoreMenu;
 import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.MenuRepository;
+import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.menu.SMenuDslRepository;
-import com.kosta.saladMan.repository.menu.SMenuRepository;
+import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.util.PageInfo;
 @Service
-public class SMenuServiceImpl implements SMenuService {
+public class StoreMenuServiceImpl implements StoreMenuService {
 	
 	@Autowired
-	private MenuRepository menuRepository;
+	private MenuRepository menuRepository; // TotalMenu
 	@Autowired
-	private SMenuRepository sMenuRepository;
+	private StoreRepository storeRepository; //Store
 	@Autowired
-	private SMenuDslRepository sMenuDslRepository;
+	private StoreMenuRepository storeMenuRepository; //StoreMenu
+	@Autowired
+	private SMenuDslRepository sMenuDslRepository; //DSL
 
 	@Override
 	public List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort) throws Exception {
@@ -64,35 +67,33 @@ public class SMenuServiceImpl implements SMenuService {
 	}
 
 	@Override
-	public List<StoreMenuStatusDto> getStoreStuatus(Integer storeId) throws Exception {
+	public List<StoreMenuStatusDto> getMenuStatus(Integer storeId) throws Exception {
 		return sMenuDslRepository.findMenuWithStoreStatus(storeId);
 	}
 
-//	@Override
-//	public boolean toggleMenuStatus(Integer storeId, Integer menuId) throws Exception {
-//	    Optional<StoreMenu> optional = menuRepository.findByStoreIdAndMenuId(storeId, menuId);
-//
-//	    if (optional.isPresent()) {
-//	        StoreMenu storeMenu = optional.get();
-//	        storeMenu.setStatus(!storeMenu.getStatus());
-//	        menuRepository.save(storeMenu);
-//	    } else {
-//	        Store store = storeRepository.findById(storeId)
-//	                .orElseThrow(() -> new Exception("매장 정보가 없습니다."));
-//
-//	        TotalMenu menu = menuRepository.findById(menuId)
-//	                .orElseThrow(() -> new Exception("메뉴 정보가 없습니다."));
-//
-//	        StoreMenu newStoreMenu = StoreMenu.builder()
-//	                .store(store)
-//	                .menu(menu)
-//	                .status(true)
-//	                .build();
-//
-//	        menuRepository.save(newStoreMenu);
-//	    }
-//	    return true;
-//	}
+	@Override
+	public boolean toggleMenuStatus(Integer storeId, Integer menuId) throws Exception {
+	    Optional<StoreMenu> optional = storeMenuRepository.findByStoreIdAndMenuId(storeId, menuId);
+
+	    if (optional.isPresent()) {
+	        StoreMenu storeMenu = optional.get();
+	        boolean newStatus = !storeMenu.getStatus();
+	        storeMenu.setStatus(newStatus);
+	        storeMenuRepository.save(storeMenu);
+	        return newStatus;
+	    } else {
+	        Store store = storeRepository.findById(storeId).orElseThrow();
+	        TotalMenu menu = menuRepository.findById(menuId).orElseThrow();
+
+	        StoreMenu newStoreMenu = new StoreMenu();
+	        newStoreMenu.setStore(store);
+	        newStoreMenu.setMenu(menu);
+	        newStoreMenu.setStatus(true); // 최초 등록은 활성화
+
+	        storeMenuRepository.save(newStoreMenu);
+	        return true;
+	    }
+	}
 	
 	@Override
 	public List<RecipeDto> getAllMenuRecipes() throws Exception {
