@@ -66,18 +66,19 @@ done
 
 # 7) Nginx proxy 전환
 echo "🔁 Switching Nginx upstream to port $NEXT_PORT"
-cat <<EOF > /etc/nginx/conf.d/upstream-saladman.conf
+cat <<EOF | sudo tee /etc/nginx/conf.d/upstream-saladman.conf > /dev/null
 upstream saladman_backend {
     server 127.0.0.1:$NEXT_PORT;
 }
 EOF
 
+
 echo "📎 Nginx config:"
-cat /etc/nginx/conf.d/upstream-saladman.conf
+sudo cat /etc/nginx/conf.d/upstream-saladman.conf
 
 echo "📦 Reloading nginx..."
-nginx -t
-systemctl reload nginx
+sudo nginx -t
+sudo systemctl reload nginx
 
 # 8) 이전 컨테이너 정리
 echo "🗑 Stopping & Removing old container: saladman-$CURRENT_PORT"
