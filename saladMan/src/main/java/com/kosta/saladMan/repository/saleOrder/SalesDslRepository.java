@@ -1,6 +1,5 @@
 package com.kosta.saladMan.repository.saleOrder;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,15 +20,13 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
-import lombok.RequiredArgsConstructor;
-
 @Repository
 public class SalesDslRepository {
 	
 	@Autowired
 	private JPAQueryFactory jpaQueryFactory;
 
-	public List<DailySalesDto> getGroupedSales(LocalDateTime start, LocalDateTime end, GroupType groupType) {
+	public List<DailySalesDto> getGroupedSales(Integer storeId, LocalDateTime start, LocalDateTime end, GroupType groupType) {
 	    QSaleOrder saleOrder = QSaleOrder.saleOrder;
 	    QSaleOrderItem item = QSaleOrderItem.saleOrderItem;
 
@@ -56,13 +53,14 @@ public class SalesDslRepository {
 	            ))
 	            .from(item)
 	            .join(item.saleOrder, saleOrder)
-	            .where(saleOrder.orderTime.between(start, end))
+	            .where(saleOrder.orderTime.between(start, end)
+	            		.and(saleOrder.store.id.eq(storeId)))
 	            .groupBy(groupExpr)
 	            .orderBy(orderByGroup)
 	            .fetch();
 	}
 
-    public List<StoreSalesViewDto.MenuSalesDto> getMenuSales(LocalDateTime start, LocalDateTime end) {
+    public List<StoreSalesViewDto.MenuSalesDto> getMenuSales(Integer storeId, LocalDateTime start, LocalDateTime end) {
         QSaleOrder saleOrder = QSaleOrder.saleOrder;
         QSaleOrderItem item = QSaleOrderItem.saleOrderItem;
         QTotalMenu menu = QTotalMenu.totalMenu;
@@ -76,7 +74,8 @@ public class SalesDslRepository {
                 .where(
                 		item.saleOrder.id.eq(saleOrder.id),
                         item.menuId.eq(menu.id),
-                        saleOrder.orderTime.between(start, end) 
+                        saleOrder.orderTime.between(start, end)
+                        .and(saleOrder.store.id.eq(storeId))
                 )
                 .groupBy(menu.name)
                 .orderBy(item.quantity.sum().desc())

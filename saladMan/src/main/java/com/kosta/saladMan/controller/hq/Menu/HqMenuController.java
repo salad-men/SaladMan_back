@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.service.menu.StoreMenuService;
+import com.kosta.saladMan.service.user.MenuService;
 import com.kosta.saladMan.util.PageInfo;
 
 @RestController
@@ -21,7 +23,7 @@ import com.kosta.saladMan.util.PageInfo;
 public class HqMenuController {
 	
 	@Autowired
-	private StoreMenuService hqMenuService;
+	private StoreMenuService menuService;
 	
 	// 전체 메뉴 조회
 	@GetMapping("/totalMenu")
@@ -36,7 +38,7 @@ public class HqMenuController {
 		}
 		
 	    try {
-	        List<TotalMenuDto> totalMenu = hqMenuService.getTotalMenu(pageInfo, sort);
+	        List<TotalMenuDto> totalMenu = menuService.getTotalMenu(pageInfo, sort);
 	        Map<String, Object> res = new HashMap<>();
 	        res.put("menus", totalMenu);
 	        res.put("pageInfo", pageInfo);
@@ -47,5 +49,16 @@ public class HqMenuController {
 	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	    }
 	}
+	
+	//레시피 조회
+	@GetMapping("/recipe")
+		public ResponseEntity<List<RecipeDto>> getAllMenuRecipes() {
+	    	try {
+				return ResponseEntity.ok(menuService.getAllMenuRecipes());
+			} catch (Exception e) {
+				e.printStackTrace();
+		        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+	    }
 
 }

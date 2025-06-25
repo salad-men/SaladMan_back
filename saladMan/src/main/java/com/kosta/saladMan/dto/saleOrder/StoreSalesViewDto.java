@@ -19,6 +19,7 @@ import lombok.Setter;
 @Builder
 
 public class StoreSalesViewDto {
+	private Integer storeId;
     private SummaryDto summary;
     private List<DailySalesDto> daily;
     private List<MenuSalesDto> popularMenus;

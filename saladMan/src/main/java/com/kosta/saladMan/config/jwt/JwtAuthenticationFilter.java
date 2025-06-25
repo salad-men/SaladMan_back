@@ -17,9 +17,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.entity.store.Store;
+import com.kosta.saladMan.repository.StoreRepository;
 
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+	
+	private StoreRepository storeRepository;
 	
 	public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
 		super(authenticationManager);
@@ -67,6 +70,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		
 		String accessToken = jwtToken.makeAccessToken(username);
 		String refreshToken = jwtToken.makeRefreshToken(username);
+		//토큰저장 
+		String fcmToken = request.getParameter("fcmToken");
+		storeRepository.updateFcmToken(username, fcmToken);
 		
 		Map<String,String> map = new HashMap<>();
 		map.put("access_token", JwtProperties.TOKEN_PREFIX+accessToken);

@@ -1,6 +1,9 @@
-package com.kosta.saladMan.controller.store.saleOrder;
+package com.kosta.saladMan.controller.saleOrder;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,22 +16,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto.GroupType;
+import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.service.saleOrder.SalesService;
 
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/store")
+@RequestMapping("/hq")
 @RequiredArgsConstructor
-public class SalesController {
+public class HqSalesController {
 	
 	private final SalesService salesService;
+	private final StoreRepository storeRepository;
 	
 	//store 매출조회
     @GetMapping("/storeSales")
-    public ResponseEntity<StoreSalesViewDto> getHqSales(@AuthenticationPrincipal PrincipalDetails principalDetails,
+    public ResponseEntity<StoreSalesViewDto> getHqSales(@RequestParam Integer storeId,
     		@RequestParam String startDate, @RequestParam String endDate, @RequestParam(defaultValue = "DAY") String groupType) {
-    	Integer storeId = principalDetails.getStore().getId();
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
         GroupType type = GroupType.valueOf(groupType.toUpperCase());
@@ -41,5 +45,17 @@ public class SalesController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
     }
+    
+    @GetMapping("/storeSales/filter")
+    public Map<String, List<String>> getStoreFilterOptions() {
+        List<String> locations = storeRepository.findDistinctLocations();
+        List<String> names = storeRepository.findAllStoreNames();
+        
+        Map<String, List<String>> response = new HashMap<>();
+        response.put("locations", locations);
+        response.put("names", names);
+        return response;
+    }
+
 
 }

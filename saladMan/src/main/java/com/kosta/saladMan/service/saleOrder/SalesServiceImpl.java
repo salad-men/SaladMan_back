@@ -20,16 +20,16 @@ public class SalesServiceImpl implements SalesService {
     private final SalesDslRepository salesDslRepository;
 
     @Override
-    public StoreSalesViewDto getHqSales(LocalDate start, LocalDate end, GroupType groupType) {
+    public StoreSalesViewDto getStoreSales(Integer storeId, LocalDate start, LocalDate end, GroupType groupType) {
         LocalDateTime startDateTime = start.atStartOfDay();
         LocalDateTime endDateTime = end.atTime(LocalTime.MAX);
         System.out.println("startDate: " + start);
         System.out.println("endDate: " + end);
 
         // 1. 일별 판매량/매출
-        List<StoreSalesViewDto.DailySalesDto> daily = salesDslRepository.getGroupedSales(startDateTime, endDateTime, groupType);
+        List<StoreSalesViewDto.DailySalesDto> daily = salesDslRepository.getGroupedSales(storeId, startDateTime, endDateTime, groupType);
         // 2. 메뉴별 판매량
-        List<StoreSalesViewDto.MenuSalesDto> popular = salesDslRepository.getMenuSales(startDateTime, endDateTime);
+        List<StoreSalesViewDto.MenuSalesDto> popular = salesDslRepository.getMenuSales(storeId, startDateTime, endDateTime);
         // 3. 요약 정보
         int totalQuantity = daily.stream().mapToInt(StoreSalesViewDto.DailySalesDto::getQuantity).sum();
         int totalRevenue = daily.stream().mapToInt(StoreSalesViewDto.DailySalesDto::getRevenue).sum();
@@ -40,6 +40,7 @@ public class SalesServiceImpl implements SalesService {
         summary.setTotalRevenue(totalRevenue);
 
         var response = new StoreSalesViewDto();
+        response.setStoreId(storeId);
         response.setSummary(summary);
         response.setDaily(daily);
         response.setPopularMenus(popular);
