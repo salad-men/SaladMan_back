@@ -36,7 +36,11 @@ echo "🚀 Starting Blue/Green deployment..."
 echo "🧹 Removing existing container with name saladman-$NEXT_PORT (if any)"
 docker rm -f saladman-$NEXT_PORT || true
 
-# 4) 새 컨테이너 실행
+# 4) 새 컨테이너 실행 전에 ECR 로그인 추가
+echo "🔐 Logging into ECR..."
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+# 5) 새 컨테이너 실행
 echo "🐳 Pulling & Running container on port $NEXT_PORT"
 docker pull $ECR_REGISTRY/$IMAGE_NAME
 docker run -d \
@@ -45,7 +49,7 @@ docker run -d \
   -p $NEXT_PORT:8090 \
   $ECR_REGISTRY/$IMAGE_NAME
 
-# 5) Health 체크
+# 6) Health 체크
 echo "💓 Running health check on http://localhost:$NEXT_PORT/actuator/health"
 for i in {1..12}; do
   if curl -sSf http://localhost:$NEXT_PORT/actuator/health >/dev/null; then
@@ -60,7 +64,7 @@ for i in {1..12}; do
   fi
 done
 
-# 6) Nginx proxy 전환
+# 7) Nginx proxy 전환
 echo "🔁 Switching Nginx upstream to port $NEXT_PORT"
 cat <<EOF > /etc/nginx/conf.d/upstream-saladman.conf
 upstream saladman_backend {
@@ -75,12 +79,12 @@ echo "📦 Reloading nginx..."
 nginx -t
 systemctl reload nginx
 
-# 7) 이전 컨테이너 정리
+# 8) 이전 컨테이너 정리
 echo "🗑 Stopping & Removing old container: saladman-$CURRENT_PORT"
 docker stop saladman-$CURRENT_PORT || true
 docker rm   saladman-$CURRENT_PORT || true
 
-# 8) 포트 기록 갱신
+# 9) 포트 기록 갱신
 echo "$NEXT_PORT" > "$ACTIVE_FILE"
 
 echo "✅ Blue/Green Deployment Completed: Now serving on port $NEXT_PORT"
