@@ -33,46 +33,20 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.kosta.saladMan.auth.PrincipalDetailsService;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
-
-//@Configuration
-//public class SecurityConfig {
-//	
-//	//계정 생성 postman 테스트용
-//	@Bean
-//  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//      http
-//          .csrf().disable()
-//          .authorizeRequests()
-//              .antMatchers("/hq/*").permitAll() // ✅ 여기 허용
-//              .anyRequest().authenticated(); // 나머지는 인증 필요
-//      return http.build();
-//  }
-//	
-//	@Bean
-//  public BCryptPasswordEncoder bCryptPasswordEncoder() {
-//      return new BCryptPasswordEncoder();
-//  }
-//}
 
 @Configuration
 @EnableWebSecurity
@@ -104,34 +78,12 @@ public class SecurityConfig {
 
 		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
 				.authorizeRequests()
+				.antMatchers("/connect/**", "/connect", "/connect/info/**", "/connect/info").permitAll()
 				.antMatchers("/hq/**").access("hasRole('ROLE_HQ')")
 				.antMatchers("/store/**").access("hasRole('ROLE_STORE')")
-				.antMatchers("/actuator/health").permitAll() // ✅ actuator 허용
+				.antMatchers("/actuator/health").permitAll()
+		        .antMatchers("/chat/**").authenticated()
 				.anyRequest().permitAll();
 		return http.build();
 	}
-	
-//	@Bean
-//	public WebSecurityCustomizer webSecurityCustomizer() {
-//	    return (web) -> web.ignoring().antMatchers("/actuator/health");
-//	}
-
-	
-	
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http.addFilter(corsFilter)
-//            .csrf().disable()
-//            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//            .and()
-//            .authorizeRequests()
-//                .anyRequest().permitAll()
-//            .and()
-//            .formLogin().disable()
-//            .httpBasic().disable();
-//        // JWT 필터 추가 없음..
-//        return http.build();
-//    }
-	
-	
 }

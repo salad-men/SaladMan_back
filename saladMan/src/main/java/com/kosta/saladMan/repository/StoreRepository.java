@@ -30,5 +30,6 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
 	@Modifying
 	@Query("update Store s set s.fcmToken=:fcmToken where s.username=:username")
 	void updateFcmToken(@Param("username")String username, @Param("fcmToken")String fcmToken);
-
+	
+	Optional<Store> findById(Long id);
 }
