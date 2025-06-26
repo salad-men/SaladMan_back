@@ -83,7 +83,6 @@ public class SecurityConfig {
 	private CorsFilter corsFilter;
 
 	private final StoreRepository storeRepository;
-	private final PrincipalDetailsService principalDetailsService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
@@ -100,7 +99,7 @@ public class SecurityConfig {
 
 		http.formLogin().disable() // 로그인 폼 비활성화
 				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
-				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
+				.addFilterAt(new JwtAuthenticationFilter(authenticationManager, storeRepository),
 						UsernamePasswordAuthenticationFilter.class);
 
 		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))

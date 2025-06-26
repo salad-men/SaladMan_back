@@ -24,18 +24,21 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	
 	private StoreRepository storeRepository;
 	
-	public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+	public JwtAuthenticationFilter(AuthenticationManager authenticationManager, StoreRepository storeRepository) {
 		super(authenticationManager);
+		this.storeRepository = storeRepository;
 		setFilterProcessesUrl("/login");
 	}
 	private  AuthenticationManager authenticationManager;
 	private JwtToken jwtToken = new JwtToken();
+	private ThreadLocal<Map<String, String>> loginCache = new ThreadLocal<>();
 	
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
 	    try {
 	        ObjectMapper objectMapper = new ObjectMapper();
 	        Map<String, String> loginRequest = objectMapper.readValue(request.getInputStream(), Map.class);
+	        loginCache.set(loginRequest);
 
 	        if (loginRequest == null) {
 	            throw new RuntimeException("요청 본문이 비어 있습니다.");
@@ -68,11 +71,21 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		PrincipalDetails principalDetails = (PrincipalDetails)authResult.getPrincipal();
 		String username = principalDetails.getUsername();
 		
+		// fcmtoken 저장
+		Map<String, String> loginRequest = loginCache.get();
+		loginCache.remove();
+		String fcmToken = loginRequest.get("fcmToken");
+		System.out.println("jwtAuthenticationFilter.loginRequest:"+loginRequest+"fcmToken"+fcmToken);
+		
+		if (fcmToken == null) {
+		    fcmToken = "";
+		} 
+		if (!fcmToken.isBlank()) {
+	        storeRepository.updateFcmToken(username, fcmToken);
+	    }
+		
 		String accessToken = jwtToken.makeAccessToken(username);
 		String refreshToken = jwtToken.makeRefreshToken(username);
-		//토큰저장 
-		String fcmToken = request.getParameter("fcmToken");
-		storeRepository.updateFcmToken(username, fcmToken);
 		
 		Map<String,String> map = new HashMap<>();
 		map.put("access_token", JwtProperties.TOKEN_PREFIX+accessToken);
@@ -91,6 +104,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		userInfo.put("name", store.getName());
 		userInfo.put("role", store.getRole());
 		userInfo.put("username", store.getUsername());
+		
 		response.getWriter().write(objectMapper.writeValueAsString(userInfo));
 	}
 }

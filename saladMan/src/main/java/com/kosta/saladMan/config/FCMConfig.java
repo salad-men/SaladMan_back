@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -16,9 +17,12 @@ import com.google.firebase.messaging.FirebaseMessaging;
 @Configuration
 public class FCMConfig {
 	
+	@Value("${fcm.config-path}")
+    private String fcmConfigPath;
+	
 	@Bean
 	FirebaseMessaging firebaseMessaging() throws IOException {
-		ClassPathResource resource = new ClassPathResource("firebase/kosta-test-d5b07-firebase-adminsdk-fbsvc-6e0b3f4751.json");
+		ClassPathResource resource = new ClassPathResource(fcmConfigPath);
 		InputStream refreshToken = resource.getInputStream();
 		FirebaseApp firebaseApp = null;
 		List<FirebaseApp> firebaseAppList = FirebaseApp.getApps();

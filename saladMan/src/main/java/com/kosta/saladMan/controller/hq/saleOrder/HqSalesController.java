@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.saleOrder;
+package com.kosta.saladMan.controller.hq.saleOrder;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -7,13 +7,11 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto.GroupType;
 import com.kosta.saladMan.repository.StoreRepository;
