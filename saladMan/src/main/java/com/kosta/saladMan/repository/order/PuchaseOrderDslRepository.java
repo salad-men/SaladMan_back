@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
@@ -119,6 +120,38 @@ public class PuchaseOrderDslRepository {
 					.fetch();
 		
 	}
+	
+	public List<HqIngredientDto> findAvailableStockByIngredientId(Integer ingredientId,Integer storeId, LocalDate limitDate){
+		QHqIngredient hIng = QHqIngredient.hqIngredient;
+		QIngredient ing = QIngredient.ingredient;
+		QStore store = QStore.store;
+		
+		return jpaQueryFactory
+		        .select(Projections.fields(HqIngredientDto.class,
+		        		hIng.id,
+		        		hIng.ingredient.id.as("ingredientId"),
+		        		hIng.ingredient.name.as("ingredientName"),
+		        		hIng.unitCost,
+		        		hIng.quantity,
+		        		hIng.reservedQuantity,
+		        		hIng.expiredDate,
+		        		hIng.receivedDate,
+		        		store.name.as("storeName"),
+		        		ing.unit.as("unit")
+		        		
+		        ))
+		        .from(hIng)
+		        .join(hIng.store, store)
+		        .join(ing).on(hIng.ingredient.id.eq(ing.id))
+		        .where(
+		        		hIng.ingredient.id.eq(ingredientId),
+		        		hIng.quantity.gt(0),
+		        		hIng.expiredDate.goe(limitDate)  // 핵심 조건
+		        )
+		        .orderBy(hIng.expiredDate.asc())
+		        .fetch();
+		
+	}
 
 	
 	// 매장--------------------------
@@ -184,17 +217,20 @@ public class PuchaseOrderDslRepository {
 	
 	public List<PurchaseOrderItemDto> getInspectionInfo(Integer orderId){
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
-	    QIngredient ingredient = QIngredient.ingredient;
+	    QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
+		QHqIngredient hqIngredient = QHqIngredient.hqIngredient;
+		QIngredient ingredient = QIngredient.ingredient;
 	    QIngredientCategory category = QIngredientCategory.ingredientCategory;
 	    QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
 	    QStore store = QStore.store;
 
 	    return jpaQueryFactory
 	        .select(Projections.fields(PurchaseOrderItemDto.class,
-	        		poi.id,
+	        	poi.id,
 	            order.id.as("purchaseOrderId"),
 	            ingredient.id.as("ingredientId"),
 	            ingredient.name.as("ingredientName"),
+	            ingredient.unit.as("unit"),
 	            category.name.as("categoryName"),
 	            poi.orderedQuantity,
 	            poi.receivedQuantity,
@@ -203,13 +239,20 @@ public class PuchaseOrderDslRepository {
 	            poi.inspectionNote,
 	            poi.approvalStatus,
 	            poi.rejectionReason,
-	            store.name.as("storeName")
+	            store.name.as("storeName"),
+	            hqIngredient.unitCost.coalesce(0).as("unitCost"),
+	            po.status.as("orderStatus"),
+	            po.orderDateTime.as("orderDateTime")
 	        ))
 	        .from(poi)
-	        .join(poi.ingredient, ingredient)
-	        .join(ingredient.category, category)
-	        .join(poi.purchaseOrder, order)
-	        .join(order.store, store)
+	        .leftJoin(poi.ingredient, ingredient)
+	        .leftJoin(ingredient.category, category)
+	        .leftJoin(poi.purchaseOrder, order)
+	        .leftJoin(order.store, store)
+			.join(po).on(poi.purchaseOrder.id.eq(po.id))
+	        .leftJoin(hqIngredient).on(
+	        		hqIngredient.ingredient.id.eq(ingredient.id)
+			    )
 	        .where(order.id.eq(orderId))
 	        .fetch();
 	}
