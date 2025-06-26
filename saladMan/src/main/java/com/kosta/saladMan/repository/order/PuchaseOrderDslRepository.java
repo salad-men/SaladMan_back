@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
@@ -107,8 +108,7 @@ public class PuchaseOrderDslRepository {
 							ingredientCategory.name.as("categoryName"),
 							poi.ingredient.unit,
 							po.status.as("orderStatus"),
-					        store.name.as("storeName"),  // ✅ 추가
-					        hIngredient.unitCost.as("unitCost")
+					        store.name.as("storeName")  // ✅ 추가
 
 					))
 					.from(poi)
@@ -116,9 +116,40 @@ public class PuchaseOrderDslRepository {
 					.join(ingredientCategory).on(poi.ingredient.category.id.eq(ingredientCategory.id))
 					.join(po).on(poi.purchaseOrder.id.eq(po.id))
 				    .join(po.store, store)
-				    .join(hIngredient).on(hIngredient.ingredient.id.eq(ingredient.id))
 					.where(poi.purchaseOrder.id.eq(purchaseOrderId))
 					.fetch();
+		
+	}
+	
+	public List<HqIngredientDto> findAvailableStockByIngredientId(Integer ingredientId,Integer storeId, LocalDate limitDate){
+		QHqIngredient hIng = QHqIngredient.hqIngredient;
+		QIngredient ing = QIngredient.ingredient;
+		QStore store = QStore.store;
+		
+		return jpaQueryFactory
+		        .select(Projections.fields(HqIngredientDto.class,
+		        		hIng.id,
+		        		hIng.ingredient.id.as("ingredientId"),
+		        		hIng.ingredient.name.as("ingredientName"),
+		        		hIng.unitCost,
+		        		hIng.quantity,
+		        		hIng.reservedQuantity,
+		        		hIng.expiredDate,
+		        		hIng.receivedDate,
+		        		store.name.as("storeName"),
+		        		ing.unit.as("unit")
+		        		
+		        ))
+		        .from(hIng)
+		        .join(hIng.store, store)
+		        .join(ing).on(hIng.ingredient.id.eq(ing.id))
+		        .where(
+		        		hIng.ingredient.id.eq(ingredientId),
+		        		hIng.quantity.gt(0),
+		        		hIng.expiredDate.goe(limitDate)  // 핵심 조건
+		        )
+		        .orderBy(hIng.expiredDate.asc())
+		        .fetch();
 		
 	}
 

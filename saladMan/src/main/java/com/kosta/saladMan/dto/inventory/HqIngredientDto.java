@@ -33,6 +33,7 @@ public class HqIngredientDto {
     private LocalDate expiredDate;
     private Integer minquantity;  
     private LocalDate receivedDate;
+    private Integer reservedQuantity;
 
     public HqIngredient toEntity() {
         return HqIngredient.builder()
@@ -44,7 +45,8 @@ public class HqIngredientDto {
                 .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
                 .expiredDate(expiredDate != null ? expiredDate : LocalDate.now())  
-                .receivedDate(receivedDate != null ? receivedDate : LocalDate.now()) 
+                .receivedDate(receivedDate != null ? receivedDate : LocalDate.now())
+                .reservedQuantity(reservedQuantity)
                 .build();
     }
 

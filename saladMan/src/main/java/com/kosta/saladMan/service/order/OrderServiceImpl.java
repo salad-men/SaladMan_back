@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
@@ -95,7 +97,29 @@ public class OrderServiceImpl implements OrderService {
 	//발주 신청 상세
 	@Override
 	public List<PurchaseOrderItemDto> getOrderDetailByHq(Integer purchaseOrderId) throws Exception {
-		return purchaseOrderDslRepository.orderApplyDetail(purchaseOrderId);
+		
+		List<PurchaseOrderItemDto> itemList = purchaseOrderDslRepository.orderApplyDetail(purchaseOrderId);
+		if(itemList.isEmpty()) return itemList;
+		
+		PurchaseOrder order = purchaseOrderRepository.findById(purchaseOrderId)
+			    .orElseThrow(() -> new RuntimeException("해당 발주 없음"));
+		
+		//주문한 storeId
+		Integer storeId =  order.getStore().getId();
+		//배송일수
+		Integer deliveryDay = order.getStore().getDeliveryDay();
+		
+		LocalDate today=LocalDate.now();
+		LocalDate limitDate = today.plusDays(deliveryDay);
+		
+		for(PurchaseOrderItemDto item : itemList) {
+			List<HqIngredientDto> stockList = purchaseOrderDslRepository.findAvailableStockByIngredientId(item.getIngredientId(),storeId,limitDate);
+			System.out.println(item.getIngredientId());
+			System.out.println(stockList);
+			item.setStockList(stockList);
+		}
+		
+		return itemList;
 	}
 	
 	//발주 신청 수락
