@@ -107,7 +107,8 @@ public class PuchaseOrderDslRepository {
 							ingredientCategory.name.as("categoryName"),
 							poi.ingredient.unit,
 							po.status.as("orderStatus"),
-					        store.name.as("storeName")  // ✅ 추가
+					        store.name.as("storeName"),  // ✅ 추가
+					        hIngredient.unitCost.as("unitCost")
 
 					))
 					.from(poi)
@@ -115,6 +116,7 @@ public class PuchaseOrderDslRepository {
 					.join(ingredientCategory).on(poi.ingredient.category.id.eq(ingredientCategory.id))
 					.join(po).on(poi.purchaseOrder.id.eq(po.id))
 				    .join(po.store, store)
+				    .join(hIngredient).on(hIngredient.ingredient.id.eq(ingredient.id))
 					.where(poi.purchaseOrder.id.eq(purchaseOrderId))
 					.fetch();
 		
@@ -184,17 +186,20 @@ public class PuchaseOrderDslRepository {
 	
 	public List<PurchaseOrderItemDto> getInspectionInfo(Integer orderId){
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
-	    QIngredient ingredient = QIngredient.ingredient;
+	    QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
+		QHqIngredient hqIngredient = QHqIngredient.hqIngredient;
+		QIngredient ingredient = QIngredient.ingredient;
 	    QIngredientCategory category = QIngredientCategory.ingredientCategory;
 	    QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
 	    QStore store = QStore.store;
 
 	    return jpaQueryFactory
 	        .select(Projections.fields(PurchaseOrderItemDto.class,
-	        		poi.id,
+	        	poi.id,
 	            order.id.as("purchaseOrderId"),
 	            ingredient.id.as("ingredientId"),
 	            ingredient.name.as("ingredientName"),
+	            ingredient.unit.as("unit"),
 	            category.name.as("categoryName"),
 	            poi.orderedQuantity,
 	            poi.receivedQuantity,
@@ -203,13 +208,20 @@ public class PuchaseOrderDslRepository {
 	            poi.inspectionNote,
 	            poi.approvalStatus,
 	            poi.rejectionReason,
-	            store.name.as("storeName")
+	            store.name.as("storeName"),
+	            hqIngredient.unitCost.coalesce(0).as("unitCost"),
+	            po.status.as("orderStatus"),
+	            po.orderDateTime.as("orderDateTime")
 	        ))
 	        .from(poi)
-	        .join(poi.ingredient, ingredient)
-	        .join(ingredient.category, category)
-	        .join(poi.purchaseOrder, order)
-	        .join(order.store, store)
+	        .leftJoin(poi.ingredient, ingredient)
+	        .leftJoin(ingredient.category, category)
+	        .leftJoin(poi.purchaseOrder, order)
+	        .leftJoin(order.store, store)
+			.join(po).on(poi.purchaseOrder.id.eq(po.id))
+	        .leftJoin(hqIngredient).on(
+	        		hqIngredient.ingredient.id.eq(ingredient.id)
+			    )
 	        .where(order.id.eq(orderId))
 	        .fetch();
 	}

@@ -1,6 +1,8 @@
 package com.kosta.saladMan.dto.purchaseOrder;
 
 
+import java.time.LocalDateTime;
+
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
@@ -31,6 +33,8 @@ public class PurchaseOrderItemDto {
     private Integer unitCost;
     private String orderStatus;
 	private String storeName;
+	private String unit;// 단위
+	private LocalDateTime orderDateTime;
 
     
 
