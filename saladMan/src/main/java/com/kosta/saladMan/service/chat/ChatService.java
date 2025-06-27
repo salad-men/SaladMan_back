@@ -22,6 +22,8 @@ import com.kosta.saladMan.repository.chat.ReadStatusRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -281,6 +283,16 @@ public class ChatService {
         if (chatParticipantRepository.findByChatRoom(chatRoom).isEmpty()) {
             chatRoomRepository.delete(chatRoom); // Cascade로 메시지, 읽음상태 등도 삭제
         }
+    }
+    
+    
+    public Set<String> getParticipantUsernames(Integer roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new EntityNotFoundException("Room cannot be found"));
+        List<ChatParticipant> participants = chatParticipantRepository.findByChatRoom(chatRoom);
+        return participants.stream()
+            .map(cp -> cp.getStore().getUsername())
+            .collect(Collectors.toSet());
     }
 
 

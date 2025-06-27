@@ -61,6 +61,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		    chain.doFilter(request, response);
 		    return;
 		}
+ 	   
+ 	    if (uri.startsWith("/chat/sse")) {
+ 	        chain.doFilter(request, response);
+ 	        return;
+ 	    }
 
  		
  		String accessTokenHeader = request.getHeader(JwtProperties.HEADER_STRING);

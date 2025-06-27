@@ -83,12 +83,9 @@ public class ChatController {
     @PostMapping("/room/private/create")
     public ResponseEntity<?> GetOrCreatePrivateRoom(@RequestParam Integer otherStoreId) {
         try {
-            System.out.println("[ChatController] POST /chat/room/private/create, otherStoreId=" + otherStoreId);
             Integer roomId = chatService.getOrCreatePrivateRoom(otherStoreId);
-            System.out.println("[ChatController] 채팅방 생성/조회 성공, roomId=" + roomId);
             return new ResponseEntity<>(roomId, HttpStatus.OK);
         } catch (Exception e) {
-            System.out.println("[ChatController][에러] 채팅방 생성 실패: " + e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>("채팅방 생성 실패: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
