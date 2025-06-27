@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.kosta.saladMan.auth.PrincipalDetails;
-import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto;
-import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto.GroupType;
+import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
+import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
 import com.kosta.saladMan.service.saleOrder.SalesService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class SalesController {
 	
 	//store 매출조회
     @GetMapping("/storeSales")
-    public ResponseEntity<StoreSalesViewDto> getHqSales(@AuthenticationPrincipal PrincipalDetails principalDetails,
+    public ResponseEntity<StoreSalesResultDto> getHqSales(@AuthenticationPrincipal PrincipalDetails principalDetails,
     		@RequestParam String startDate, @RequestParam String endDate, @RequestParam(defaultValue = "DAY") String groupType) {
     	Integer storeId = principalDetails.getStore().getId();
         LocalDate start = LocalDate.parse(startDate);
@@ -34,7 +34,7 @@ public class SalesController {
         GroupType type = GroupType.valueOf(groupType.toUpperCase());
         
         try {
-        	StoreSalesViewDto response = salesService.getStoreSales(storeId,start, end, type);
+        	StoreSalesResultDto response = salesService.getStoreSales(storeId,start, end, type);
         	return ResponseEntity.ok(response);
         } catch (Exception e) {
 			e.printStackTrace();
