@@ -39,4 +39,5 @@ out/
 src/main/resources/firebase/*.jsonbfg-1.14.0.jar
 SaladMan_back.git/
 src/main/resources/*.yml
+/src/main/resources/firebase/test-e93e5-firebase-adminsdk-fbsvc-e966fa8ac8.json
 
