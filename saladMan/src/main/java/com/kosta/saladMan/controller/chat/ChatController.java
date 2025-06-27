@@ -113,5 +113,12 @@ public class ChatController {
         ));
     }
 
+    //개인채팅방 나가기
+    @DeleteMapping("/room/private/{roomId}/leave")
+    public ResponseEntity<?> leavePrivateChatRoom(@PathVariable Integer roomId) {
+        chatService.leavePrivateChatRoom(roomId);
+        return ResponseEntity.ok().build();
+    }
+
 
 }

@@ -235,35 +235,54 @@ public class ChatService {
     // 개인 채팅방 가져오거나 만들거나 
     public Integer getOrCreatePrivateRoom(Integer otherStoreId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Store me = storeRepository.findByUsername(username)
+            .orElseThrow(() -> new EntityNotFoundException("Store not found"));
+        Store other = storeRepository.findById(otherStoreId)
+            .orElseThrow(() -> new EntityNotFoundException("Other not found"));
 
-        Store store = storeRepository.findByUsername(username)
-            .orElseThrow(() -> new EntityNotFoundException("Store cannot found"));
+        // 1:1방을 "참여자가 아니더라도" 찾는 쿼리 필요!
+        Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findPrivateRoomBetweenStores(me.getId(), other.getId());
 
-        // HQ와 STORE만 가능하게 허용
-        if (!("ROLE_HQ".equals(store.getRole()) || "ROLE_STORE".equals(store.getRole()))) {
-            throw new IllegalArgumentException("본사 또는 매장 계정만 채팅이 가능합니다.");
+        ChatRoom chatRoom;
+        if (chatRoomOpt.isPresent()) {
+            chatRoom = chatRoomOpt.get();
+            // 내가 현재 참가자가 아니면 다시 추가 (재입장)
+            if (!chatParticipantRepository.existsByChatRoomAndStore(chatRoom, me)) {
+                addParticipantToRoom(chatRoom, me);
+            }
+            return chatRoom.getId();
         }
 
-        Store otherStore = storeRepository.findById(otherStoreId)
-            .orElseThrow(() -> new EntityNotFoundException("OtherStore cannot found"));
-
-        // 동일
-        Optional<ChatRoom> chatRoom = chatParticipantRepository.findExistingPrivateRoom(store.getId(), otherStore.getId());
-        if (chatRoom.isPresent()) {
-            return chatRoom.get().getId();
-        }
-
+        // 없으면 새로 생성
         ChatRoom newRoom = ChatRoom.builder()
             .isGroupChat("N")
-            .name(store.getName() + "-" + otherStore.getName())
+            .name(me.getName() + "-" + other.getName())
             .build();
         chatRoomRepository.save(newRoom);
 
-        addParticipantToRoom(newRoom, store);
-        addParticipantToRoom(newRoom, otherStore);
-
+        addParticipantToRoom(newRoom, me);
+        addParticipantToRoom(newRoom, other);
         return newRoom.getId();
     }
+
+
+    public void leavePrivateChatRoom(Integer roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new EntityNotFoundException("Room cannot be found"));
+        Store store = storeRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName())
+                .orElseThrow(() -> new EntityNotFoundException("Store cannot found"));
+
+        // 참여자만 삭제 (메시지/방/상대방은 유지)
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomAndStore(chatRoom, store)
+            .orElseThrow(() -> new EntityNotFoundException("참여자 찾을 수 없습니다."));
+        chatParticipantRepository.delete(participant);
+
+        // **모든 참여자가 나갔으면 방/메시지도 삭제**
+        if (chatParticipantRepository.findByChatRoom(chatRoom).isEmpty()) {
+            chatRoomRepository.delete(chatRoom); // Cascade로 메시지, 읽음상태 등도 삭제
+        }
+    }
+
 
 
 

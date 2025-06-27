@@ -27,5 +27,6 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
             "AND cp2.store.id = :otherStoreId " +
             "AND cp1.chatRoom.isGroupChat='N'")
     Optional<ChatRoom> findExistingPrivateRoom(@Param("myId") Integer integer, @Param("otherStoreId") Integer integer2);
+	boolean existsByChatRoomAndStore(ChatRoom chatRoom, Store me);
 
 }
