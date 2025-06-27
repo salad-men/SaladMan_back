@@ -223,38 +223,36 @@ public class PuchaseOrderDslRepository {
 	    QIngredientCategory category = QIngredientCategory.ingredientCategory;
 	    QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
 	    QStore store = QStore.store;
-
+	    
 	    return jpaQueryFactory
-	        .select(Projections.fields(PurchaseOrderItemDto.class,
-	        	poi.id,
-	            order.id.as("purchaseOrderId"),
-	            ingredient.id.as("ingredientId"),
-	            ingredient.name.as("ingredientName"),
-	            ingredient.unit.as("unit"),
-	            category.name.as("categoryName"),
-	            poi.orderedQuantity,
-	            poi.receivedQuantity,
-	            poi.totalPrice,
-	            poi.inspection,
-	            poi.inspectionNote,
-	            poi.approvalStatus,
-	            poi.rejectionReason,
-	            store.name.as("storeName"),
-	            hqIngredient.unitCost.coalesce(0).as("unitCost"),
-	            po.status.as("orderStatus"),
-	            po.orderDateTime.as("orderDateTime")
-	        ))
-	        .from(poi)
-	        .leftJoin(poi.ingredient, ingredient)
-	        .leftJoin(ingredient.category, category)
-	        .leftJoin(poi.purchaseOrder, order)
-	        .leftJoin(order.store, store)
-			.join(po).on(poi.purchaseOrder.id.eq(po.id))
-	        .leftJoin(hqIngredient).on(
-	        		hqIngredient.ingredient.id.eq(ingredient.id)
-			    )
-	        .where(order.id.eq(orderId))
-	        .fetch();
+	            .select(Projections.fields(PurchaseOrderItemDto.class,
+	                poi.id,
+	                po.id.as("purchaseOrderId"),
+	                ingredient.id.as("ingredientId"),
+	                ingredient.name.as("ingredientName"),
+	                ingredient.unit.as("unit"),
+	                category.name.as("categoryName"),
+	                poi.orderedQuantity,
+	                poi.receivedQuantity,
+	                poi.totalPrice,
+	                poi.inspection,
+	                poi.inspectionNote,
+	                poi.approvalStatus,
+	                poi.rejectionReason,
+	                store.name.as("storeName"),
+	                hqIngredient.unitCost.max().as("unitCost"), // 가장 큰 날짜 = 가장 최근 단가
+	                po.status.as("orderStatus"),
+	                po.orderDateTime.as("orderDateTime")
+	            ))
+	            .from(poi)
+	            .leftJoin(poi.ingredient, ingredient)
+	            .leftJoin(ingredient.category, category)
+	            .leftJoin(poi.purchaseOrder, po)
+	            .leftJoin(po.store, store)
+	            .leftJoin(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
+	            .where(po.id.eq(orderId))
+	            .groupBy(poi.id) //item 기준 group by
+	            .fetch();
 	}
 
 }
