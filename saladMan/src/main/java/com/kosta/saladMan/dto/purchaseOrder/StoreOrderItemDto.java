@@ -17,7 +17,7 @@ public class StoreOrderItemDto {
 	private Integer unitCost; // 단가
 	private Integer minimumOrderUnit; // 최소 발주 단위
 	private Integer hqStock;
-	private Integer itemPrice;
+	private Integer totalPrice;
 	private Boolean available;
 
 	public StoreOrderItemDto(Integer ingredientId, String name, String category, Integer quantity, Integer incoming,

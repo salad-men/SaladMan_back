@@ -123,6 +123,7 @@ public class SOrderController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 	}
+	
 	//발주 상태 저장
 	@PostMapping("/stockInspection")
 	public ResponseEntity<Void> saveInspection(@RequestBody List<PurchaseOrderItemDto> items) {
@@ -130,6 +131,7 @@ public class SOrderController {
 			orderService.saveInspectionResults(items);
 		    return ResponseEntity.ok().build();
 	    } catch (Exception e) {
+	    	e.printStackTrace();
 	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	    }
 
