@@ -39,7 +39,7 @@ public class PurchaseOrderItemDto {
 	private LocalDateTime orderDateTime;
 	
 	private List<HqIngredientDto> stockList;
-
+	private List<Integer> selectedStockIds;
     
 
 
