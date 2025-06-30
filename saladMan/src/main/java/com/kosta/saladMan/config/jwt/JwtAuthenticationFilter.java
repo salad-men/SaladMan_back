@@ -17,22 +17,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.entity.store.Store;
+import com.kosta.saladMan.repository.StoreRepository;
 
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	
-	public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+	private StoreRepository storeRepository;
+	
+	public JwtAuthenticationFilter(AuthenticationManager authenticationManager, StoreRepository storeRepository) {
 		super(authenticationManager);
+		this.storeRepository = storeRepository;
 		setFilterProcessesUrl("/login");
 	}
 	private  AuthenticationManager authenticationManager;
 	private JwtToken jwtToken = new JwtToken();
+	private ThreadLocal<Map<String, String>> loginCache = new ThreadLocal<>();
 	
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
 	    try {
 	        ObjectMapper objectMapper = new ObjectMapper();
 	        Map<String, String> loginRequest = objectMapper.readValue(request.getInputStream(), Map.class);
+	        loginCache.set(loginRequest);
 
 	        if (loginRequest == null) {
 	            throw new RuntimeException("요청 본문이 비어 있습니다.");
@@ -65,6 +71,19 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		PrincipalDetails principalDetails = (PrincipalDetails)authResult.getPrincipal();
 		String username = principalDetails.getUsername();
 		
+		// fcmtoken 저장
+		Map<String, String> loginRequest = loginCache.get();
+		loginCache.remove();
+		String fcmToken = loginRequest.get("fcmToken");
+		System.out.println("jwtAuthenticationFilter.loginRequest:"+loginRequest+"fcmToken"+fcmToken);
+		
+		if (fcmToken == null) {
+		    fcmToken = "";
+		} 
+		if (!fcmToken.isBlank()) {
+	        storeRepository.updateFcmToken(username, fcmToken);
+	    }
+		
 		String accessToken = jwtToken.makeAccessToken(username);
 		String refreshToken = jwtToken.makeRefreshToken(username);
 		
@@ -85,6 +104,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		userInfo.put("name", store.getName());
 		userInfo.put("role", store.getRole());
 		userInfo.put("username", store.getUsername());
+		
 		response.getWriter().write(objectMapper.writeValueAsString(userInfo));
 	}
 }

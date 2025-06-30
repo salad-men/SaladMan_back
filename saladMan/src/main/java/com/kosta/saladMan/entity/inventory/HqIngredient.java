@@ -55,6 +55,8 @@ public class HqIngredient {
     
     @Column(nullable = false)
     private LocalDate receivedDate;
+    
+    private Integer reservedQuantity;
 
     public HqIngredientDto toDto() {
         return HqIngredientDto.builder()
@@ -70,6 +72,7 @@ public class HqIngredient {
                 .quantity(quantity)
                 .expiredDate(expiredDate)
                 .receivedDate(receivedDate)
+                .reservedQuantity(reservedQuantity)
                 .build();
     }
 

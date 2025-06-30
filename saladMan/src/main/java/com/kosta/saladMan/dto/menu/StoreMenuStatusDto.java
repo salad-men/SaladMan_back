@@ -10,11 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoreMenuStatusDto {
-	
-	private Integer menuId;
-    private String menuName;
-    private Integer salePrice;
+	private Integer id;
     private String img;
-    private Boolean status; 
+    private String name;
+    private Integer salePrice;
+    private Boolean status;
 
 }

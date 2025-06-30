@@ -18,6 +18,7 @@ import com.kosta.saladMan.entity.store.Store;
 public class ComplaintDto {
     private Integer id;
     private Integer storeId;
+    private String storeName;          
     private String title;
     private String content;
     private LocalDate writerDate;

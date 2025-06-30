@@ -19,7 +19,9 @@ public class NoticeDto {
     private String content;
     private LocalDate postedAt;
     private Integer viewCnt;
-    private String img;
+    private String imgFileName;
+    private String fileName;
+    private String fileOriginName;
 
     public Notice toEntity() {
         return Notice.builder()
@@ -28,7 +30,9 @@ public class NoticeDto {
                 .content(content)
                 .postedAt(postedAt)
                 .viewCnt(viewCnt)
-                .img(img)
+                .imgFileName(imgFileName)
+                .fileName(fileName)
+                .fileOriginName(fileOriginName)
                 .build();
     }
 }

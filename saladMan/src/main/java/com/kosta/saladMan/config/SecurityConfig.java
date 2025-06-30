@@ -42,35 +42,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.filter.CorsFilter;
 
 import com.kosta.saladMan.auth.PrincipalDetailsService;
+import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
 import com.kosta.saladMan.repository.StoreRepository;
 
 import lombok.RequiredArgsConstructor;
 
-//@Configuration
-//public class SecurityConfig {
-//	
-//	//계정 생성 postman 테스트용
-//	@Bean
-//  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//      http
-//          .csrf().disable()
-//          .authorizeRequests()
-//              .antMatchers("/hq/*").permitAll() // ✅ 여기 허용
-//              .anyRequest().authenticated(); // 나머지는 인증 필요
-//      return http.build();
-//  }
-//	
-//	@Bean
-//  public BCryptPasswordEncoder bCryptPasswordEncoder() {
-//      return new BCryptPasswordEncoder();
-//  }
-//}
-
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true) //user페이지 hq만 수정할 수 있도록 권한 설정하는 코드
+@EnableGlobalMethodSecurity(prePostEnabled = true) // user페이지 hq만 수정할 수 있도록 권한 설정하는 코드
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -78,7 +60,6 @@ public class SecurityConfig {
 	private CorsFilter corsFilter;
 
 	private final StoreRepository storeRepository;
-	private final PrincipalDetailsService principalDetailsService;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
@@ -95,39 +76,19 @@ public class SecurityConfig {
 
 		http.formLogin().disable() // 로그인 폼 비활성화
 				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
-				.addFilterAt(new JwtAuthenticationFilter(authenticationManager),
+				.addFilterAt(new JwtAuthenticationFilter(authenticationManager, storeRepository),
 						UsernamePasswordAuthenticationFilter.class);
 
 		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
 				.authorizeRequests()
+				.antMatchers("/connect/**", "/connect", "/connect/info/**", "/connect/info").permitAll()
 				.antMatchers("/hq/**").access("hasRole('ROLE_HQ')")
 				.antMatchers("/store/**").access("hasRole('ROLE_STORE')")
-				.antMatchers("/actuator/health").permitAll() // ✅ actuator 허용
+				.antMatchers("/actuator/health").permitAll()
+				.antMatchers("/user/**").permitAll()
+				.antMatchers("/chat/sse").permitAll()
+				.antMatchers("/chat/**").authenticated()
 				.anyRequest().permitAll();
 		return http.build();
 	}
-	
-//	@Bean
-//	public WebSecurityCustomizer webSecurityCustomizer() {
-//	    return (web) -> web.ignoring().antMatchers("/actuator/health");
-//	}
-
-	
-	
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http.addFilter(corsFilter)
-//            .csrf().disable()
-//            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//            .and()
-//            .authorizeRequests()
-//                .anyRequest().permitAll()
-//            .and()
-//            .formLogin().disable()
-//            .httpBasic().disable();
-//        // JWT 필터 추가 없음..
-//        return http.build();
-//    }
-	
-	
 }

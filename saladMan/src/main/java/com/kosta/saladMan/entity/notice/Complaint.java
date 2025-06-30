@@ -56,6 +56,7 @@ public class Complaint {
         return ComplaintDto.builder()
                 .id(id)
                 .storeId(store.getId())
+                .storeName(store.getName())
                 .title(title)
                 .content(content)
                 .writerDate(writerDate)

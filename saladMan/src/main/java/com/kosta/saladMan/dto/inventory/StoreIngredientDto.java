@@ -26,10 +26,12 @@ public class StoreIngredientDto {
     private String storeName;
     private Integer unitCost;
     private String unit;
-    private Integer expiredQuantity;
     private Integer minimumOrderUnit;
+    private Integer minQuantity;
     private Integer quantity;
     private LocalDate expiredDate;
+    private LocalDate receivedDate;
+    
 
 
     public StoreIngredient toEntity() {
@@ -38,9 +40,11 @@ public class StoreIngredientDto {
                 .category(categoryId != null ? IngredientCategory.builder().id(categoryId).build() : null)
                 .ingredient(ingredientId != null ? Ingredient.builder().id(ingredientId).build() : null)
                 .store(storeId != null ? Store.builder().id(storeId).build() : null)
-                .expiredQuantity(expiredQuantity)
+                .unitCost(unitCost)
+                .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
+                .receivedDate(receivedDate)  
                 .build();
     }
 

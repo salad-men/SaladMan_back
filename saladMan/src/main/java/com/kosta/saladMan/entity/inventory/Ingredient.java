@@ -48,7 +48,7 @@ public class Ingredient {
                 .categoryId(category != null ? category.getId() : null)
                 .name(name)
                 .unit(unit)
-                .available(available)
+                .available(available == null ? true : available)
                 .build();
     }
 }

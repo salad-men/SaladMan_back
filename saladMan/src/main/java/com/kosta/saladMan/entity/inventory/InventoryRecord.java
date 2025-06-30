@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.entity.store.Store;
@@ -27,7 +29,7 @@ import lombok.NoArgsConstructor;
 public class InventoryRecord {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,6 +43,8 @@ public class InventoryRecord {
     private Integer quantity;
     private String changeType; // 입고 / 출고
     private String memo;
+    
+    @CreationTimestamp
     private LocalDateTime date;
     
     public InventoryRecordDto toDto() {
@@ -54,7 +58,7 @@ public class InventoryRecord {
                 .quantity(quantity)
                 .memo(memo)
                 .changeType(changeType)
-                .date(date.toString())
+                .date(date)
                 .build();
     }
 }

@@ -11,6 +11,8 @@ import javax.persistence.Lob;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.dto.notice.NoticeDto;
+
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -38,5 +40,21 @@ public class Notice {
 
     private Integer viewCnt;
 
-    private String img;
+    private String imgFileName;
+    private String fileName;
+    private String fileOriginName;
+
+    
+    public NoticeDto toDto() {
+        return NoticeDto.builder()
+                .id(id)
+                .title(title)
+                .content(content)
+                .postedAt(postedAt)
+                .viewCnt(viewCnt)
+                .imgFileName(imgFileName)
+                .fileName(fileName)
+                .fileOriginName(fileOriginName)
+                .build();
+    }
 }
