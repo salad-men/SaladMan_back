@@ -215,6 +215,7 @@ public class PuchaseOrderDslRepository {
 		return new PageImpl<>(content, pageable, total);
 	}
 	
+	//검수 목록 조회
 	public List<PurchaseOrderItemDto> getInspectionInfo(Integer orderId){
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
 	    QPurchaseOrder po = QPurchaseOrder.purchaseOrder;

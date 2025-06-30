@@ -31,7 +31,7 @@ public class NoticeServiceImpl implements NoticeService {
         }
         if (file != null && !file.isEmpty()) {
             String fileUrl = s3Uploader.upload(file, "notice-file");
-            noticeDto.setFileName(fileUrl);
+            noticeDto.setFileName(fileUrl); 
             noticeDto.setFileOriginName(file.getOriginalFilename()); // 원본 파일명 저장
         }
         Notice entity = noticeDto.toEntity();

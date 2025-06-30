@@ -36,4 +36,8 @@ public class FixedOrderItem {
     private FixedOrderTemplate fixedOrderTemplate;
 
     private Integer quantity;
+    
+    private Integer autoOrderQty;    // 자동발주 시 주문 수량
+    private Boolean autoOrderEnabled; // 품목별 자동발주 여부 
+
 }
