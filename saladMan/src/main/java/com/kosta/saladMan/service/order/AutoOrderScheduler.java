@@ -1,0 +1,85 @@
+package com.kosta.saladMan.service.order;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import com.kosta.saladMan.entity.purchaseOrder.FixedOrderItem;
+import com.kosta.saladMan.entity.purchaseOrder.FixedOrderTemplate;
+import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
+import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
+import com.kosta.saladMan.entity.store.Store;
+import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.order.FixedOrderItemRepository;
+import com.kosta.saladMan.repository.order.FixedOrderTemplateRepository;
+import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
+
+@Service
+public class AutoOrderScheduler {
+	@Autowired
+    private StoreRepository storeRepository;
+	@Autowired
+	private FixedOrderTemplateRepository fixedOrderTemplateRepository;
+	@Autowired
+	private FixedOrderItemRepository fixedOrderItemRepository;
+	@Autowired
+	private PurchaseOrderRepository purchaseOrderRepository;
+	
+	// 매일 오후 5시
+    @Scheduled(cron = "0 0 17 * * *")
+    @Transactional
+    public void createAutoOrders() {
+    	
+        System.out.println("자동발주 스케줄러 실행됨: " + LocalDateTime.now());
+
+        // 1. 자동발주 사용 매장 조회
+        List<Store> stores = storeRepository.findByAutoOrderEnabledTrue();
+        for (Store store : stores) {
+            System.out.println("자동발주 매장: " + store.getName());
+
+            // 2. 매장별 템플릿 조회
+            Optional<FixedOrderTemplate> templateOpt = fixedOrderTemplateRepository.findByStoreId(store.getId());
+            if (templateOpt.isEmpty()) {
+                System.out.println("템플릿 없음: " + store.getName());
+                continue;
+            }
+            FixedOrderTemplate template = templateOpt.get();
+
+            // 3. 품목 조회
+            List<FixedOrderItem> itemList = fixedOrderItemRepository.findByFixedOrderTemplateIdAndAutoOrderEnabledTrue(template.getId());
+            if (itemList.isEmpty()) {
+                System.out.println("자동발주 품목 없음: " + store.getName());
+                continue;
+            }
+
+            // 4. 발주서 생성
+            PurchaseOrder order = PurchaseOrder.builder()
+                    .store(store)
+                    .orderDateTime(LocalDateTime.now())
+                    .status("대기중")
+                    .purType("자동발주") // 예: 자동발주 구분
+                    .build();
+            purchaseOrderRepository.save(order);
+
+            // 5. 발주서 품목 생성
+            for (FixedOrderItem item : itemList) {
+                PurchaseOrderItem orderItem = PurchaseOrderItem.builder()
+                        .purchaseOrder(order)
+                        .ingredient(item.getIngredient())
+                        .orderedQuantity(item.getAutoOrderQty())
+                        .build();
+                // 여기선 repository.save()는 필요없이 order.getItems().add()로 해도 됨
+                // cascade = CascadeType.ALL 걸려있다면 order 저장 시 함께 저장
+            }
+
+            System.out.println("발주 생성 완료: " + store.getName());
+        }
+    }
+
+}

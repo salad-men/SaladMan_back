@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
@@ -28,14 +29,20 @@ import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
+import com.kosta.saladMan.entity.purchaseOrder.FixedOrderItem;
+import com.kosta.saladMan.entity.purchaseOrder.FixedOrderTemplate;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
 import com.kosta.saladMan.entity.store.Store;
+import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientStockRepository;
+import com.kosta.saladMan.repository.order.FixedOrderDslRepository;
+import com.kosta.saladMan.repository.order.FixedOrderItemRepository;
+import com.kosta.saladMan.repository.order.FixedOrderTemplateRepository;
 import com.kosta.saladMan.repository.order.IngredientDslRepository;
 import com.kosta.saladMan.repository.order.PuchaseOrderDslRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderItemRepository;
@@ -50,6 +57,9 @@ public class OrderServiceImpl implements OrderService {
 
 	@Autowired
 	private IngredientDslRepository ingredientDslRepository;
+	
+	@Autowired
+	private StoreRepository storeRepository;
 
 	@Autowired
 	private StoreIngredientDslRepository storeIngredientDslRepository;
@@ -74,6 +84,15 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private InventoryRecordRepository inventoryRecordRepository;
+	
+	@Autowired
+	private FixedOrderDslRepository fixedOrderDslRepository;
+	
+	@Autowired
+	private FixedOrderTemplateRepository fixedOrderTemplateRepository;
+	
+	@Autowired
+	private FixedOrderItemRepository fixedOrderItemRepository;
 
 	// 재료 리스트
 	@Override
@@ -246,7 +265,7 @@ public class OrderServiceImpl implements OrderService {
 	// 발주 신청
 	@Transactional
 	@Override
-	public void createOrder(Store storeInfo, List<StoreOrderItemDto> items) throws Exception {
+	public void createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception {
 		int total = items.stream().mapToInt(item -> {
 			Integer qty = item.getQuantity();
 			Integer cost = item.getUnitCost();
@@ -374,6 +393,61 @@ public class OrderServiceImpl implements OrderService {
 	    // 5. 주문 상태 '검수 완료'로 변경
 	    order.setStatus("검수완료");
 	    purchaseOrderRepository.save(order);
+	}
+	
+	//발주 설정 조회
+	@Override
+	public List<FixedOrderItemDto> getSettings(Integer id) throws Exception {
+		return fixedOrderDslRepository.findAllByStore(id);
+	}
+
+	
+	@Override
+	@Transactional
+	public void saveSettings(Integer id, List<FixedOrderItemDto> settingList) throws Exception {
+		// FixedOrderTemplate 존재 여부 확인 or 생성
+	    FixedOrderTemplate template = fixedOrderTemplateRepository.findByStoreId(id)
+	        .orElseGet(() -> fixedOrderTemplateRepository.save(
+	            FixedOrderTemplate.builder()
+	                .store(storeRepository.getReferenceById(id))
+	                .name("자동발주 설정")
+	                .build()
+	        ));
+	    
+	    Optional<FixedOrderTemplate> templateOpt = fixedOrderTemplateRepository.findByStoreId(id);
+	    System.out.println("찾은 템플릿: " + templateOpt);
+
+	    // 기존 FixedOrderItem 삭제
+	    int deletedCount = fixedOrderItemRepository.deleteByFixedOrderTemplateId(template.getId());
+	    System.out.println("삭제된 FixedOrderItem 행 수: " + deletedCount);
+	    // 새로 저장
+	    List<FixedOrderItem> newItems = settingList.stream()
+	        .filter(dto -> dto.getAutoOrderEnabled() != null && dto.getAutoOrderEnabled())
+	        .map(dto -> FixedOrderItem.builder()
+	            .fixedOrderTemplate(template)
+	            .ingredient(ingredientRepository.getReferenceById(dto.getIngredientId()))
+	            .autoOrderEnabled(dto.getAutoOrderEnabled())
+	            .autoOrderQty(dto.getAutoOrderQty())
+	            .build())
+	        .collect(Collectors.toList());
+
+	    fixedOrderItemRepository.saveAll(newItems);		
+	}
+
+	@Override
+	public Boolean getAutoOrderEnabled(Integer id) throws Exception {
+		// TODO Auto-generated method stub
+		return storeRepository.findById(id)
+						.map(Store::getAutoOrderEnabled)
+						.orElse(false);
+	}
+
+	@Override    
+	@Transactional
+	public void updateAutoOrderEnabled(Integer id, Boolean enable) throws Exception {
+		Store store = storeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Store not found: " + id));
+        store.setAutoOrderEnabled(enable);		
 	}
 
 
