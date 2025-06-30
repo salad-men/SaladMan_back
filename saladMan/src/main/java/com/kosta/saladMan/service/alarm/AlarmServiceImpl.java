@@ -6,5 +6,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AlarmServiceImpl implements AlarmService {
-    // 서비스 구현 예정
+	
+	@Override
+	public void sendAlarmToStore(Integer storeId, String type, String title) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 }
