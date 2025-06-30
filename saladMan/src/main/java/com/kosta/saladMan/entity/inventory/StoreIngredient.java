@@ -2,6 +2,7 @@ package com.kosta.saladMan.entity.inventory;
 
 import java.time.LocalDate;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -43,24 +44,34 @@ public class StoreIngredient {
     @JoinColumn(nullable = false, name = "store_id")
     private Store store;
 
-    private Integer expiredQuantity;
 
     private Integer quantity;  // s_quantity
     
     private LocalDate expiredDate;
+    
+    @Column(nullable = false)
+    private Integer unitCost;
+
+    private Integer minimumOrderUnit;
+
+    private LocalDate receivedDate;
+
 
 
     public StoreIngredientDto toDto() {
         return StoreIngredientDto.builder()
                 .id(id)
                 .categoryId(category != null ? category.getId() : null)
+                .categoryName(category != null ? category.getName() : null)  
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
                 .storeId(store != null ? store.getId() : null)
                 .storeName(store != null ? store.getName() : null)
                 .unit(ingredient != null ? ingredient.getUnit() : null)
-                .expiredQuantity(expiredQuantity)
+                .unitCost(unitCost)                
+                .minimumOrderUnit(minimumOrderUnit)
                 .quantity(quantity)
                 .expiredDate(expiredDate)
+                .receivedDate(receivedDate)
                 .build();
     }
 

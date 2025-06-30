@@ -50,4 +50,10 @@ public class PurchaseOrderItem {
 
     @Column(length = 255)
     private String inspectionNote;
+    
+    @Column(length = 20)
+    private String approvalStatus; // 승인됨, 반려됨, 대기중
+
+    @Column(length = 255)
+    private String rejectionReason; // 반려 사유 (nullable)
 }

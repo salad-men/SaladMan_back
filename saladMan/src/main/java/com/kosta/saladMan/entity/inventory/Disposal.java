@@ -56,6 +56,10 @@ public class Disposal {
     private String memo;
     
     
+    private Integer storeIngredientId;
+
+    
+    
     public DisposalDto toDto() {
         return DisposalDto.builder()
             .id(id)

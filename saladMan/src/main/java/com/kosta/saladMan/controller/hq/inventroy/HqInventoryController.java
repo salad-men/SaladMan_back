@@ -7,6 +7,9 @@ import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
+import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
+import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.service.inventory.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,57 +38,62 @@ public class HqInventoryController {
     public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
         try {
             String scope = (String) param.getOrDefault("scope", "all");
-            String category = (String) param.getOrDefault("category", "all");
-            String name = (String) param.getOrDefault("name", "");
+            Object categoryObj = param.get("category");
+            String keyword = (String) param.getOrDefault("name", "");
             int page = param.get("page") == null ? 1 : (int) param.get("page");
 
-
             Object storeObj = param.get("store");
-            System.out.println("storeObj = " + storeObj + " (" + (storeObj != null ? storeObj.getClass().getName() : "null") + ")");
             Integer storeId = null;
+            Integer categoryId = null;
 
-            try {
-                if (storeObj != null && !"all".equals(storeObj.toString().trim())) {
-                    storeId = Integer.valueOf(storeObj.toString().trim());
+            // categoryObj → Integer categoryId 변환
+            if (categoryObj != null && !"all".equals(categoryObj.toString().trim())) {
+                try {
+                    categoryId = Integer.valueOf(categoryObj.toString().trim());
+                } catch (NumberFormatException e) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                 }
-            } catch (NumberFormatException e) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-            
+
+            // storeObj → Integer storeId 변환
+            if (storeObj != null && !"all".equals(storeObj.toString().trim())) {
+                try {
+                    storeId = Integer.valueOf(storeObj.toString().trim());
+                } catch (NumberFormatException e) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
+            }
 
             PageInfo pageInfo = new PageInfo(page);
             Map<String, Object> res = new HashMap<>();
 
-            // HQ(본사) 조회 (storeId==null 또는 1)
+            // HQ(본사) 조회
             if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope) || (storeId != null && storeId == 1)) {
-                List<HqIngredientDto> hqList = inventoryService.getHqInventory(storeId, category, name, null, null, pageInfo);
+                List<HqIngredientDto> hqList = inventoryService.getHqInventory(storeId, categoryId, keyword, null, null, pageInfo);
                 res.put("hqInventory", hqList);
             }
-            
+
             // 매장 재고 조회
             if ("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
                 List<StoreIngredientDto> storeList;
                 if (storeId == null) {
-                    // storeId == null 이면 전체 지점 재고 조회 메서드 호출 (아래 메서드는 별도로 구현 필요)
-                    storeList = inventoryService.getAllStoreInventory(category, name, null, null, pageInfo);
+                    storeList = inventoryService.getAllStoreInventory(categoryId, keyword, null, null, pageInfo);
                 } else if (storeId != 1) {
-                    // 특정 지점 재고 조회
-                    storeList = inventoryService.getStoreInventory(storeId, category, name, null, null, pageInfo);
+                    storeList = inventoryService.getStoreInventory(storeId, categoryId, keyword, null, null, pageInfo);
                 } else {
-                    // 본사(storeId == 1)일 경우는 무시 또는 빈 리스트
                     storeList = List.of();
                 }
                 res.put("storeInventory", storeList);
             }
-            res.put("pageInfo", pageInfo);
-            System.out.println("🔍 scope = " + scope + ", storeId = " + storeId);
 
+            res.put("pageInfo", pageInfo);
             return new ResponseEntity<>(res, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
 
     //추가
     @PostMapping("/add")
@@ -118,6 +126,15 @@ public class HqInventoryController {
             "categories", inventoryService.getAllCategories()
         ));
     }
+    
+    // 카테고리 추가
+    @PostMapping("/category-add")
+    public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, Object> body) {
+        String name = (String) body.get("name");
+        Integer id = inventoryService.addCategory(name);
+        return ResponseEntity.ok(Map.of("id", id));
+    }
+
 
     //매장 조회(추후 변경)
     @GetMapping("/stores")
@@ -133,20 +150,59 @@ public class HqInventoryController {
         List<IngredientDto> list = inventoryService.getAllIngredients();
         return ResponseEntity.ok(Map.of("ingredients", list));
     }
-    
-    // 매장별 설정 리스트 조회
-    @GetMapping("/settings")
-    public ResponseEntity<List<StoreIngredientSettingDto>> getSettings(@RequestParam Integer storeId) {
-        List<StoreIngredientSettingDto> list = inventoryService.getSettingsByStoreId(storeId);
-        return ResponseEntity.ok(list);
+ // 재료 추가
+    @PostMapping("/ingredient-add")
+    public ResponseEntity<Map<String, Object>> addIngredient(@RequestBody Map<String, Object> body) {
+        String name = (String) body.get("name");
+        Integer categoryId = (Integer) body.get("categoryId");
+        String unit = (String) body.get("unit");
+        Integer id = inventoryService.addIngredient(name, categoryId, unit);
+        return ResponseEntity.ok(Map.of("id", id));
     }
 
-    // 저장 (신규 또는 수정)
-    @PostMapping("/settings-save")
-    public ResponseEntity<StoreIngredientSettingDto> saveSetting(@RequestBody StoreIngredientSettingDto dto) {
-        StoreIngredientSettingDto savedDto = inventoryService.saveSetting(dto);
-        return ResponseEntity.ok(savedDto);
+    //재료 설정
+    @GetMapping("/settings")
+    public ResponseEntity<Map<String, Object>> getSettings(
+        @RequestParam Integer storeId,
+        @RequestParam(required = false) Integer categoryId,
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false, defaultValue = "1") int page
+    ) {
+        PageInfo pageInfo = new PageInfo(page);
+        Map<String, Object> res = new HashMap<>();
+
+        if (storeId == 1) {  // 본사
+            List<StoreIngredientSettingDto> hqSettings =
+                inventoryService.getHqSettingsByFilters(storeId, categoryId, keyword, pageInfo);
+            res.put("settings", hqSettings);
+        } else {  // 매장
+            List<StoreIngredientSettingDto> storeSettings =
+                inventoryService.getStoreSettingsByFilters(storeId, categoryId, keyword, pageInfo);
+            res.put("settings", storeSettings);
+        }
+
+        res.put("pageInfo", pageInfo);
+        return ResponseEntity.ok(res);
     }
+
+    // 여러 건 수정(배열, id 必)
+    @PostMapping("/settings-update")
+    public ResponseEntity<Void> updateSettings(@RequestBody List<StoreIngredientSettingDto> dtos) {
+        for (StoreIngredientSettingDto dto : dtos) {
+            // 반드시 id 있는 경우만!
+            if (dto.getId() == null) continue;
+            inventoryService.updateSetting(dto); 
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    // 단일 추가(id 없이 신규)
+    @PostMapping("/settings-add")
+    public ResponseEntity<StoreIngredientSettingDto> addSetting(@RequestBody StoreIngredientSettingDto dto) {
+        StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
+        return ResponseEntity.ok(saved);
+    }
+
     
     
 }

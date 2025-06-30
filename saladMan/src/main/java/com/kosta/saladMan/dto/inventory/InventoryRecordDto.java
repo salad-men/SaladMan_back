@@ -34,7 +34,7 @@ public class InventoryRecordDto {
 	    private Integer quantity;
 	    private String memo;
 	    private String changeType;
-	    private String date;
+	    private LocalDateTime date;
     
     public InventoryRecord toEntity(Ingredient ingredient, Store store) {
         return InventoryRecord.builder()
@@ -43,7 +43,7 @@ public class InventoryRecordDto {
                 .quantity(quantity)
                 .memo(memo)
                 .changeType(changeType)
-                .date(java.time.LocalDateTime.now())
+                .date(date)
                 .build();
     }
 }

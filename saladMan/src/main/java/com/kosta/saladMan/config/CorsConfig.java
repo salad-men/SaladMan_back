@@ -23,23 +23,6 @@ public class CorsConfig implements WebMvcConfigurer {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * 전역 CORS 설정
-     */
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**")
-//                // Vite 개발서버와 S3 호스팅 도메인 허용s
-//	        
-//                .allowedOriginPatterns(
-//                    "http://localhost:5173",
-//                    "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com"
-//                )
-//                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-//                .allowedHeaders("*")
-//                .allowCredentials(true);
-//    }
-    
     @Bean
 	public CorsFilter corsFilter() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

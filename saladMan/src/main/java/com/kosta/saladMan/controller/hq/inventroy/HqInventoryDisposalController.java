@@ -23,8 +23,18 @@ public class HqInventoryDisposalController {
     @PostMapping("/disposal-list")
     public ResponseEntity<Map<String, Object>> getDisposalList(@RequestBody Map<String, Object> params) {
         try {
-            String store = (String) params.getOrDefault("store", "all");
-            String category = (String) params.getOrDefault("category", "all");
+            Object storeObj = params.get("store");
+            Object categoryObj = params.get("category");
+            Integer storeId = null;
+            Integer categoryId = null;
+
+            if (storeObj != null && !"all".equals(storeObj.toString())) {
+                storeId = Integer.parseInt(storeObj.toString());
+            }
+            if (categoryObj != null && !"all".equals(categoryObj.toString())) {
+                categoryId = Integer.parseInt(categoryObj.toString());
+            }
+
             String keyword = (String) params.getOrDefault("keyword", "");
             String startDate = (String) params.getOrDefault("startDate", "");
             String endDate = (String) params.getOrDefault("endDate", "");
@@ -33,10 +43,10 @@ public class HqInventoryDisposalController {
             PageInfo pageInfo = new PageInfo(page);
             List<DisposalDto> disposalList;
 
-            if ("본사".equals(store) || "hq".equalsIgnoreCase(store)) {
-                disposalList = inventoryService.searchHqDisposals(pageInfo, category, keyword, startDate, endDate);
+            if (storeId != null && storeId == 1) {
+                disposalList = inventoryService.searchHqDisposals(pageInfo, categoryId, keyword, startDate, endDate);
             } else {
-                disposalList = inventoryService.searchStoreDisposals(pageInfo, store, category, keyword, startDate, endDate);
+                disposalList = inventoryService.searchStoreDisposals(pageInfo, storeId, categoryId, keyword, startDate, endDate);
             }
 
             return ResponseEntity.ok(Map.of(
@@ -48,7 +58,6 @@ public class HqInventoryDisposalController {
             return ResponseEntity.badRequest().build();
         }
     }
-
 
     // 폐기 승인 (상태 '완료'로 변경)
     @PostMapping("/disposal/approve")

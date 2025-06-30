@@ -1,6 +1,10 @@
 package com.kosta.saladMan.dto.purchaseOrder;
 
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
@@ -23,6 +27,21 @@ public class PurchaseOrderItemDto {
     private Integer totalPrice;
     private String inspection;
     private String inspectionNote;
+    
+    private String approvalStatus; // 승인, 반려, 대기중
+    private String rejectionReason; // 반려 사유 (nullable)
+    private String ingredientName;
+    private String categoryName;
+    private Integer unitCost;
+    private String orderStatus;
+	private String storeName;
+	private String unit;// 단위
+	private LocalDateTime orderDateTime;
+	
+	private List<HqIngredientDto> stockList;
+	private List<Integer> selectedStockIds;
+    
+
 
     public PurchaseOrderItem toEntity() {
         return PurchaseOrderItem.builder()
