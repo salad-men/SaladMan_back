@@ -19,10 +19,9 @@ public class StoreChatBotServiceImpl implements StoreChatBotService {
 
     @Override
     public List<StoreDto> searchStores(String keyword) {
-        List<Store> stores = storeChatBotRepository.findByAddressContainingIgnoreCase(keyword);
-
-        return stores.stream()
-                .map(StoreDto::fromEntity)
-                .collect(Collectors.toList());
+        return storeChatBotRepository.findByKeyword(keyword)
+            .stream()
+            .map(Store::toDto) // Store -> StoreDto 변환
+            .collect(Collectors.toList());
     }
 }

@@ -13,6 +13,8 @@ import javax.persistence.FetchType;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.dto.store.EmployeeDto;
+
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -51,4 +53,25 @@ public class Employee {
     private LocalDate hireDate;
 
     private String empStatus;
+    
+    private String email; 
+
+    
+    public EmployeeDto toDto() {
+        return EmployeeDto.builder()
+                .id(this.id)
+                .storeId(this.store != null ? this.store.getId() : null)
+                .storeName(this.store != null ? this.store.getName() : null) 
+                .name(this.name)
+                .grade(this.grade)
+                .address(this.address)
+                .phone(this.phone)
+                .img(this.img)
+                .birthday(this.birthday)
+                .gender(this.gender)
+                .hireDate(this.hireDate)
+                .empStatus(this.empStatus)
+                .email(email)
+                .build();
+    }
 }
