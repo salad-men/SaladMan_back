@@ -272,7 +272,7 @@ public class OrderServiceImpl implements OrderService {
 			return (qty == null || cost == null) ? 0 : item.getTotalPrice();
 		}).sum();
 		PurchaseOrder order = PurchaseOrder.builder().store(storeInfo).orderDateTime(LocalDateTime.now()).status("대기중")
-				.requestedBy(storeInfo.getName()).totalPrice(total).purType("수기발주").build();
+				.requestedBy(storeInfo.getName()).totalPrice(total).purType(purchaseType).build();
 		purchaseOrderRepository.save(order);
 
 		for (StoreOrderItemDto sOrderDto : items) {
