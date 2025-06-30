@@ -1,6 +1,9 @@
 package com.kosta.saladMan.controller.store.saleOrder;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.kosta.saladMan.auth.PrincipalDetails;
+import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
 import com.kosta.saladMan.service.saleOrder.SalesService;
+import com.kosta.saladMan.util.PageInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,4 +47,26 @@ public class SalesController {
 		}
     }
 
+    @GetMapping("/paymentList")
+    public ResponseEntity<Map<String, Object>> getPaymentList(@AuthenticationPrincipal PrincipalDetails principalDetails,
+    		@RequestParam(required = false) String status,@RequestParam(required = false) String startDate, 
+    		@RequestParam(required = false) String endDate,@RequestParam Integer page) {
+    	Integer storeId = principalDetails.getStore().getId();
+    	PageInfo pageInfo = new PageInfo(page);
+    	
+    	if (status != null && status.isBlank()) {
+    		  status = null;
+    		}
+    	
+        try {
+        	List<PaymentListDto> list = salesService.getPaymentList(storeId, status, startDate, endDate, pageInfo);
+        	Map<String, Object> response = new HashMap<>();
+            response.put("content", list);
+            response.put("pageInfo", pageInfo);
+        	return ResponseEntity.ok(response);
+        }catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+    }
 }

@@ -1,18 +1,25 @@
 package com.kosta.saladMan.repository.saleOrder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
+import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.DailySalesDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
 import com.kosta.saladMan.entity.menu.QTotalMenu;
 import com.kosta.saladMan.entity.saleOrder.QSaleOrder;
 import com.kosta.saladMan.entity.saleOrder.QSaleOrderItem;
+import com.kosta.saladMan.util.PageInfo;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
@@ -97,5 +104,57 @@ public class SalesDslRepository {
                 .orderBy(item.quantity.sum().desc())
                 .fetch();
     }
+    
+    public Page<PaymentListDto> getPaymentList(Integer storeId, String status, String start, String end, PageRequest pageRequest) {
+        QSaleOrder so = QSaleOrder.saleOrder;
+        QSaleOrderItem soi = QSaleOrderItem.saleOrderItem;
+        QTotalMenu tm = QTotalMenu.totalMenu;
 
+        BooleanBuilder builder = new BooleanBuilder();
+        if (storeId != null) {
+            builder.and(so.store.id.eq(storeId));
+        }
+        if (status != null) {
+            builder.and(so.status.eq(status));
+        }
+        if (start != null) {
+        	LocalDate startDate = LocalDate.parse(start);
+            builder.and(so.orderTime.goe(startDate.atStartOfDay()));
+        }
+        if (end != null) {
+        	LocalDate endDate = LocalDate.parse(end);
+            builder.and(so.orderTime.loe(endDate.atTime(23,59,59)));
+        }
+
+        List<PaymentListDto> content = jpaQueryFactory
+            .select(Projections.bean(PaymentListDto.class,
+            		so.id,
+            		so.orderTime,
+            		so.status,
+            		so.totalPrice,
+            		so.store,
+            		soi.menuId,
+            		soi.quantity,
+            		tm.name
+            ))
+            .from(so)
+            .join(soi).on(so.id.eq(soi.saleOrder.id))
+            .join(tm).on(soi.menuId.eq(tm.id))
+            .where(builder)
+            .orderBy(so.orderTime.desc())
+            .offset(pageRequest.getOffset())
+            .limit(pageRequest.getPageSize())
+            .fetch();
+
+        long total = jpaQueryFactory
+        	    .select(so.count())
+        	    .from(so)
+        	    .join(soi).on(so.id.eq(soi.saleOrder.id))
+        	    .join(tm).on(soi.menuId.eq(tm.id))
+        	    .where(builder)
+        	    .fetchOne(); 
+
+        return new PageImpl<>(content, pageRequest, total);
+    }   
+    
 }
