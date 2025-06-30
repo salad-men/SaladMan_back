@@ -540,6 +540,7 @@ public class InventoryServiceImpl implements InventoryService {
             ingredient.setName(name);
             ingredient.setCategory(cat);
             ingredient.setUnit(unit);
+            ingredient.setAvailable(true);
             ingredient = ingredientRepository.save(ingredient);
         }
         return ingredient.getId();

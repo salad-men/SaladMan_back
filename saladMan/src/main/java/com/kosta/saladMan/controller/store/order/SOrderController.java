@@ -124,14 +124,32 @@ public class SOrderController {
 		}
 	}
 	
+	//발주 상태 저장
 	@PostMapping("/stockInspection")
 	public ResponseEntity<Void> saveInspection(@RequestBody List<PurchaseOrderItemDto> items) {
 	    try {
 			orderService.saveInspectionResults(items);
 		    return ResponseEntity.ok().build();
 	    } catch (Exception e) {
+	    	e.printStackTrace();
 	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	    }
 
+	}
+	
+	//발주 상세
+	@GetMapping("/orderDetail/{id}")
+	public ResponseEntity<List<PurchaseOrderItemDto>> getOrderList(@PathVariable Integer id){
+		try {
+			System.out.println(id);
+			List<PurchaseOrderItemDto> result = orderService.getInspectionInfo(id);
+			for(PurchaseOrderItemDto dto : result) {
+				System.out.println(dto);
+			}
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
 	}
 }

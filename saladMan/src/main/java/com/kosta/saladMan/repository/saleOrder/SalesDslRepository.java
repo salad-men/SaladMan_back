@@ -1,15 +1,15 @@
 package com.kosta.saladMan.repository.saleOrder;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto;
-import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto.DailySalesDto;
-import com.kosta.saladMan.dto.saleOrder.StoreSalesViewDto.GroupType;
+import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
+import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
+import com.kosta.saladMan.dto.saleOrder.SalesResultDto.DailySalesDto;
+import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
 import com.kosta.saladMan.entity.menu.QTotalMenu;
 import com.kosta.saladMan.entity.saleOrder.QSaleOrder;
 import com.kosta.saladMan.entity.saleOrder.QSaleOrderItem;
@@ -21,15 +21,21 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
-import lombok.RequiredArgsConstructor;
-
 @Repository
 public class SalesDslRepository {
 	
 	@Autowired
 	private JPAQueryFactory jpaQueryFactory;
+	
+	//전체or매장 매출조회
+	public List<DailySalesDto> getStoreSales(Integer storeId, LocalDateTime start, LocalDateTime end, GroupType groupType) {
+	    return getGroupedSales(storeId, start, end, groupType);
+	}
+	public List<DailySalesDto> getTotalSales(LocalDateTime start, LocalDateTime end, GroupType groupType) {
+	    return getGroupedSales(null, start, end, groupType);
+	}
 
-	public List<DailySalesDto> getGroupedSales(LocalDateTime start, LocalDateTime end, GroupType groupType) {
+	public List<DailySalesDto> getGroupedSales(Integer storeId, LocalDateTime start, LocalDateTime end, GroupType groupType) {
 	    QSaleOrder saleOrder = QSaleOrder.saleOrder;
 	    QSaleOrderItem item = QSaleOrderItem.saleOrderItem;
 
@@ -47,7 +53,6 @@ public class SalesDslRepository {
 	            break;
 	    }
 	    
-	    OrderSpecifier<?> orderByGroup = new OrderSpecifier(Order.ASC, groupExpr);
 	    return jpaQueryFactory.select(Projections.fields(
 	                DailySalesDto.class,
 	                ExpressionUtils.as(groupExpr, "date"),
@@ -56,19 +61,28 @@ public class SalesDslRepository {
 	            ))
 	            .from(item)
 	            .join(item.saleOrder, saleOrder)
-	            .where(saleOrder.orderTime.between(start, end))
+	            .where(saleOrder.orderTime.between(start, end)
+	            		.and(storeId != null ? saleOrder.store.id.eq(storeId) : null))
 	            .groupBy(groupExpr)
-	            .orderBy(orderByGroup)
+	            .orderBy(new OrderSpecifier(Order.ASC, groupExpr))
 	            .fetch();
 	}
+	
+	// 메뉴별 매출조회
+	public List<SalesResultDto.MenuSalesDto> getStoreMenuSales(Integer storeId, LocalDateTime start, LocalDateTime end) {
+	    return getMenuSales(storeId, start, end);
+	}
+	public List<SalesResultDto.MenuSalesDto> getTotalMenuSales(LocalDateTime start, LocalDateTime end) {
+	    return getMenuSales(null, start, end);
+	}
 
-    public List<StoreSalesViewDto.MenuSalesDto> getMenuSales(LocalDateTime start, LocalDateTime end) {
+    public List<SalesResultDto.MenuSalesDto> getMenuSales(Integer storeId, LocalDateTime start, LocalDateTime end) {
         QSaleOrder saleOrder = QSaleOrder.saleOrder;
         QSaleOrderItem item = QSaleOrderItem.saleOrderItem;
         QTotalMenu menu = QTotalMenu.totalMenu;
 
         return jpaQueryFactory.select(Projections.fields(
-                    StoreSalesViewDto.MenuSalesDto.class,
+        		SalesResultDto.MenuSalesDto.class,
                     menu.name.as("menuName"),
                     item.quantity.sum().intValue().as("quantity")
                 ))
@@ -76,7 +90,8 @@ public class SalesDslRepository {
                 .where(
                 		item.saleOrder.id.eq(saleOrder.id),
                         item.menuId.eq(menu.id),
-                        saleOrder.orderTime.between(start, end) 
+                        saleOrder.orderTime.between(start, end)
+                        .and(storeId != null ? saleOrder.store.id.eq(storeId) : null)
                 )
                 .groupBy(menu.name)
                 .orderBy(item.quantity.sum().desc())

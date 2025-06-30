@@ -79,6 +79,11 @@ dependencies {
     implementation 'software.amazon.awssdk:auth'
     implementation 'software.amazon.awssdk:regions'
 	
+	//firebase
+	implementation "com.google.firebase:firebase-admin:9.2.0"
+	
+	//chat(websocket,stomp)
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 def querydslDir = "$buildDir/generated/querydsl"

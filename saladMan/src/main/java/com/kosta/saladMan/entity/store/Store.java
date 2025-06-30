@@ -2,17 +2,24 @@ package com.kosta.saladMan.entity.store;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import com.kosta.saladMan.dto.store.StoreDto;
+import com.kosta.saladMan.entity.chat.ChatMessage;
+import com.kosta.saladMan.entity.chat.ChatParticipant;
+import com.kosta.saladMan.entity.chat.ReadStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -68,6 +75,16 @@ public class Store {
     private String fcmToken;
 
     private String role;
+    
+    // Chat 관계 (양방향, 삭제 cascade, orphan, 추후 리팩토링)
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ChatMessage> chatMessages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ChatParticipant> chatParticipants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ReadStatus> readStatuses = new ArrayList<>();
 
     public StoreDto toDto() {
         return StoreDto.builder()
