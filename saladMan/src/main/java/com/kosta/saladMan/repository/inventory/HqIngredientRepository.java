@@ -12,5 +12,6 @@ import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.store.Store;
 @Repository
 public interface HqIngredientRepository extends JpaRepository<HqIngredient, Integer> {
-	
+	Optional<HqIngredient> findTopByIngredientIdOrderByReceivedDateDescIdDesc(Integer ingredientId);
+
 }

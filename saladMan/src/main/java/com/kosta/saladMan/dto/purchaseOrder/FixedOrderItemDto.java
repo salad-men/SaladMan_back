@@ -27,6 +27,7 @@ public class FixedOrderItemDto {
     private String categoryName;
     private String unit;
     private Integer minimumOrderUnit;
+    private Integer unitCost;
 
     private Integer minQuantity;      // StoreIngredientSetting
     private Integer maxQuantity;      // StoreIngredientSetting

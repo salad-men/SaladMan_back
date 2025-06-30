@@ -84,6 +84,16 @@ public class FixedOrderDslRepository {
 		                    .orderBy(hqSub.receivedDate.desc(), hqSub.id.desc())
 		                    ,
 		                "minimumOrderUnit"
+		            ),
+		         // 최신 HQIngredient unitCost
+		            com.querydsl.core.types.dsl.Expressions.as(
+		                JPAExpressions
+		                    .select(hqSub.unitCost.max())
+		                    .from(hqSub)
+		                    .where(hqSub.ingredient.id.eq(ingredient.id))
+		                    .orderBy(hqSub.receivedDate.desc(), hqSub.id.desc())
+		                    ,
+		                "unitCost"
 		            )
 		        ))
 		        .from(ingredient)
