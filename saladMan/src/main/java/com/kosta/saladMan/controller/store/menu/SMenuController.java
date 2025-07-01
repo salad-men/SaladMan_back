@@ -86,13 +86,22 @@ public class SMenuController {
 
 	//레시피 조회
 	@GetMapping("/recipe")
-    public ResponseEntity<List<RecipeDto>> getAllMenuRecipes() {
-        try {
-			return ResponseEntity.ok(menuService.getAllMenuRecipes());
-		} catch (Exception e) {
-			e.printStackTrace();
+    public ResponseEntity<Map<String, Object>> getAllMenuRecipes(@RequestParam(defaultValue = "1") int page) {
+		try {
+	        PageInfo pageInfo = new PageInfo();
+	        pageInfo.setCurPage(page);
+
+	        List<RecipeDto> menus = menuService.getAllMenuRecipes(pageInfo);
+
+	        Map<String, Object> result = new HashMap<>();
+	        result.put("menus", menus);
+	        result.put("pageInfo", pageInfo);
+
+	        return ResponseEntity.ok(result);
+	    } catch (Exception e) {
+	        e.printStackTrace();
 	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
+	    }
     }
 	
 }
