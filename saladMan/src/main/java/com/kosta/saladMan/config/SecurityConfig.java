@@ -46,6 +46,7 @@ import com.kosta.saladMan.auth.PrincipalDetailsService;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
 import com.kosta.saladMan.config.kiosk.KioskAuthenticationSuccessHandler;
+import com.kosta.saladMan.config.kiosk.KioskAuthorizationFilter;
 import com.kosta.saladMan.config.kiosk.KioskJwtAuthenticationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
@@ -100,6 +101,7 @@ public class SecurityConfig {
 	@Order(0)
 	public SecurityFilterChain kioskSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 	    KioskJwtAuthenticationFilter kioskFilter = new KioskJwtAuthenticationFilter(authenticationManager, storeRepository);
+	    KioskAuthorizationFilter kioskAuthorizationFilter = new KioskAuthorizationFilter(authenticationManager, storeRepository);
 
 
 	    http
@@ -111,6 +113,7 @@ public class SecurityConfig {
 	        .formLogin().disable()
 	        .httpBasic().disable()
 	        .addFilterAt(kioskFilter, UsernamePasswordAuthenticationFilter.class)
+	        .addFilter(kioskAuthorizationFilter)
 	        .authorizeRequests()
 	            .antMatchers("/kiosk/login").permitAll()
 	            .anyRequest().hasRole("STORE");

@@ -42,9 +42,6 @@ public class KioskJwtAuthenticationFilter extends UsernamePasswordAuthentication
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> loginRequest = objectMapper.readValue(request.getInputStream(), Map.class);
             loginCache.set(loginRequest);
-
-            System.out.println("읽은 요청 데이터: " + loginRequest);
-
             
             String username = loginRequest.get("username");
             String password = loginRequest.get("password");
