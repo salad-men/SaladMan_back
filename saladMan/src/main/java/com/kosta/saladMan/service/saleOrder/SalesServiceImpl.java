@@ -4,13 +4,20 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.menu.TotalMenuDto;
+import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
+import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
 import com.kosta.saladMan.repository.saleOrder.SalesDslRepository;
+import com.kosta.saladMan.util.PageInfo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -71,5 +78,21 @@ public class SalesServiceImpl implements SalesService {
         response.setPopularMenus(popular);
 
         return response;
+	}
+
+	@Override
+	public List<PaymentListDto> getPaymentList(Integer storeId, String status, String start, String end,
+			PageInfo pageInfo) throws Exception {
+		
+		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 10);
+		Page<PaymentListDto> pages = salesDslRepository.getPaymentList(storeId, status, start, end, pageRequest);
+		
+		pageInfo.setAllPage(pages.getTotalPages());
+		int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;
+		int endPage = Math.min(startPage + 9, pageInfo.getAllPage());
+		pageInfo.setStartPage(startPage);
+		pageInfo.setEndPage(endPage);
+		
+		 return pages.getContent();
 	}
 }
