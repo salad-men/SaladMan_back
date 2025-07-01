@@ -70,13 +70,13 @@ public class HqMenuController {
 	
 	//레시피 조회
 	@GetMapping("/recipe")
-		public ResponseEntity<List<RecipeDto>> getAllMenuRecipes() {
-	    	try {
-				return ResponseEntity.ok(menuService.getAllMenuRecipes());
-			} catch (Exception e) {
-				e.printStackTrace();
-		        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			}
-	    }
+	public ResponseEntity<List<RecipeDto>> getAllMenuRecipes() {
+	    try {
+			return ResponseEntity.ok(menuService.getAllMenuRecipes());
+		} catch (Exception e) {
+			e.printStackTrace();
+		    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 
 }

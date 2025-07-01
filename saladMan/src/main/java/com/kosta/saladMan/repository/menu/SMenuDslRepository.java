@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.menu.MenuIngredientDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
+import com.kosta.saladMan.dto.menu.RecipeIngredientDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.entity.inventory.QIngredient;
 import com.kosta.saladMan.entity.menu.QMenuIngredient;
@@ -57,7 +58,8 @@ public class SMenuDslRepository {
                 tm.img,
                 mi.menu,
                 mi.quantity,
-                ing.name
+                ing.name,
+                ing.unit
             )
             .from(tm)
             .join(mi).on(mi.menu.id.eq(tm.id))
@@ -78,9 +80,10 @@ public class SMenuDslRepository {
             );
 
             dto.getIngredients().add(
-                IngredientDto.builder()
-//                    .quantity(row.get(mi.quantity))
+                RecipeIngredientDto.builder()
+                    .unit(row.get(ing.unit))
                     .name(row.get(ing.name))
+                    .quantity(row.get(mi.quantity))
                     .build()
             );
         }
