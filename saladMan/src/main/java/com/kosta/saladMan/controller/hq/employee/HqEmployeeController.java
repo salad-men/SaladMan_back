@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/hq/emp")
 @RequiredArgsConstructor
-public class EmployeeController {
+public class HqEmployeeController {
 
     private final EmployeeService employeeService;
     private final InventoryService inventoryService;
