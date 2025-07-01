@@ -1,12 +1,14 @@
 package com.kosta.saladMan.dto.purchaseOrder;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class StoreOrderItemDto {
 	private Integer ingredientId;
 	private String name;

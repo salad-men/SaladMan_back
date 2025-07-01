@@ -47,9 +47,9 @@ public class Complaint {
     private String writerEmail;
 
     private String writerNickname;
-
+    
     private Boolean isRead;
-
+    
     private Boolean isRelay;
     
     public ComplaintDto toDto() {

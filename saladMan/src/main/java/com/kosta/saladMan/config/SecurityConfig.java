@@ -28,13 +28,12 @@
 
 package com.kosta.saladMan.config;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -42,14 +41,18 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 
+import com.kosta.saladMan.auth.PrincipalDetailsService;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
+import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
+import com.kosta.saladMan.repository.StoreRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true) // user페이지 hq만 수정할 수 있도록 권한 설정하는 코드
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -83,8 +86,8 @@ public class SecurityConfig {
 				.antMatchers("/store/**").access("hasRole('ROLE_STORE')")
 				.antMatchers("/actuator/health").permitAll()
 				.antMatchers("/user/**").permitAll()
-			    .antMatchers("/chat/sse").permitAll()
-		        .antMatchers("/chat/**").authenticated()
+				.antMatchers("/chat/sse").permitAll()
+				.antMatchers("/chat/**").authenticated()
 				.anyRequest().permitAll();
 		return http.build();
 	}
