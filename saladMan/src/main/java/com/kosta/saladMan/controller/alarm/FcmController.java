@@ -16,9 +16,6 @@ import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.alarm.AlarmMsgDto;
 import com.kosta.saladMan.service.alarm.FcmMessageService;
 
-// 발신자가 필요하며, recvId가 username인지 storeid가 될지
-// 토큰은 username으로 가져오고 잇음
-// 근데 알람이 그냥 시스템?상으로 뭐가 도착햇다고만 알려주는거라 recvId가 잇는것도 애매쓰 
 @RestController
 public class FcmController {
 	
@@ -40,9 +37,9 @@ public class FcmController {
 		return new ResponseEntity<>(alarms, HttpStatus.OK);
 	}
 	
-	@GetMapping("/confirm/{num}")
-	public ResponseEntity<Boolean> confirmAlarm(@PathVariable Integer num) {
-		Boolean confirm = fcmMessageService.confirmAlarm(num);
+	@GetMapping("/confirm/{id}")
+	public ResponseEntity<Boolean> confirmAlarm(@PathVariable Integer id) {
+		Boolean confirm = fcmMessageService.confirmAlarm(id);
 		return new ResponseEntity<Boolean>(confirm, HttpStatus.OK);
 	}
 	

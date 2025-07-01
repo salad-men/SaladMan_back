@@ -132,7 +132,7 @@ public class SalesDslRepository {
             		so.orderTime,
             		so.status,
             		so.totalPrice,
-            		so.store,
+            		so.store.id.as("storeId"),
             		soi.menuId,
             		soi.quantity,
             		tm.name

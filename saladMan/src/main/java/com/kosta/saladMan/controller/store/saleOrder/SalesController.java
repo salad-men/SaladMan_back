@@ -52,17 +52,19 @@ public class SalesController {
     		@RequestParam(required = false) String status,@RequestParam(required = false) String startDate, 
     		@RequestParam(required = false) String endDate,@RequestParam Integer page) {
     	Integer storeId = principalDetails.getStore().getId();
-    	PageInfo pageInfo = new PageInfo(page);
     	
-    	if (status != null && status.isBlank()) {
-    		  status = null;
-    		}
+    	// 빈 문자열이면 null로 변환
+        status = (status != null && !status.isBlank()) ? status : null;
+        startDate = (startDate != null && !startDate.isBlank()) ? startDate : null;
+        endDate = (endDate != null && !endDate.isBlank()) ? endDate : null;
+        
+        PageInfo pageInfo = new PageInfo(page);
     	
         try {
         	List<PaymentListDto> list = salesService.getPaymentList(storeId, status, startDate, endDate, pageInfo);
         	Map<String, Object> response = new HashMap<>();
-            response.put("content", list);
-            response.put("pageInfo", pageInfo);
+        	response.put("content", list);
+        	response.put("pageInfo", pageInfo);
         	return ResponseEntity.ok(response);
         }catch (Exception e) {
 			e.printStackTrace();

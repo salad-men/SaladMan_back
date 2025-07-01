@@ -4,10 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.notice.ComplaintDto;
+import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.notice.Complaint;
 import com.kosta.saladMan.repository.notice.ComplaintRepository;
+import com.kosta.saladMan.service.alarm.FcmMessageService;
 import com.kosta.saladMan.util.PageInfo;
+import com.kosta.saladMan.repository.alarm.AlarmMsgRepository;
 import com.kosta.saladMan.repository.notice.ComplaintDslRepository;
 
 import javax.transaction.Transactional;
@@ -22,6 +26,8 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     private final ComplaintDslRepository complaintDslRepository; 
     private final ComplaintRepository complaintRepository;
+    private final FcmMessageService fcmMessageService;
+    private final AlarmMsgRepository alarmMsgRepository;
 
     @Override
     public List<ComplaintDto> searchComplaintList(PageInfo pageInfo, Integer storeId, String status, String keyword){
@@ -91,6 +97,16 @@ public class ComplaintServiceImpl implements ComplaintService {
         // 본사가 매장에게 전달: is_relay = 1 으로 변경
         complaint.setIsRelay(true);
         complaintRepository.save(complaint);
+        
+        AlarmMsg alarmMsg = alarmMsgRepository.findById(1)
+                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+        
+        AlarmDto alarmDto = new AlarmDto();
+        alarmDto.setStoreId(complaint.getStore().getId());
+        alarmDto.setTitle(alarmMsg.getTitle());
+        alarmDto.setContent(alarmMsg.getContent());
+        fcmMessageService.sendAlarm(alarmDto);
+        System.out.println("Complaint-Alarm :"+alarmDto);
     }
     
     @Override

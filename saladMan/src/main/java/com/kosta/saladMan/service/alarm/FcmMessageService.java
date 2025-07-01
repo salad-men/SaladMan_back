@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -25,11 +27,12 @@ public class FcmMessageService {
 	private final StoreRepository storeRepository;
 	private final AlarmRepository alarmRepository;
 	
+	@Transactional
 	public Boolean sendAlarm(AlarmDto messageDto) {
 		//1. Id로 fcmToken 가져오기
 		Optional<Store> ouser = storeRepository.findById(messageDto.getStoreId());
 		if(ouser.isEmpty()) {
-			System.out.println("StoreId 오류");
+			System.out.println("FcmMessageService: StoreId 오류");
 			return false;
 		}
 		
@@ -54,6 +57,7 @@ public class FcmMessageService {
 			    .sentAt(LocalDate.now())
 			    .build();
 			alarmRepository.save(alarm);
+			System.out.println("FcmMessageService : " + alarm);
 		
 		//3. FCM 메시지 전송
 //		Notification notification = Notification.builder()
