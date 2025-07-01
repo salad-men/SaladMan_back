@@ -27,7 +27,7 @@ import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
 @Service
 public class AutoOrderScheduler {
 	@Autowired
-    private StoreRepository storeRepository;
+	private StoreRepository storeRepository;
 	@Autowired
 	private FixedOrderTemplateRepository fixedOrderTemplateRepository;
 	@Autowired
@@ -36,80 +36,67 @@ public class AutoOrderScheduler {
 	private PurchaseOrderRepository purchaseOrderRepository;
 	@Autowired
 	private HqIngredientRepository hqIngredientRepository;
-	
+
+	@Autowired
+	private OrderService orderService;
+
 	// 매일 오후 5시
-    @Scheduled(cron = "0 0 17 * * *")
-    @Transactional
-    public void createAutoOrders() {
-    	
+	@Scheduled(cron = "0 0 17 * * *")
+	@Transactional
+	public void createAutoOrders() {
 
-        // 1. 자동발주 사용 매장 조회
-        List<Store> stores = storeRepository.findByAutoOrderEnabledTrue();
-        
-        for (Store store : stores) {
-            System.out.println("자동발주 매장: " + store.getName());
+		// 1. 자동발주 사용 매장 조회
+		List<Store> stores = storeRepository.findByAutoOrderEnabledTrue();
 
-            // 2. 매장별 템플릿 조회
-            Optional<FixedOrderTemplate> templateOpt = fixedOrderTemplateRepository.findByStoreId(store.getId());
-            if (templateOpt.isEmpty()) {
-                System.out.println("템플릿 없음: " + store.getName());
-                continue;
-            }
-            FixedOrderTemplate template = templateOpt.get();
+		for (Store store : stores) {
+			System.out.println("자동발주 매장: " + store.getName());
 
-            // 3. 품목 조회
-            List<FixedOrderItem> itemList = fixedOrderItemRepository.findByFixedOrderTemplateIdAndAutoOrderEnabledTrue(template.getId());
-            if (itemList.isEmpty()) {
-                System.out.println("자동발주 품목 없음: " + store.getName());
-                continue;
-            }
-            
-            List<StoreOrderItemDto> orderItemList = itemList.stream()
-            	    .map(fixedItem -> {
-            	        Integer ingredientId = fixedItem.getIngredient().getId();
-            	        Integer quantity = fixedItem.getAutoOrderQty();
+			// 2. 매장별 템플릿 조회
+			Optional<FixedOrderTemplate> templateOpt = fixedOrderTemplateRepository.findByStoreId(store.getId());
+			if (templateOpt.isEmpty()) {
+				System.out.println("템플릿 없음: " + store.getName());
+				continue;
+			}
+			FixedOrderTemplate template = templateOpt.get();
 
-            	        // 최신 단가 조회
-            	        HqIngredient hq = hqIngredientRepository
-            	            .findTopByIngredientIdOrderByReceivedDateDescIdDesc(ingredientId)
-            	            .orElseThrow(() -> new RuntimeException("HQ 재료 정보 없음: " + ingredientId));
+			// 3. 품목 조회
+			List<FixedOrderItem> itemList = fixedOrderItemRepository
+					.findByFixedOrderTemplateIdAndAutoOrderEnabledTrue(template.getId());
+			if (itemList.isEmpty()) {
+				System.out.println("자동발주 품목 없음: " + store.getName());
+				continue;
+			}
 
-            	        Integer unitCost = hq.getUnitCost();
-            	        Integer minimunUnit=hq.getMinimumOrderUnit();
-            	        Integer totalPrice = quantity/minimunUnit * unitCost;
+			List<StoreOrderItemDto> orderItemList = itemList.stream().map(fixedItem -> {
+				Integer ingredientId = fixedItem.getIngredient().getId();
+				Integer quantity = fixedItem.getAutoOrderQty();
 
-            	        // 여기서 리턴 타입을 명시적으로 생성
-            	        return StoreOrderItemDto.builder()
-            	            .ingredientId(ingredientId)
-            	            .quantity(quantity)
-            	            .unitCost(unitCost)
-            	            .totalPrice(totalPrice)
-            	            .build();
-            	    })
-            	    .collect(Collectors.toList());
+				// 최신 단가 조회
+				HqIngredient hq = hqIngredientRepository
+						.findTopByIngredientIdOrderByReceivedDateDescIdDesc(ingredientId)
+						.orElseThrow(() -> new RuntimeException("HQ 재료 정보 없음: " + ingredientId));
 
-            // 4. 발주서 생성
-            PurchaseOrder order = PurchaseOrder.builder()
-                    .store(store)
-                    .orderDateTime(LocalDateTime.now())
-                    .status("대기중")
-                    .purType("자동발주") // 예: 자동발주 구분
-                    .build();
-            purchaseOrderRepository.save(order);
+				Integer unitCost = hq.getUnitCost();
+				Integer minimunUnit = hq.getMinimumOrderUnit();
+				Integer totalPrice = quantity / minimunUnit * unitCost;
 
-            // 5. 발주서 품목 생성
-            for (FixedOrderItem item : itemList) {
-                PurchaseOrderItem orderItem = PurchaseOrderItem.builder()
-                        .purchaseOrder(order)
-                        .ingredient(item.getIngredient())
-                        .orderedQuantity(item.getAutoOrderQty())
-                        .build();
-                // 여기선 repository.save()는 필요없이 order.getItems().add()로 해도 됨
-                // cascade = CascadeType.ALL 걸려있다면 order 저장 시 함께 저장
-            }
+				// 여기서 리턴 타입을 명시적으로 생성
+				return StoreOrderItemDto.builder().ingredientId(ingredientId).quantity(quantity).unitCost(unitCost)
+						.totalPrice(totalPrice).build();
+			}).collect(Collectors.toList());
 
-            System.out.println("발주 생성 완료: " + store.getName());
-        }
-    }
+			try {
+				orderService.createOrder(store, orderItemList, "자동발주");
+				System.out.println(store.getName() + " 자동발주 생성 완료");
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.err.println(store.getName() + " 자동발주 실패: " + e.getMessage());
+			}
+
+			// 여기선 repository.save()는 필요없이 order.getItems().add()로 해도 됨
+			// cascade = CascadeType.ALL 걸려있다면 order 저장 시 함께 저장
+
+		}
+	}
 
 }

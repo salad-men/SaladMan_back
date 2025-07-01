@@ -31,6 +31,7 @@ package com.kosta.saladMan.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -44,6 +45,9 @@ import org.springframework.web.filter.CorsFilter;
 import com.kosta.saladMan.auth.PrincipalDetailsService;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
+import com.kosta.saladMan.config.kiosk.KioskAuthenticationSuccessHandler;
+import com.kosta.saladMan.config.kiosk.KioskAuthorizationFilter;
+import com.kosta.saladMan.config.kiosk.KioskJwtAuthenticationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthenticationFilter;
 import com.kosta.saladMan.config.jwt.JwtAuthorizationFilter;
 import com.kosta.saladMan.repository.StoreRepository;
@@ -68,6 +72,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
+	@Order(1)
 	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
 			throws Exception {
 		http.addFilter(corsFilter) // 다른 도메인 접근 허용
@@ -78,7 +83,7 @@ public class SecurityConfig {
 				.httpBasic().disable() // httpBasic은 header에 username,password를 암호화하지 않은 상태로 주고받는다. 이를 사용하지 않겠다는 것.
 				.addFilterAt(new JwtAuthenticationFilter(authenticationManager, storeRepository),
 						UsernamePasswordAuthenticationFilter.class);
-
+		
 		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
 				.authorizeRequests()
 				.antMatchers("/connect/**", "/connect", "/connect/info/**", "/connect/info").permitAll()
@@ -90,5 +95,29 @@ public class SecurityConfig {
 				.antMatchers("/chat/**").authenticated()
 				.anyRequest().permitAll();
 		return http.build();
+	}
+	
+	@Bean
+	@Order(0)
+	public SecurityFilterChain kioskSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+	    KioskJwtAuthenticationFilter kioskFilter = new KioskJwtAuthenticationFilter(authenticationManager, storeRepository);
+	    KioskAuthorizationFilter kioskAuthorizationFilter = new KioskAuthorizationFilter(authenticationManager, storeRepository);
+
+
+	    http
+	        .antMatcher("/kiosk/**")
+	        .csrf().disable()
+	        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+	        .and()
+	        .addFilter(corsFilter)
+	        .formLogin().disable()
+	        .httpBasic().disable()
+	        .addFilterAt(kioskFilter, UsernamePasswordAuthenticationFilter.class)
+	        .addFilter(kioskAuthorizationFilter)
+	        .authorizeRequests()
+	            .antMatchers("/kiosk/login").permitAll()
+	            .anyRequest().hasRole("STORE");
+
+	    return http.build();
 	}
 }
