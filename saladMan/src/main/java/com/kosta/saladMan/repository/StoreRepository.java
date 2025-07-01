@@ -32,4 +32,6 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
 	void updateFcmToken(@Param("username")String username, @Param("fcmToken")String fcmToken);
 	
 	Optional<Store> findById(Long id);
+	
+	List<Store> findByAutoOrderEnabledTrue();
 }

@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ChatbotAnswerRepository extends JpaRepository<ChatbotAnswer, Integer> {
 	Optional<ChatbotAnswer> findByValueKey(String valueKey);
+
 }

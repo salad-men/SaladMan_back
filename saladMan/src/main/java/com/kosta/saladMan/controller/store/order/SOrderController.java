@@ -1,7 +1,9 @@
 package com.kosta.saladMan.controller.store.order;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kosta.saladMan.auth.PrincipalDetails;
+import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
@@ -40,7 +43,7 @@ public class SOrderController {
 		Store storeInfo = principal.getStore(); // JWT에서 store 정보 추출
 		System.out.println(storeInfo.getId());
 		try {
-			orderService.createOrder(storeInfo, items);
+			orderService.createOrder(storeInfo, items,"수기발주");
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -152,4 +155,67 @@ public class SOrderController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 	}
+	
+	//매장별 발주 설정 조회
+	@GetMapping("/orderSettings")
+	public ResponseEntity<List<FixedOrderItemDto>> getSettings( @AuthenticationPrincipal PrincipalDetails principalDetails){
+		Integer id =  principalDetails.getStore().getId();
+		try {
+			System.out.println(id);
+			List<FixedOrderItemDto> result = orderService.getSettings(id);
+			for(FixedOrderItemDto dto : result) {
+				System.out.println(dto);
+			}
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+	}
+	//매장별 발주 설정 저장
+
+	@PostMapping("/orderSettings")
+	public ResponseEntity<Void> saveSettings(@AuthenticationPrincipal PrincipalDetails principalDetails,
+			@RequestBody List<FixedOrderItemDto> settings) {
+		Integer id =  principalDetails.getStore().getId();
+
+		try {
+			orderService.saveSettings(id,settings);
+			return ResponseEntity.ok().build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+	}
+	
+	//자동발주 사용 여부
+	@GetMapping("/autoOrderEnabled")
+	public ResponseEntity<Map<String, Boolean>> getAutoOrderEnabled(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+		Integer id =  principalDetails.getStore().getId();
+		try {
+			boolean enabled = orderService.getAutoOrderEnabled(id);
+	        return ResponseEntity.ok(Collections.singletonMap("enabled", enabled));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+
+    }
+	
+    @PostMapping("/autoOrderEnabled")
+    public ResponseEntity<Void> setAutoOrderEnabled(
+    		@AuthenticationPrincipal PrincipalDetails principalDetails,
+        @RequestBody Map<String, Boolean> body
+    ) {
+		Integer id =  principalDetails.getStore().getId();
+		try {
+			orderService.updateAutoOrderEnabled(id, body.get("enabled"));
+	        return ResponseEntity.ok().build();
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+        
+    }
 }
