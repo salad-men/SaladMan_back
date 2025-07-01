@@ -55,7 +55,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                     .address(emp.getAddress())
                     .gender(emp.getGender())
                     .birthday(emp.getBirthday())
-                    .img(emp.getImg())
+                    .imgUrl(emp.getImg())
                     .build();
             return dto;
         }).collect(Collectors.toList());
@@ -88,6 +88,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeDto updateEmployee(EmployeeDto dto, MultipartFile img) {
         Employee emp = employeeRepository.findById(dto.getId())
                 .orElseThrow(() -> new IllegalArgumentException("직원 없음"));
+        
         emp.setName(dto.getName());
         emp.setGrade(dto.getGrade());
         emp.setPhone(dto.getPhone());
@@ -96,18 +97,20 @@ public class EmployeeServiceImpl implements EmployeeService {
         emp.setGender(dto.getGender());
         emp.setBirthday(dto.getBirthday());
         emp.setEmpStatus(dto.getEmpStatus());
-        // 매장 변경도 허용한다면
+        
         if (dto.getStoreId() != null) {
             Store store = storeRepository.findById(dto.getStoreId())
                 .orElseThrow(() -> new IllegalArgumentException("매장 없음"));
             emp.setStore(store);
         }
+        
         // 이미지 교체
         if (img != null && !img.isEmpty()) {
             if (emp.getImg() != null && !emp.getImg().isBlank()) {
                 String key = s3Uploader.extractKeyFromUrl(emp.getImg());
                 s3Uploader.delete(key);
             }
+            
             String imgUrl = null;
 			try {
 				imgUrl = s3Uploader.upload(img, "employee-img");

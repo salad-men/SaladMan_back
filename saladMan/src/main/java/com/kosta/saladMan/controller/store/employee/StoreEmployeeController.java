@@ -21,7 +21,7 @@ public class StoreEmployeeController {
 
     private final EmployeeService employeeService;
 
-    // 1. 자기 매장 직원 목록/검색/페이징 
+    // 자기 매장 직원 목록/검색/페이징 
     @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
         String keyword = (String) param.getOrDefault("keyword", "");
@@ -45,7 +45,7 @@ public class StoreEmployeeController {
         return ResponseEntity.ok(res);
     }
 
-    // 2. 직원 수정
+    // 직원 수정
     @PostMapping("/update")
     public ResponseEntity<EmployeeDto> update(
             @ModelAttribute EmployeeDto dto,

@@ -66,7 +66,7 @@ public class Employee {
                 .grade(this.grade)
                 .address(this.address)
                 .phone(this.phone)
-                .img(this.img)
+                .imgUrl(this.img)
                 .birthday(this.birthday)
                 .gender(this.gender)
                 .hireDate(this.hireDate)
