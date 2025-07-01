@@ -40,8 +40,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		
  		String uri = request.getRequestURI();
  	    System.out.println("▶ Authorization 헤더: " + request.getHeader("Authorization"));
+ 		System.out.println("요청 uri:"+uri); 		
  		
- 	    if ("/actuator/health".equals(uri)) {
+ 		if ("/actuator/health".equals(uri)) {
  	        chain.doFilter(request, response);
  	        return;
  	    }
