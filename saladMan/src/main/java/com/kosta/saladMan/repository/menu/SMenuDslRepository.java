@@ -7,18 +7,23 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.kosta.saladMan.dto.inventory.IngredientDto;
+import com.kosta.saladMan.dto.menu.KioskMenuDto;
 import com.kosta.saladMan.dto.menu.MenuIngredientDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.RecipeIngredientDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.entity.inventory.QIngredient;
+import com.kosta.saladMan.entity.menu.QMenuCategory;
 import com.kosta.saladMan.entity.menu.QMenuIngredient;
 import com.kosta.saladMan.entity.menu.QStoreMenu;
 import com.kosta.saladMan.entity.menu.QTotalMenu;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -105,5 +110,55 @@ public class SMenuDslRepository {
 	    }
 
 	    return new ArrayList<>(resultMap.values());
+	}
+	
+	public Page<KioskMenuDto> findMenuWithStoreStatusByKiosk(Integer storeId,Integer categoryId,String categoryName, Pageable pageable){
+		QStoreMenu storeMenu = QStoreMenu.storeMenu;
+        QTotalMenu totalMenu = QTotalMenu.totalMenu;
+        QMenuCategory menuCategory = QMenuCategory.menuCategory;
+        // WHERE 조건
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(storeMenu.store.id.eq(storeId));
+        builder.and(storeMenu.status.isTrue());
+
+        if (categoryId != null) {
+            builder.and(totalMenu.category.id.eq(categoryId));
+        }
+
+        if (categoryName != null && !categoryName.isEmpty()) {
+            builder.and(totalMenu.category.name.eq(categoryName));
+        }
+
+        // 쿼리
+        List<KioskMenuDto> content = queryFactory
+            .select(Projections.constructor(KioskMenuDto.class,
+                storeMenu.id,
+                totalMenu.img,
+                totalMenu.name,
+                totalMenu.salePrice,
+                storeMenu.status,
+                menuCategory.name,
+                menuCategory.id
+            ))
+            .from(storeMenu)
+            .join(storeMenu.menu, totalMenu)
+            .join(totalMenu.category, menuCategory)
+            .where(builder)
+            .orderBy(storeMenu.id.asc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        // total count
+        long total = queryFactory
+            .select(storeMenu.count())
+            .from(storeMenu)
+            .join(storeMenu.menu, totalMenu)
+            .join(totalMenu.category, menuCategory)
+            .where(builder)
+            .fetchOne();
+
+        return new PageImpl<>(content, pageable, total);
+    
 	}
 }
