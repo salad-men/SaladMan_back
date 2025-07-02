@@ -1,4 +1,4 @@
-package com.kosta.saladMan.controller.store.kiosk;
+package com.kosta.saladMan.controller.kiosk;
 
 import java.util.List;
 

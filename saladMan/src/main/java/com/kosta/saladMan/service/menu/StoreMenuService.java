@@ -14,4 +14,5 @@ public interface StoreMenuService {
 	boolean toggleMenuStatus(Integer storeId, Integer menuId) throws Exception;
 	List<RecipeDto> getAllMenuRecipes() throws Exception;
 	List<IngredientDto> getAllIngredients() throws Exception;
+	
 }

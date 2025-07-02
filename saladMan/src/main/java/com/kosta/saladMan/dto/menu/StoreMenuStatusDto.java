@@ -15,5 +15,5 @@ public class StoreMenuStatusDto {
     private String name;
     private Integer salePrice;
     private Boolean status;
-
+    
 }
