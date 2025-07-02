@@ -36,13 +36,16 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ReadStatusRepository readStatusRepository;
     private final StoreRepository storeRepository;
+    private final ChatSseService chatSseService; 
 
-    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, ReadStatusRepository readStatusRepository, StoreRepository storeRepository) {
+
+    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, ReadStatusRepository readStatusRepository, StoreRepository storeRepository, ChatSseService chatSseService) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.readStatusRepository = readStatusRepository;
         this.storeRepository = storeRepository;
+		this.chatSseService = chatSseService;
     }
 
     // 채팅 메시지 저장
@@ -55,7 +58,7 @@ public class ChatService {
 
         ChatMessage chatMessage = chatMessageDto.toEntity(chatRoom, sender);
         chatMessageRepository.save(chatMessage);
-
+        
         // 사용자별로 읽음 여부 저장
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
         for (ChatParticipant c : chatParticipants) {
@@ -67,6 +70,12 @@ public class ChatService {
                     .build();
             readStatusRepository.save(readStatus);
         }
+        
+        //SSE전송
+        Set<String> participants = chatParticipants.stream()
+                .map(cp -> cp.getStore().getUsername())
+                .collect(Collectors.toSet());
+        chatSseService.sendToUsers(participants, "newMessage", chatMessageDto);
     }
 
     // 그룹채팅방 개설
