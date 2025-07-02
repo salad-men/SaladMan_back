@@ -71,11 +71,13 @@ public class ChatService {
             readStatusRepository.save(readStatus);
         }
         
+        ChatMessageDto sseDto = chatMessage.toDto(); 
+
         //SSE전송
         Set<String> participants = chatParticipants.stream()
                 .map(cp -> cp.getStore().getUsername())
                 .collect(Collectors.toSet());
-        chatSseService.sendToUsers(participants, "newMessage", chatMessageDto);
+        chatSseService.sendToUsers(participants, "newMessage", sseDto);
     }
 
     // 그룹채팅방 개설
