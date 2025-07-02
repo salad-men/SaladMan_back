@@ -27,21 +27,24 @@ public class ChatSseService {
 
     // username에 알림 push
     public void sendToUser(String username, String eventName, Object data) {
+    	System.out.println("[SSE] sendToUser: " + username + ", event=" + eventName + ", data=" + data);
         List<SseEmitter> userEmitters = emitters.getOrDefault(username, Collections.emptyList());
-        List<SseEmitter> deadEmitters = new ArrayList<>();
-        for (SseEmitter emitter : userEmitters) {
+        Iterator<SseEmitter> iterator = userEmitters.iterator();
+        while (iterator.hasNext()) {
+            SseEmitter emitter = iterator.next();
             try {
                 emitter.send(SseEmitter.event().name(eventName).data(data));
             } catch (Exception e) {
-                deadEmitters.add(emitter);
+                iterator.remove();  // **iterator로 삭제**
             }
         }
-        userEmitters.removeAll(deadEmitters);
     }
+
 
     // 여러명(채팅방 참여자 전체)에게 알림 push
     public void sendToUsers(Collection<String> usernames, String eventName, Object data) {
         for (String username : usernames) {
+            System.out.println("[SSE] " + eventName + " push to: " + username + ", data=" + data);
             sendToUser(username, eventName, data);
         }
     }

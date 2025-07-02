@@ -25,7 +25,9 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/hq/emp")
 @RequiredArgsConstructor
-public class EmployeeController {
+public class HqEmployeeController {
+	
+	
 
     private final EmployeeService employeeService;
     private final InventoryService inventoryService;
@@ -62,12 +64,6 @@ public class EmployeeController {
             @ModelAttribute EmployeeDto dto,
             @RequestParam(value = "img", required = false) MultipartFile img
     ) {
-        System.out.println("생년월일: " + dto.getBirthday());
-        System.out.println("성별: " + dto.getGender());
-        System.out.println("주소: " + dto.getAddress());
-        System.out.println("입사일: " + dto.getHireDate());
-    	System.out.println(img != null ? img.getOriginalFilename() : "no img");
-
         EmployeeDto saved = employeeService.addEmployee(dto, img);
         return ResponseEntity.ok(saved);
     }

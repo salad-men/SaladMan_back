@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kosta.saladMan.entity.store.Employee;
 import com.kosta.saladMan.entity.store.Store;
 
@@ -24,7 +25,9 @@ public class EmployeeDto {
     private String grade;
     private String address;
     private String phone;
-    private String img;
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String imgUrl;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
     private String gender;
