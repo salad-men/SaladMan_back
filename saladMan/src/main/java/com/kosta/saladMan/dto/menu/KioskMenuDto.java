@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StoreMenuStatusDto {
+public class KioskMenuDto {
 	private Integer id;
     private String img;
     private String name;
     private Integer salePrice;
     private Boolean status;
     
+    private String categoryName;
+    private Integer categoryId;
 }

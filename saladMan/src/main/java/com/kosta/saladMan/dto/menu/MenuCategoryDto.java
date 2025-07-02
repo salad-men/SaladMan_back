@@ -19,6 +19,7 @@ public class MenuCategoryDto {
     public MenuCategory toEntity() {
         return MenuCategory.builder()
                 .id(id)
+                .name(name)
                 .build();
     }
 }

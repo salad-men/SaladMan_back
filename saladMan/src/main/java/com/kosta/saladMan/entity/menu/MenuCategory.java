@@ -8,6 +8,9 @@ import javax.persistence.Id;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
+import com.kosta.saladMan.dto.menu.MenuCategoryDto;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,4 +29,11 @@ public class MenuCategory {
 
     @Column(nullable = false)
     private String name;  // category_name
+    
+    public MenuCategoryDto toDto() {
+        return MenuCategoryDto.builder()
+                .id(id)
+                .name(name)
+                .build();
+    }
 }

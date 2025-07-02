@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;
 public class ChatMessageDto {
     private String message;
     private String senderUsername;
+    private Integer roomId; 
+    private String roomName;
     
     public ChatMessage toEntity(ChatRoom chatRoom, Store store) {
         return ChatMessage.builder()
