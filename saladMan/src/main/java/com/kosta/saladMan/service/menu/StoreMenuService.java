@@ -12,7 +12,7 @@ public interface StoreMenuService {
 	List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort) throws Exception;
 	List<StoreMenuStatusDto> getMenuStatus(Integer storeId) throws Exception;
 	boolean toggleMenuStatus(Integer storeId, Integer menuId) throws Exception;
-	List<RecipeDto> getAllMenuRecipes() throws Exception;
+	List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo) throws Exception;
 	List<IngredientDto> getAllIngredients() throws Exception;
 	
 }

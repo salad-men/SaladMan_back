@@ -73,8 +73,6 @@ public class ComplaintServiceImpl implements ComplaintService {
                 .collect(Collectors.toList());
     }
 
-
-
     @Override
     public ComplaintDto detailComplaint(Integer id) throws Exception {
         Complaint entity = complaintRepository.findById(id)

@@ -99,8 +99,17 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	}
 	
 	@Override
-	public List<RecipeDto> getAllMenuRecipes() throws Exception {
-		return sMenuDslRepository.findAllMenusWithIngredients();
+	public List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo) throws Exception {
+		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 8);
+		Page<TotalMenu> pages = menuRepository.findAll(pageRequest);
+		
+		pageInfo.setAllPage(pages.getTotalPages());
+		int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;
+		int endPage = Math.min(startPage + 9, pageInfo.getAllPage());
+		pageInfo.setStartPage(startPage);
+		pageInfo.setEndPage(endPage);
+		
+		return sMenuDslRepository.findAllMenusWithIngredients(pageRequest);
 	}
 
 	@Override
