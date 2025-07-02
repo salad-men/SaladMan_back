@@ -31,7 +31,7 @@ public class SaleOrderItem {
     @JoinColumn(nullable = false, name = "order_id")
     private SaleOrder saleOrder;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "menu_id")
     private Integer menuId;
 
     private Integer quantity;
