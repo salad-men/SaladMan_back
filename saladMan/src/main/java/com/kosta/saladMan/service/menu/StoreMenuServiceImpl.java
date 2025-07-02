@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.inventory.IngredientDto;
+import com.kosta.saladMan.dto.menu.IngredientInfoDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
@@ -100,7 +101,7 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	
 	@Override
 	public List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo) throws Exception {
-		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 8);
+		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 12);
 		Page<TotalMenu> pages = menuRepository.findAll(pageRequest);
 		
 		pageInfo.setAllPage(pages.getTotalPages());
@@ -121,6 +122,11 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 //                        ingredient.getName()
                 ))
                 .collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IngredientInfoDto> getIngredientInfo() throws Exception {
+		return sMenuDslRepository.findIngredientsWithCategoryAndHqPrice();
 	}
 
 }

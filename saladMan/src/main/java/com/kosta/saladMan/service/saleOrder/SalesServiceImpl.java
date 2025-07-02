@@ -14,8 +14,10 @@ import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
+import com.kosta.saladMan.dto.saleOrder.StoreFilterDto;
 import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
+import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.saleOrder.SalesDslRepository;
 import com.kosta.saladMan.util.PageInfo;
 
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class SalesServiceImpl implements SalesService {
 
     private final SalesDslRepository salesDslRepository;
+    private final StoreRepository storeRepository;
 
     @Override
     public StoreSalesResultDto getStoreSales(Integer storeId, LocalDate start, LocalDate end, GroupType groupType) {
@@ -94,5 +97,12 @@ public class SalesServiceImpl implements SalesService {
 		pageInfo.setEndPage(endPage);
 		
 		 return pages.getContent();
+	}
+
+	@Override
+	public List<StoreFilterDto> getStoreFilter() throws Exception {
+		return storeRepository.findAll().stream()
+                .map(s -> new StoreFilterDto(s.getId(), s.getName(), s.getLocation()))
+                .collect(Collectors.toList());
 	}
 }

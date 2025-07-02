@@ -1,21 +1,18 @@
 package com.kosta.saladMan.controller.hq.saleOrder;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
+import com.kosta.saladMan.dto.saleOrder.StoreFilterDto;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.service.saleOrder.SalesService;
@@ -28,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 public class HqSalesController {
 	
 	private final SalesService salesService;
-	private final StoreRepository storeRepository;
 	
 	//total매출조회
     @GetMapping("/totalSales")
@@ -65,15 +61,13 @@ public class HqSalesController {
     }
     
     @GetMapping("/storeSales/filter")
-    public Map<String, List<String>> getStoreFilterOptions() {
-        List<String> locations = storeRepository.findDistinctLocations();
-        List<String> names = storeRepository.findAllStoreNames();
-        
-        Map<String, List<String>> response = new HashMap<>();
-        response.put("locations", locations);
-        response.put("names", names);
-        return response;
+    public ResponseEntity<List<StoreFilterDto>> getStoreFilterOptions() {
+    	try {
+    		return new ResponseEntity<>(salesService.getStoreFilter(),HttpStatus.OK);
+    	}catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	
+    	}
     }
-
-
 }

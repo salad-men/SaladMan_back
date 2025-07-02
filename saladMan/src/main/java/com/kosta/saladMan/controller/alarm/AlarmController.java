@@ -27,13 +27,12 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/store")
 public class AlarmController {
 	
 	public final AlarmService alarmService;
 	private final FcmMessageService fcmMessageService;
 	
-	@GetMapping("/notification")
+	@GetMapping("/alarmList")
 	public ResponseEntity<Map<String, Object>> getStoreAlarm(@AuthenticationPrincipal PrincipalDetails principalDetails,
 			@RequestParam String page) throws Exception{
 		Store store = principalDetails.getStore();
@@ -56,13 +55,13 @@ public class AlarmController {
 	    }
 	}
 	
-	@GetMapping("/notification/{id}")
+	@GetMapping("/alarmList/{id}")
 	public ResponseEntity<Boolean> confirmAlarm(@PathVariable Integer id) {
 		Boolean confirm = fcmMessageService.confirmAlarm(id);
 		return new ResponseEntity<Boolean>(confirm, HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/notification/{id}")
+	@DeleteMapping("/alarmList/{id}")
 	public ResponseEntity<Boolean> deleteAlarm(@PathVariable Integer id) {
 		try {
 			boolean deleted = alarmService.deleteAlarm(id);  // 서비스에서 삭제 처리

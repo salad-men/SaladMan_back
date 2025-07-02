@@ -11,11 +11,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.kosta.saladMan.dto.inventory.IngredientDto;
+import com.kosta.saladMan.dto.menu.IngredientInfoDto;
 import com.kosta.saladMan.dto.menu.MenuIngredientDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.RecipeIngredientDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
+import com.kosta.saladMan.entity.inventory.QHqIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredient;
+import com.kosta.saladMan.entity.inventory.QIngredientCategory;
 import com.kosta.saladMan.entity.menu.QMenuIngredient;
 import com.kosta.saladMan.entity.menu.QStoreMenu;
 import com.kosta.saladMan.entity.menu.QTotalMenu;
@@ -106,4 +109,25 @@ public class SMenuDslRepository {
 
 	    return new ArrayList<>(resultMap.values());
 	}
+	
+	//재료목록조회(메뉴등록)
+	public List<IngredientInfoDto> findIngredientsWithCategoryAndHqPrice() {
+	    QIngredient ingredient = QIngredient.ingredient;
+	    QIngredientCategory category = QIngredientCategory.ingredientCategory;
+	    QHqIngredient hqIngredient = QHqIngredient.hqIngredient;
+
+	    return queryFactory
+	        .select(Projections.constructor(IngredientInfoDto.class,
+	            ingredient.id,
+	            ingredient.name,
+	            category.name,
+	            ingredient.unit,
+	            hqIngredient.unitCost.divide(hqIngredient.quantity).as("unitPrice")
+	        ))
+	        .from(ingredient)
+	        .join(ingredient.category, category)
+	        .join(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
+	        .fetch();
+	}
+
 }
