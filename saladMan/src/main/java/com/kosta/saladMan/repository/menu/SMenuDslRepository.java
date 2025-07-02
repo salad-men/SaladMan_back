@@ -29,6 +29,8 @@ import com.kosta.saladMan.entity.menu.QTotalMenu;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 @Repository
 public class SMenuDslRepository {
@@ -115,11 +117,19 @@ public class SMenuDslRepository {
 	    return new ArrayList<>(resultMap.values());
 	}
 	
-	//재료목록조회(메뉴등록)
 	public List<IngredientInfoDto> findIngredientsWithCategoryAndHqPrice() {
 	    QIngredient ingredient = QIngredient.ingredient;
 	    QIngredientCategory category = QIngredientCategory.ingredientCategory;
 	    QHqIngredient hqIngredient = QHqIngredient.hqIngredient;
+	    
+	    NumberExpression<Double> avgUnitPrice = hqIngredient.unitCost
+	    	    .divide(hqIngredient.quantity)
+	    	    .avg()
+	    	    .coalesce(0.0); // null 방지
+
+	    	// 10단위로 내림 처리 식
+	    	NumberExpression<Integer> roundedPrice = Expressions
+	    	    .numberTemplate(Integer.class, "floor({0} / 10) * 10", avgUnitPrice);
 
 	    return queryFactory
 	        .select(Projections.constructor(IngredientInfoDto.class,
@@ -127,11 +137,12 @@ public class SMenuDslRepository {
 	            ingredient.name,
 	            category.name,
 	            ingredient.unit,
-	            hqIngredient.unitCost.divide(hqIngredient.quantity).as("unitPrice")
+	            roundedPrice
 	        ))
 	        .from(ingredient)
 	        .join(ingredient.category, category)
 	        .join(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
+	        .groupBy(ingredient.id, ingredient.name, category.name, ingredient.unit)  // groupBy 추가
 	        .fetch();
 	}
 
