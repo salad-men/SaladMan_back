@@ -29,17 +29,23 @@ public class ChatSseController {
 
     // 1. SSE 구독 (로그인 유저)
     @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribeSSE(@RequestParam String token) {
-        // 1. JWT 검증 (직접 구현 필요)
-        String username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET))
-                .build()
-                .verify(token)
-                .getSubject();
-        if(username == null || username.isEmpty()) {
-            throw new RuntimeException("토큰이 유효하지 않음");
+    public SseEmitter subscribeSSE(@RequestParam("token") String token) {
+        System.out.println("[SSE] token 파라미터: " + token);
+        try {
+            String username = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET))
+                    .build()
+                    .verify(token)
+                    .getSubject();
+            if(username == null || username.isEmpty()) {
+                throw new RuntimeException("토큰이 유효하지 않음");
+            }
+            return chatSseService.subscribe(username);
+        } catch(Exception ex) {
+            System.out.println("[SSE] JWT 파싱 실패: " + ex);
+            throw new RuntimeException("SSE 토큰 인증 실패!", ex);
         }
-        return chatSseService.subscribe(username);
     }
+
 
     
     // DTO 예시
