@@ -14,5 +14,6 @@ import com.kosta.saladMan.entity.store.Store;
 @Repository
 public interface StoreIngredientRepository extends JpaRepository<StoreIngredient, Integer> {
 	Optional<StoreIngredient> findByStoreAndIngredient(Store store, Ingredient ingredient);
+    List<StoreIngredient> findByStoreAndIngredientId(Store store, Integer ingredientId);
 
 }

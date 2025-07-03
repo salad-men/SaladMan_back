@@ -115,8 +115,10 @@ public class SecurityConfig {
 	        .addFilterAt(kioskFilter, UsernamePasswordAuthenticationFilter.class)
 	        .addFilter(kioskAuthorizationFilter)
 	        .authorizeRequests()
+	        	.antMatchers("/kiosk/confirm").permitAll()
 	            .antMatchers("/kiosk/login").permitAll()
 	            .anyRequest().hasRole("STORE");
+	    
 
 	    return http.build();
 	}
