@@ -16,8 +16,20 @@ permissions:
   - object: /
     owner: ubuntu
     group: ubuntu
+  - object: /home/ubuntu/saladman-server/scripts/cleanup.sh
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+  - object: /home/ubuntu/saladman-server/scripts/deploy_blue_green.sh
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
 
 hooks:
+  BeforeInstall:
+    - location: scripts/cleanup.sh
+      timeout: 60
+      runas: ubuntu
   ApplicationStart:
     - location: scripts/deploy_blue_green.sh
       timeout: 300
