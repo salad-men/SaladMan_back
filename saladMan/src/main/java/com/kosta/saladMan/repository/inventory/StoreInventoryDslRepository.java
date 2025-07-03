@@ -74,6 +74,7 @@ public class StoreInventoryDslRepository {
                         hq.unitCost.as("unitCost"),
                         hq.minimumOrderUnit.as("minimumOrderUnit")
                 ))
+                .distinct()  //중복 row 제거 (row 전체가 완전 동일할 때만)
                 .from(q)
                 .leftJoin(q.ingredient)
                 .leftJoin(q.category)

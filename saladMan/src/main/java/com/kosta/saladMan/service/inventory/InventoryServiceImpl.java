@@ -57,7 +57,7 @@ public class InventoryServiceImpl implements InventoryService {
     
     private final InventoryRecordRepository recordRepository;
 
-    
+    //본사 재고조회
     @Override
     public List<HqIngredientDto> getHqInventory(Integer storeId, Integer categoryId, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
         LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
@@ -83,7 +83,7 @@ public class InventoryServiceImpl implements InventoryService {
         return list;
     }
 
-
+    //매장 재고조회
     @Override
     public List<StoreIngredientDto> getStoreInventory(
             Integer storeId, Integer categoryId, String keyword, String startDateStr, String endDateStr, PageInfo pageInfo) {
