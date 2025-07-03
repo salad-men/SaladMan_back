@@ -2,9 +2,12 @@ package com.kosta.saladMan.service.menu;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.menu.IngredientInfoDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
+import com.kosta.saladMan.dto.menu.MenuRegisterDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
@@ -18,4 +21,5 @@ public interface StoreMenuService {
 	List<IngredientDto> getAllIngredients() throws Exception;
 	List<IngredientInfoDto> getIngredientInfo() throws Exception;
 	List<MenuCategoryDto> getMenuCategory() throws Exception;
+	void registerMenu(MenuRegisterDto dto, MultipartFile imageFile);
 }
