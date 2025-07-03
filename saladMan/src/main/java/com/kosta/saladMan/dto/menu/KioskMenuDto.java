@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class KioskMenuDto {
-	private Integer id;
+	private Integer id; //storeMenu테이블 id
+	private Integer menuId;
     private String img;
     private String name;
     private Integer salePrice;

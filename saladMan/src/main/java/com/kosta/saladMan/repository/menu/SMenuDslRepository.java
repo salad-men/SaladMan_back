@@ -156,6 +156,7 @@ public class SMenuDslRepository {
         List<KioskMenuDto> content = queryFactory
             .select(Projections.constructor(KioskMenuDto.class,
                 storeMenu.id,
+                totalMenu.id,
                 totalMenu.img,
                 totalMenu.name,
                 totalMenu.salePrice,

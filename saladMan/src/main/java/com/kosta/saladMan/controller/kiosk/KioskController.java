@@ -25,6 +25,7 @@ import com.kosta.saladMan.dto.menu.KioskMenuDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.kiosk.KioskService;
+import com.kosta.saladMan.util.OutOfStockException;
 
 @RestController
 @RequestMapping("/kiosk")
@@ -61,37 +62,41 @@ public class KioskController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
-	
-    @PostMapping("/prepare")
-    public ResponseEntity<PaymentPrepareResponseDto> preparePayment(
-            @RequestBody PaymentPrepareDto dto) {
-    	
+
+	@PostMapping("/prepare")
+	public ResponseEntity<PaymentPrepareResponseDto> preparePayment(@RequestBody PaymentPrepareDto dto) {
+
 		try {
 			System.out.println("결제 진입");
 			PaymentPrepareResponseDto response = kioskService.preparePayment(dto);
-	        return ResponseEntity.ok(response);
+			System.out.println("결제 완료--------------------");
+			return ResponseEntity.ok(response);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
-        
-    }
 
-    /**
-     * 결제 승인 (프론트에서 결제 완료 후 호출)
-     */
-    @PostMapping("/confirm")
-    public ResponseEntity<Void> confirmPayment(
-            @RequestBody PaymentConfirmDto dto) {
-    	
+	}
+
+	/**
+	 * 결제 승인 (프론트에서 결제 완료 후 호출)
+	 */
+	@PostMapping("/confirm")
+	public ResponseEntity<String> confirmPayment(@RequestBody PaymentConfirmDto dto) {
+
 		try {
+			System.out.println("confirm 호출------------------------");
 			kioskService.confirmPayment(dto);
-	        return ResponseEntity.ok().build();
-		} catch (Exception e) {
+			System.out.println("confirm 끝------------------------");
+
+			return ResponseEntity.ok().build();
+		}catch (OutOfStockException ex) {
+	        return ResponseEntity.badRequest().body("결제 취소: " + ex.getMessage());
+	    } catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
-        
-    }
+
+	}
 
 }

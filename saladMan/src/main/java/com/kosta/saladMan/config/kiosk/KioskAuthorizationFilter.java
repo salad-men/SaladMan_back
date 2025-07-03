@@ -45,6 +45,10 @@ public class KioskAuthorizationFilter extends BasicAuthenticationFilter{
 	            chain.doFilter(request, response);
 	            return;
 	        }
+	        if (request.getRequestURI().startsWith("/kiosk/confirm")) {
+	        	chain.doFilter(request, response);
+	            return;
+	        }
 
 	        String accessTokenHeader = request.getHeader(JwtProperties.HEADER_STRING);
 		    String refreshTokenHeader = request.getHeader("X-Refresh-Token");
