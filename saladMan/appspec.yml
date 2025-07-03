@@ -7,6 +7,10 @@ files:
   - source: /
     # EC2의 어떤 경로에 저장할 지 지정한다. 
     destination: /home/ubuntu/saladman-server
+    # 중복 파일도 덮어쓰기
+    overwrite: yes
+    file_exists_behavior: OVERWRITE
+    
 
 permissions:
   - object: /
