@@ -135,13 +135,15 @@ public class SMenuDslRepository {
 	        .select(Projections.constructor(IngredientInfoDto.class,
 	            ingredient.id,
 	            ingredient.name,
-	            category.name,
 	            ingredient.unit,
+	            ingredient.category.id.as("categoryId"),
+	            category.name,	            
 	            roundedPrice
 	        ))
 	        .from(ingredient)
 	        .join(ingredient.category, category)
 	        .join(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
+	        .where(category.id.ne(8))
 	        .groupBy(ingredient.id, ingredient.name, category.name, ingredient.unit)  // groupBy 추가
 	        .fetch();
 	}

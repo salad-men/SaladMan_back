@@ -6,14 +6,17 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.alarm.AlarmMsgDto;
+import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.alarm.FcmMessageService;
 
 @RestController
@@ -31,8 +34,9 @@ public class FcmController {
 	}
 	
 	@PostMapping("/alarms")
-	public ResponseEntity<List<AlarmDto>> alarms(@RequestBody Map<String,String> param) {
-		Integer storeId = Integer.parseInt(param.get("storeId"));
+	public ResponseEntity<List<AlarmDto>> alarms(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+		Store store = principalDetails.getStore();
+	    Integer storeId = store.getId();
 		List<AlarmDto> alarms = fcmMessageService.getAlarmList(storeId);
 		return new ResponseEntity<>(alarms, HttpStatus.OK);
 	}
