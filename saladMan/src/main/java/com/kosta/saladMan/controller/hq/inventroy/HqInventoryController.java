@@ -30,11 +30,6 @@ public class HqInventoryController {
 
     private final InventoryService inventoryService;
 
-    @GetMapping("/list2")
-    public ResponseEntity<String> testList() {
-        return ResponseEntity.ok("POST로 정상d 동작합니다!test");
-    }
-    
     @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
     	  try {
@@ -144,7 +139,7 @@ public class HqInventoryController {
         return ResponseEntity.ok(res);
     }
 
-    // 여러 건 수정(배열, id 必)
+    // 여러 건 수정
     @PostMapping("/settings-update")
     public ResponseEntity<Void> updateSettings(@RequestBody List<StoreIngredientSettingDto> dtos) {
         for (StoreIngredientSettingDto dto : dtos) {

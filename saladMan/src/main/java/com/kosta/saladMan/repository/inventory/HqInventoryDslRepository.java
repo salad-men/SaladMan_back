@@ -144,46 +144,46 @@ public class HqInventoryDslRepository {
 		clause.execute();
 	}
 
-	//폐기 개수 조회
-    public int countHqDisposals(
-            Integer storeId,
-            Integer categoryId,
-            String status,
-            LocalDate startDate,
-            LocalDate endDate
-    ) {
+	// 폐기 개수 조회
+    public int countHqDisposals(Integer storeId, Integer categoryId, String status,
+                                LocalDate startDate, LocalDate endDate, String keyword) {
         QDisposal d = QDisposal.disposal;
-        BooleanBuilder b = new BooleanBuilder();
-        if (storeId != null)         b.and(d.store.id.eq(storeId));
-        if (categoryId != null)      b.and(d.ingredient.category.id.eq(categoryId));
-        if (status != null && !"all".equals(status)) b.and(d.status.eq(status)); 
-        if (startDate != null)       b.and(d.requestedAt.goe(startDate));
-        if (endDate != null)         b.and(d.requestedAt.loe(endDate));
+        BooleanBuilder builder = new BooleanBuilder();
 
-        Long cnt = queryFactory.select(d.count()).from(d).where(b).fetchOne();
+        if (storeId != null) builder.and(d.store.id.eq(storeId));
+        if (categoryId != null) builder.and(d.ingredient.category.id.eq(categoryId));
+        if (status != null && !"all".equals(status)) builder.and(d.status.eq(status));
+        if (startDate != null) builder.and(d.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(d.requestedAt.loe(endDate));
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(d.ingredient.name.containsIgnoreCase(keyword));
+        }
+
+        Long cnt = queryFactory.select(d.count()).from(d).where(builder).fetchOne();
         return cnt == null ? 0 : cnt.intValue();
     }
-    
-    //폐기조회
+
+    // 폐기목록 조회 
     public List<Disposal> selectHqDisposalListByFiltersPaging(
-            Integer storeId,
-            Integer categoryId,
-            String status,
-            LocalDate startDate,
-            LocalDate endDate,
-            PageRequest pageRequest,
-            String sortOption
-    ) {
+            Integer storeId, Integer categoryId, String status,
+            LocalDate startDate, LocalDate endDate,
+            int offset, int limit,
+            String sortOption, String keyword) {
+        
         QDisposal d = QDisposal.disposal;
-        BooleanBuilder b = new BooleanBuilder();
-        if (storeId != null)         b.and(d.store.id.eq(storeId));
-        if (categoryId != null)      b.and(d.ingredient.category.id.eq(categoryId));
-        if (status != null && !"all".equals(status)) b.and(d.status.eq(status));  
-        if (startDate != null)       b.and(d.requestedAt.goe(startDate));
-        if (endDate != null)         b.and(d.requestedAt.loe(endDate));
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (storeId != null) builder.and(d.store.id.eq(storeId));
+        if (categoryId != null) builder.and(d.ingredient.category.id.eq(categoryId));
+        if (status != null && !"all".equals(status)) builder.and(d.status.eq(status));
+        if (startDate != null) builder.and(d.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(d.requestedAt.loe(endDate));
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(d.ingredient.name.containsIgnoreCase(keyword));
+        }
 
         List<OrderSpecifier<?>> orders = new ArrayList<>();
-        switch (sortOption) {  
+        switch (sortOption) {
             case "dateAsc":
                 orders.add(d.requestedAt.asc());
                 break;
@@ -197,12 +197,12 @@ public class HqInventoryDslRepository {
         }
 
         return queryFactory
-            .selectFrom(d)
-            .where(b)
-            .orderBy(orders.toArray(new OrderSpecifier[0]))
-            .offset(pageRequest.getOffset())
-            .limit(pageRequest.getPageSize())
-            .fetch();
+                .selectFrom(d)
+                .where(builder)
+                .orderBy(orders.toArray(new OrderSpecifier[0]))
+                .offset(offset)
+                .limit(limit)
+                .fetch();
     }
 
 
