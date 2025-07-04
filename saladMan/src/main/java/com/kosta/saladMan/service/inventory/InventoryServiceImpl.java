@@ -186,7 +186,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
 
- // 폐기목록 조회(본사)
+    // 폐기목록 조회(본사)
     @Override
     public List<DisposalDto> searchHqDisposals(
             PageInfo pageInfo,
@@ -194,7 +194,8 @@ public class InventoryServiceImpl implements InventoryService {
             String status,
             String startDateStr,
             String endDateStr,
-            String sortOption
+            String sortOption,
+            String keyword      
     ) {
         LocalDate startDate = (startDateStr != null && !startDateStr.isBlank())
                 ? LocalDate.parse(startDateStr) : null;
@@ -203,9 +204,9 @@ public class InventoryServiceImpl implements InventoryService {
 
         Integer hqStoreId = 1;
 
-        // 총 개수 조회
+        // 총 개수 조회 (keyword 포함)
         int totalCount = hqInventoryDslRepository.countHqDisposals(
-                hqStoreId, categoryId, status, startDate, endDate
+                hqStoreId, categoryId, status, startDate, endDate, keyword
         );
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
 
@@ -217,15 +218,18 @@ public class InventoryServiceImpl implements InventoryService {
         pageInfo.setStartPage(startPage);
         pageInfo.setEndPage(endPage);
 
-        // 목록 조회
+        int offset = (curPage - 1) * PAGE_SIZE;
+
         List<Disposal> result = hqInventoryDslRepository.selectHqDisposalListByFiltersPaging(
                 hqStoreId,
                 categoryId,
                 status,
                 startDate,
                 endDate,
-                PageRequest.of(curPage - 1, PAGE_SIZE),
-                sortOption
+                offset,
+                PAGE_SIZE,
+                sortOption,
+                keyword
         );
 
         return result.stream()
@@ -233,25 +237,25 @@ public class InventoryServiceImpl implements InventoryService {
                 .collect(Collectors.toList());
     }
 
-    // 폐기목록 조회(매장)
     @Override
     public List<DisposalDto> searchStoreDisposals(
             PageInfo pageInfo,
             Integer storeId,
             Integer categoryId,
-            String status,               
+            String status,
             String startDateStr,
             String endDateStr,
-            String sortOption            
+            String sortOption,
+            String keyword
     ) {
         LocalDate startDate = (startDateStr != null && !startDateStr.isBlank())
                 ? LocalDate.parse(startDateStr) : null;
         LocalDate endDate = (endDateStr != null && !endDateStr.isBlank())
                 ? LocalDate.parse(endDateStr) : null;
 
-        // 총 개수 조회 
         int totalCount = storeInventoryDslRepository.countStoreDisposals(
-                storeId, categoryId, status, startDate, endDate);
+                storeId, categoryId, status, startDate, endDate, keyword
+        );
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
 
         int block = 5;
@@ -262,21 +266,77 @@ public class InventoryServiceImpl implements InventoryService {
         pageInfo.setStartPage(startPage);
         pageInfo.setEndPage(endPage);
 
-        // 목록 조회 (
+        int offset = (curPage - 1) * PAGE_SIZE;
+
         List<Disposal> result = storeInventoryDslRepository.selectStoreDisposalListByFiltersPaging(
                 storeId,
                 categoryId,
                 status,
                 startDate,
                 endDate,
-                PageRequest.of(curPage - 1, PAGE_SIZE),
-                sortOption
+                offset,
+                PAGE_SIZE,
+                sortOption,
+                keyword
         );
 
         return result.stream()
                 .map(Disposal::toDto)
                 .collect(Collectors.toList());
     }
+    
+    //모든 매장의 폐기목록
+    @Override
+    public List<DisposalDto> searchAllStoresExceptHqDisposals(
+            PageInfo pageInfo,
+            Integer categoryId,
+            String status,
+            String startDateStr,
+            String endDateStr,
+            String sortOption,
+            String keyword) {
+        LocalDate startDate = (startDateStr != null && !startDateStr.isBlank())
+                ? LocalDate.parse(startDateStr) : null;
+        LocalDate endDate = (endDateStr != null && !endDateStr.isBlank())
+                ? LocalDate.parse(endDateStr) : null;
+
+        // 본사 제외 매장 id 리스트 구하기
+        List<Integer> storeIds = storeRepository.findAll().stream()
+                .map(Store::getId)
+                .filter(id -> id != 1) // 본사 제외
+                .collect(Collectors.toList());
+
+        int totalCount = storeInventoryDslRepository.countStoreDisposalsForStores(
+                storeIds, categoryId, status, startDate, endDate, keyword);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
+
+        int block = 5;
+        int curPage = pageInfo.getCurPage() == null ? 1 : pageInfo.getCurPage();
+        int allPage = pageInfo.getAllPage() == null ? 1 : pageInfo.getAllPage();
+        int startPage = ((curPage - 1) / block) * block + 1;
+        int endPage = Math.min(startPage + block - 1, allPage);
+        pageInfo.setStartPage(startPage);
+        pageInfo.setEndPage(endPage);
+
+        int offset = (curPage - 1) * PAGE_SIZE;
+
+        List<Disposal> result = storeInventoryDslRepository.selectStoreDisposalListByFiltersPagingForStores(
+                storeIds,
+                categoryId,
+                status,
+                startDate,
+                endDate,
+                offset,
+                PAGE_SIZE,
+                sortOption,
+                keyword
+        );
+
+        return result.stream()
+                .map(Disposal::toDto)
+                .collect(Collectors.toList());
+    }
+
 
 
     // 폐기신청 (본사/매장 모두)
@@ -310,7 +370,7 @@ public class InventoryServiceImpl implements InventoryService {
                         .store(hqStore)
                         .quantity(disposalAmount)
                         .status("완료")
-                        .storeIngredientId(null) 
+                        .storeIngredientId(hqIngredient.getId()) 
                         .requestedAt(LocalDate.now())
                         .memo("유통기한 초과로 폐기 처리(즉시완료)")
                         .build();
@@ -345,7 +405,7 @@ public class InventoryServiceImpl implements InventoryService {
                         .ingredient(storeIngredient.getIngredient())
                         .store(store)
                         .quantity(disposalAmount)
-                        .status("신청")
+                        .status("대기")
                         .storeIngredientId(storeIngredient.getId()) 
                         .requestedAt(LocalDate.now())
                         .memo("유통기한 초과로 폐기 신청")
@@ -359,7 +419,11 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     public void approveDisposals(List<Integer> disposalIds) {
+        System.out.println("==== approveDisposals 진입, disposalIds = " + disposalIds);
+
         for (Integer disposalId : disposalIds) {
+            System.out.println("처리중 disposalId = " + disposalId);
+
             Disposal disposal = disposalRepository.findById(disposalId)
                 .orElseThrow(() -> new IllegalArgumentException("폐기 ID " + disposalId + " 없음"));
             Store store = disposal.getStore();

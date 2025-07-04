@@ -55,7 +55,8 @@ public interface InventoryService {
             String status,
             String startDateStr,
             String endDateStr,
-            String sortOption
+            String sortOption,
+            String keyword
         );
 
     // 매장 폐기 목록 조회
@@ -66,9 +67,20 @@ public interface InventoryService {
             String status,
             String startDateStr,
             String endDateStr,
-            String sortOption
-        );
-
+            String sortOption,
+            String keyword
+    );
+    
+    public List<DisposalDto> searchAllStoresExceptHqDisposals(
+            PageInfo pageInfo,
+            Integer categoryId,
+            String status,
+            String startDateStr,
+            String endDateStr,
+            String sortOption,
+            String keyword);
+    
+    
     // 폐기 승인 (상태 '완료' 변경)
     void approveDisposals(List<Integer> disposalIds);
 
