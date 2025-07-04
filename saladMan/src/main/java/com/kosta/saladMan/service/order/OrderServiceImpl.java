@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
+import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
@@ -26,6 +27,7 @@ import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
@@ -36,6 +38,7 @@ import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
+import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
@@ -93,7 +96,10 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private FixedOrderItemRepository fixedOrderItemRepository;
-
+	
+	@Autowired
+	private IngredientCategoryRepository ingredientCategoryRepository;
+	
 	// 재료 리스트
 	@Override
 	public Page<IngredientItemDto> getIngredientList(Boolean available, String category, String keyword, int page,
@@ -448,6 +454,15 @@ public class OrderServiceImpl implements OrderService {
 		Store store = storeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found: " + id));
         store.setAutoOrderEnabled(enable);		
+	}
+
+	//재료 카테고리 호출
+	@Override
+	public List<IngredientCategoryDto> getAllIngredientCategory() throws Exception {
+		
+		List<IngredientCategoryDto> categoryDto = ingredientCategoryRepository.findAll().stream().map(IngredientCategory::toDto)
+				.collect(Collectors.toList());
+		return categoryDto;
 	}
 
 

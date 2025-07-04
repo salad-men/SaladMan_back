@@ -99,7 +99,7 @@ public class KioskServiceImpl implements KioskService {
 	}
 
 	@Override
-	public List<MenuCategoryDto> getAllCategory() {
+	public List<MenuCategoryDto> getAllMenuCategory() {
 		List<MenuCategoryDto> categoryDto = menuCategoryRepository.findAll().stream().map(MenuCategory::toDto)
 				.collect(Collectors.toList());
 

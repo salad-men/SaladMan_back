@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
@@ -54,6 +55,9 @@ public interface OrderService {
     Boolean getAutoOrderEnabled(Integer id) throws Exception;
     void updateAutoOrderEnabled(Integer id, Boolean enable) throws Exception;
 
+    
+    //-----------------------공통---------------------------
+    List<IngredientCategoryDto> getAllIngredientCategory() throws Exception;
 } 
 
 
