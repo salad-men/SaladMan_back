@@ -23,34 +23,56 @@ public class HqInventoryDisposalController {
     @PostMapping("/disposal-list")
     public ResponseEntity<Map<String, Object>> getDisposalList(@RequestBody Map<String, Object> params) {
         try {
-            Object storeObj = params.get("store");
-            Object categoryObj = params.get("category");
-            Integer storeId = null;
-            Integer categoryId = null;
+            
+            String storeParam    = (String) params.getOrDefault("store", "all");
+            Integer storeId      = !"all".equals(storeParam)
+                                   ? Integer.valueOf(storeParam)
+                                   : null;
 
-            if (storeObj != null && !"all".equals(storeObj.toString())) {
-                storeId = Integer.parseInt(storeObj.toString());
+            String categoryParam = (String) params.getOrDefault("category", "all");
+            Integer categoryId   = !"all".equals(categoryParam)
+                                   ? Integer.valueOf(categoryParam)
+                                   : null;
+
+            String startDate     = (String) params.getOrDefault("startDate", "");
+            String endDate       = (String) params.getOrDefault("endDate", "");
+            
+            int page = 1;
+            Object pageObj = params.get("page");
+            if (pageObj instanceof Number) {
+                page = ((Number) pageObj).intValue();
             }
-            if (categoryObj != null && !"all".equals(categoryObj.toString())) {
-                categoryId = Integer.parseInt(categoryObj.toString());
-            }
 
-            String keyword = (String) params.getOrDefault("keyword", "");
-            String startDate = (String) params.getOrDefault("startDate", "");
-            String endDate = (String) params.getOrDefault("endDate", "");
-            int page = params.get("page") == null ? 1 : (int) params.get("page");
+            
+            PageInfo pageInfo    = new PageInfo(page);
 
-            PageInfo pageInfo = new PageInfo(page);
-            List<DisposalDto> disposalList;
+            String status      = (String) params.getOrDefault("status", "all");       
+            String sortOption  = (String) params.getOrDefault("sortOption", "dateDesc"); 
 
-            if (storeId != null && storeId == 1) {
-                disposalList = inventoryService.searchHqDisposals(pageInfo, categoryId, keyword, startDate, endDate);
+            List<DisposalDto> list;
+            if (storeId == null || storeId == 1) {
+                list = inventoryService.searchHqDisposals(
+                    pageInfo,
+                    categoryId,
+                    status,        
+                    startDate,
+                    endDate,
+                    sortOption     
+                );
             } else {
-                disposalList = inventoryService.searchStoreDisposals(pageInfo, storeId, categoryId, keyword, startDate, endDate);
+                list = inventoryService.searchStoreDisposals(
+                    pageInfo,
+                    storeId,
+                    categoryId,
+                    status,        
+                    startDate,
+                    endDate,
+                    sortOption     
+                );
             }
 
             return ResponseEntity.ok(Map.of(
-                "disposals", disposalList,
+                "disposals", list,
                 "pageInfo", pageInfo
             ));
         } catch (Exception e) {

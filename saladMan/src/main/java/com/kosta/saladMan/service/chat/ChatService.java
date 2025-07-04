@@ -78,6 +78,7 @@ public class ChatService {
                 .map(cp -> cp.getStore().getUsername())
                 .collect(Collectors.toSet());
         chatSseService.sendToUsers(participants, "newMessage", sseDto);
+
     }
 
     // 그룹채팅방 개설
@@ -89,6 +90,7 @@ public class ChatService {
         ChatRoom chatRoom = ChatRoom.builder()
                 .name(chatRoomName)
                 .isGroupChat("Y")
+                .store(store)
                 .build();
         chatRoomRepository.save(chatRoom);
 
@@ -216,6 +218,7 @@ public class ChatService {
                     .roomName(chatParticipant.getChatRoom().getName())
                     .isGroupChat(chatParticipant.getChatRoom().getIsGroupChat())
                     .unReadCount(count)
+                    .storeId(chatParticipant.getChatRoom().getStore().getId())
                     .build();
             chatListResDtos.add(dto);
         }
@@ -249,27 +252,42 @@ public class ChatService {
     public Integer getOrCreatePrivateRoom(Integer otherStoreId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Store me = storeRepository.findByUsername(username)
-            .orElseThrow(() -> new EntityNotFoundException("Store not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Store not found"));
         Store other = storeRepository.findById(otherStoreId)
-            .orElseThrow(() -> new EntityNotFoundException("Other not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Other not found"));
 
-        // 1:1방을 "참여자가 아니더라도" 찾는 쿼리 필요!
-        Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findPrivateRoomBetweenStores(me.getId(), other.getId());
-
-        ChatRoom chatRoom;
-        if (chatRoomOpt.isPresent()) {
-            chatRoom = chatRoomOpt.get();
-            // 내가 현재 참가자가 아니면 다시 추가 (재입장)
-            if (!chatParticipantRepository.existsByChatRoomAndStore(chatRoom, me)) {
-                addParticipantToRoom(chatRoom, me);
+        // 1) 기존에 둘 다 참가중인 방이 있는지 (participant 기반) 확인
+        Optional<ChatRoom> roomOpt = chatRoomRepository
+            .findPrivateRoomBetweenStores(me.getId(), other.getId());
+        if (roomOpt.isPresent()) {
+            ChatRoom room = roomOpt.get();
+            if (!chatParticipantRepository.existsByChatRoomAndStore(room, me)) {
+                addParticipantToRoom(room, me);
             }
-            return chatRoom.getId();
+            return room.getId();
         }
 
-        // 없으면 새로 생성
+        // 2) fallback: 방 이름(A-B 또는 B-A) 기반 조회
+        String name1 = me.getName() + "-" + other.getName();
+        String name2 = other.getName() + "-" + me.getName();
+        Optional<ChatRoom> fallback = chatRoomRepository
+            .findByIsGroupChatAndName("N", name1);
+        if (!fallback.isPresent()) {
+            fallback = chatRoomRepository.findByIsGroupChatAndName("N", name2);
+        }
+        if (fallback.isPresent()) {
+            ChatRoom room = fallback.get();
+            if (!chatParticipantRepository.existsByChatRoomAndStore(room, me)) {
+                addParticipantToRoom(room, me);
+            }
+            return room.getId();
+        }
+
+        // 3) 없으면 새로 생성
         ChatRoom newRoom = ChatRoom.builder()
             .isGroupChat("N")
-            .name(me.getName() + "-" + other.getName())
+            .name(name1)
+            .store(me)
             .build();
         chatRoomRepository.save(newRoom);
 
