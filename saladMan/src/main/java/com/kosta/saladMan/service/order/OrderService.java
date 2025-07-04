@@ -14,6 +14,7 @@ import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.Store;
 
 public interface OrderService {
@@ -39,7 +40,7 @@ public interface OrderService {
     //발주 신청
     void createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception;
     //발주 목록
-    Page<PurchaseOrderDto> getPagedOrderList(Integer storeId, String orderType, String productName,
+    Page<PurchaseOrderDto> getPagedOrderList(Integer storeId, String orderType, String productName, String status,
             LocalDate startDate, LocalDate endDate, int page, int size) throws Exception;
     
     //입고검수 페이지 조회
@@ -57,7 +58,12 @@ public interface OrderService {
 
     
     //-----------------------공통---------------------------
+    
+    //재료 카테고리
     List<IngredientCategoryDto> getAllIngredientCategory() throws Exception;
+    
+    //매장 이름만
+    List<StoreDto> getStoreName() throws Exception;
 } 
 
 

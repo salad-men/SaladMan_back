@@ -25,6 +25,7 @@ import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.IngredientCategory;
@@ -302,12 +303,12 @@ public class OrderServiceImpl implements OrderService {
 
 	// 발주 목록
 	@Override
-	public Page<PurchaseOrderDto> getPagedOrderList(Integer id, String orderType, String productName,
+	public Page<PurchaseOrderDto> getPagedOrderList(Integer id, String orderType, String productName, String status,
 			LocalDate startDate, LocalDate endDate, int page, int size) throws Exception {
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("orderDateTime").descending());
 
-		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, startDate, endDate, pageable);
+		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, status, startDate, endDate, pageable);
 	}
 	
 	
@@ -456,6 +457,8 @@ public class OrderServiceImpl implements OrderService {
         store.setAutoOrderEnabled(enable);		
 	}
 
+	//공통---------------------------------
+	
 	//재료 카테고리 호출
 	@Override
 	public List<IngredientCategoryDto> getAllIngredientCategory() throws Exception {
@@ -463,6 +466,13 @@ public class OrderServiceImpl implements OrderService {
 		List<IngredientCategoryDto> categoryDto = ingredientCategoryRepository.findAll().stream().map(IngredientCategory::toDto)
 				.collect(Collectors.toList());
 		return categoryDto;
+	}
+	
+	//매장 목록 오직 이름만
+	@Override
+	public List<StoreDto> getStoreName() throws Exception {
+		// TODO Auto-generated method stub
+		return storeRepository.findAllStoreNamesId();
 	}
 
 

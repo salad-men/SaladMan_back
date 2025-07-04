@@ -93,14 +93,14 @@ public class SOrderController {
 	@GetMapping("/orderList")
 	public ResponseEntity<Page<PurchaseOrderDto>> getOrderList(
 			@AuthenticationPrincipal PrincipalDetails principalDetails,
-			@RequestParam(required = false) String orderType, @RequestParam(required = false) String productName,
+			@RequestParam(required = false) String orderType, @RequestParam(required = false) String productName,@RequestParam(required = false) String status,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		Integer id = principalDetails.getStore().getId();
 
 		try {
-			Page<PurchaseOrderDto> result = orderService.getPagedOrderList(id, orderType, productName, startDate,
+			Page<PurchaseOrderDto> result = orderService.getPagedOrderList(id, orderType, productName, status, startDate,
 					endDate, page, size);
 			return new ResponseEntity<>(result, HttpStatus.OK);
 

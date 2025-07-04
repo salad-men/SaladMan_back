@@ -27,6 +27,7 @@ import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.service.order.OrderService;
 
 @RestController
@@ -124,4 +125,17 @@ public class OrderController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+	@GetMapping("/storeNames")
+	public ResponseEntity<List<StoreDto>> getStoreName(){
+		
+		try {
+			List<StoreDto> result = orderService.getStoreName();
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+ 
 }
