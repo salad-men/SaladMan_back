@@ -18,36 +18,39 @@ public class StoreInventoryDisposalController {
 
     @PostMapping("/disposal-list")
     public Map<String, Object> getStoreDisposals(@RequestBody Map<String, Object> params) {
-        Integer storeId = (Integer) params.get("storeId");
-        
+        // --- 필수 파라미터 ---
+        Integer storeId = params.get("storeId") == null
+            ? null
+            : Integer.parseInt(params.get("storeId").toString());
+
         Object categoryObj = params.get("category");
         Integer categoryId = null;
-
         if (categoryObj != null && !"all".equals(categoryObj.toString())) {
             categoryId = Integer.parseInt(categoryObj.toString());
         }
-        
-        String keyword = (String) params.getOrDefault("keyword", "");
+
+        // --- 추가된 파라미터: 상태(status), 정렬(sortOption) ---
+        String status     = (String) params.getOrDefault("status", "all");          
+        String sortOption = (String) params.getOrDefault("sortOption", "dateDesc"); 
+
         String startDate = (String) params.getOrDefault("startDate", "");
-        String endDate = (String) params.getOrDefault("endDate", "");
-        int page = params.get("page") == null ? 1 : (int) params.get("page");
+        String endDate   = (String) params.getOrDefault("endDate", "");
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setCurPage(page);
-        
-        Object pageObj = params.get("page");
-        if (pageObj != null) {
-            page = Integer.parseInt(pageObj.toString());
-        }
-        
+        // --- 페이지 정보 설정 ---
+        int page = params.get("page") == null
+            ? 1
+            : Integer.parseInt(params.get("page").toString());
+        PageInfo pageInfo = new PageInfo(page);
 
+        // --- 서비스 호출 (수정: 새 파라미터 추가) ---
         List<DisposalDto> list = inventoryService.searchStoreDisposals(
             pageInfo,
             storeId,
             categoryId,
-            keyword,
+            status,       
             startDate,
-            endDate
+            endDate,
+            sortOption    
         );
 
         Map<String, Object> result = new HashMap<>();

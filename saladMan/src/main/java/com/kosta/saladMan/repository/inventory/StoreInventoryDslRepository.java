@@ -13,6 +13,7 @@ import com.kosta.saladMan.entity.inventory.QStoreIngredient;
 import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
 import com.kosta.saladMan.entity.store.QStore;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Repository;
 import javax.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -35,7 +37,7 @@ public class StoreInventoryDslRepository {
     // 매장 재고 조회
     public List<StoreIngredientDto> findStoreInventoryByFilters(
             Integer storeId, Integer categoryId, String keyword,
-            LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
+            LocalDate startDate, LocalDate endDate, PageRequest pageRequest, String sortOption) {
 
         QStoreIngredient q = QStoreIngredient.storeIngredient;
         QStore store = QStore.store;
@@ -43,21 +45,37 @@ public class StoreInventoryDslRepository {
         QHqIngredient hq = QHqIngredient.hqIngredient;
 
         BooleanBuilder builder = new BooleanBuilder();
-
-        if (storeId != null) {
-            builder.and(q.store.id.eq(storeId));
-        }
-        
-        if (categoryId != null) {
-            builder.and(q.category.id.eq(categoryId));
-        }
-        if (keyword != null && !keyword.isBlank()) {
-            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
-        }
+        if (storeId != null) builder.and(q.store.id.eq(storeId));
+        if (categoryId != null) builder.and(q.category.id.eq(categoryId));
+        if (keyword != null && !keyword.isBlank()) builder.and(q.ingredient.name.containsIgnoreCase(keyword));
         if (startDate != null) builder.and(q.expiredDate.goe(startDate));
         if (endDate != null) builder.and(q.expiredDate.loe(endDate));
-	    
         builder.and(q.quantity.gt(0));
+
+        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+
+        if ("receivedAsc".equals(sortOption)) {
+            orderSpecifiers.add(q.receivedDate.asc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else if ("receivedDesc".equals(sortOption)) {
+            orderSpecifiers.add(q.receivedDate.desc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else if ("expiryAsc".equals(sortOption)) {
+            orderSpecifiers.add(q.expiredDate.asc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else if ("expiryDesc".equals(sortOption)) {
+            orderSpecifiers.add(q.expiredDate.desc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else {
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+            orderSpecifiers.add(q.expiredDate.asc().nullsLast());
+        }
+
 
         return queryFactory
                 .select(Projections.bean(
@@ -74,24 +92,20 @@ public class StoreInventoryDslRepository {
                         hq.unitCost.as("unitCost"),
                         hq.minimumOrderUnit.as("minimumOrderUnit")
                 ))
-                .distinct()  //중복 row 제거 (row 전체가 완전 동일할 때만)
+                .distinct()
                 .from(q)
                 .leftJoin(q.ingredient)
                 .leftJoin(q.category)
                 .leftJoin(q.store, store)
-                .leftJoin(s).on(
-                        s.store.id.eq(store.id)
-                                .and(s.ingredient.eq(q.ingredient))
-                )
-                .leftJoin(hq)
-                .on(hq.ingredient.eq(q.ingredient)
-                        .and(hq.store.id.eq(1)))  
+                .leftJoin(s).on(s.store.id.eq(store.id).and(s.ingredient.eq(q.ingredient)))
+                .leftJoin(hq).on(hq.ingredient.eq(q.ingredient).and(hq.store.id.eq(1)))
                 .where(builder)
-                .orderBy(q.expiredDate.asc())
+                .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();
     }
+
     
     //매장 재고 개수 조회
     public long countStoreInventoryByFilters(
@@ -131,61 +145,80 @@ public class StoreInventoryDslRepository {
     }
 
     // 매장 폐기 개수
-    public int countStoreDisposals(Integer storeId, Integer categoryId, String keyword, LocalDate startDate, LocalDate endDate) {
-        QDisposal disposal = QDisposal.disposal;
-        BooleanBuilder builder = new BooleanBuilder();
+    public int countStoreDisposals(
+            Integer storeId,
+            Integer categoryId,
+            String status,      
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        QDisposal d = QDisposal.disposal;
+        BooleanBuilder b = new BooleanBuilder();
 
-        if (storeId != null) {
-            builder.and(disposal.store.id.eq(storeId));
+        if (storeId != null)    b.and(d.store.id.eq(storeId));
+        if (categoryId != null) b.and(d.ingredient.category.id.eq(categoryId));
+        if (status != null && !"all".equals(status)) {
+            b.and(d.status.eq(status));            
         }
-        if (categoryId != null) {
-            builder.and(disposal.ingredient.category.id.eq(categoryId));
-        }
-        if (keyword != null && !keyword.isEmpty()) {
-            builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
-        }
-        if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
-        if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
+        if (startDate != null)  b.and(d.requestedAt.goe(startDate));
+        if (endDate != null)    b.and(d.requestedAt.loe(endDate));
 
-        Long count = queryFactory
-                .select(disposal.count())
-                .from(disposal)
-                .where(builder)
-                .fetchOne();
+        Long cnt = queryFactory
+            .select(d.count())
+            .from(d)
+            .where(b)
+            .fetchOne();
 
-        return count != null ? count.intValue() : 0;
+        return cnt == null ? 0 : cnt.intValue();
     }
 
     // 매장 폐기 목록 조회
     public List<Disposal> selectStoreDisposalListByFiltersPaging(
-            Integer storeId, Integer categoryId, String keyword,
-            LocalDate startDate, LocalDate endDate,
-            PageRequest pageRequest) {
+            Integer storeId,
+            Integer categoryId,
+            String status,          
+            LocalDate startDate,
+            LocalDate endDate,
+            PageRequest pageRequest,
+            String sortOption        
+    ) {
+        QDisposal d = QDisposal.disposal;
+        BooleanBuilder b = new BooleanBuilder();
 
-        QDisposal disposal = QDisposal.disposal;
-        BooleanBuilder builder = new BooleanBuilder();
+        if (storeId != null)    b.and(d.store.id.eq(storeId));
+        if (categoryId != null) b.and(d.ingredient.category.id.eq(categoryId));
+        if (status != null && !"all".equals(status)) {
+            b.and(d.status.eq(status));         
+        }
+        if (startDate != null)  b.and(d.requestedAt.goe(startDate));
+        if (endDate != null)    b.and(d.requestedAt.loe(endDate));
 
-        if (storeId != null) {
-            builder.and(disposal.store.id.eq(storeId));
+        // 정렬 옵션 처리
+        List<OrderSpecifier<?>> orders = new ArrayList<>();
+        switch (sortOption) {
+            case "dateAsc":
+                orders.add(d.requestedAt.asc());
+                break;
+            case "dateDesc":
+                orders.add(d.requestedAt.desc());
+                break;
+            default:
+                // 기본: 분류-품목-요청일 내림차순
+                orders.add(d.ingredient.category.name.asc());
+                orders.add(d.ingredient.name.asc());
+                orders.add(d.requestedAt.desc());
         }
-        if (categoryId != null) {
-            builder.and(disposal.ingredient.category.id.eq(categoryId));
-        }
-        if (keyword != null && !keyword.isEmpty()) {
-            builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
-        }
-        if (startDate != null) builder.and(disposal.requestedAt.goe(startDate));
-        if (endDate != null) builder.and(disposal.requestedAt.loe(endDate));
 
-        return queryFactory.selectFrom(disposal)
-                .leftJoin(disposal.store)
-                .leftJoin(disposal.ingredient)
-                .leftJoin(disposal.ingredient.category)
-                .where(builder)
-                .orderBy(disposal.requestedAt.desc())
-                .offset(pageRequest.getOffset())
-                .limit(pageRequest.getPageSize())
-                .fetch();
+        return queryFactory
+            .selectFrom(d)
+            .leftJoin(d.store)
+            .leftJoin(d.ingredient)
+            .leftJoin(d.ingredient.category)
+            .where(b)
+            .orderBy(orders.toArray(new OrderSpecifier[0]))  
+            .offset(pageRequest.getOffset())
+            .limit(pageRequest.getPageSize())
+            .fetch();
     }
 
     //매장 재고 기록 조회

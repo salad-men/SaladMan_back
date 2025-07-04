@@ -4,16 +4,29 @@ os: linux
 files:
   # S3에 저장한 파일들 중 destination(AWS EC2)으로 이동시킬 대상을 지정한다.
   # / 이라고 지정하면 S3에 저장한 전체 파일을 뜻한다.
-  - source: /
+  - source: scripts/
     # EC2의 어떤 경로에 저장할 지 지정한다. 
-    destination: /home/ubuntu/saladman-server
+    destination: /home/ubuntu/saladman-server/scripts
+    # 중복 파일도 덮어쓰기
+    overwrite: yes
+    file_exists_behavior: OVERWRITE
+    
 
 permissions:
-  - object: /
+  - object: /home/ubuntu/saladman-server/scripts/cleanup.sh
     owner: ubuntu
     group: ubuntu
+    mode: 755
+  - object: /home/ubuntu/saladman-server/scripts/deploy_blue_green.sh
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
 
 hooks:
+  BeforeInstall:
+    - location: scripts/cleanup.sh
+      timeout: 60
+      runas: ubuntu
   ApplicationStart:
     - location: scripts/deploy_blue_green.sh
       timeout: 300

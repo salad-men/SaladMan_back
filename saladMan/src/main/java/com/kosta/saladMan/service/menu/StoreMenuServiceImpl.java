@@ -12,15 +12,19 @@ import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.menu.IngredientInfoDto;
+import com.kosta.saladMan.dto.menu.MenuCategoryDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
+import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.menu.MenuCategory;
 import com.kosta.saladMan.entity.menu.StoreMenu;
 import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.MenuRepository;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
+import com.kosta.saladMan.repository.menu.MenuCategoryRepository;
 import com.kosta.saladMan.repository.menu.SMenuDslRepository;
 import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.repository.saleOrder.SalesDslRepository;
@@ -36,6 +40,7 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	private final StoreMenuRepository storeMenuRepository; //StoreMenu
 	private final SMenuDslRepository sMenuDslRepository; //DSL
 	private final IngredientRepository ingredientRepository;
+	private final MenuCategoryRepository menuCategoryRepository;
 
 	@Override
 	public List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort) throws Exception {
@@ -117,16 +122,21 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	public List<IngredientDto> getAllIngredients() throws Exception {
 		return ingredientRepository.findAll()
                 .stream()
-                .map(ingredient -> new IngredientDto(
-//                        ingredient.getId(),
-//                        ingredient.getName()
-                ))
+                .map(Ingredient::toDto)
                 .collect(Collectors.toList());
 	}
 
 	@Override
 	public List<IngredientInfoDto> getIngredientInfo() throws Exception {
 		return sMenuDslRepository.findIngredientsWithCategoryAndHqPrice();
+	}
+
+	@Override
+	public List<MenuCategoryDto> getMenuCategory() throws Exception {
+		return menuCategoryRepository.findAll()
+				.stream()
+		        .map(MenuCategory::toDto)
+		        .collect(Collectors.toList());
 	}
 
 }
