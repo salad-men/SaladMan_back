@@ -12,6 +12,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,5 +145,39 @@ public class S3Uploader {
                     .region(Region.of(region))
                     .build();
         }
+    }
+    
+    /**
+     * File 파일 업로드
+     *
+     * @param file 업로드할 File 객체
+     * @param dirName S3 폴더명
+     * @return CloudFront URL
+     * @throws Exception
+     */
+    public String uploadInputStream(File file, String dirName) throws Exception {
+        if (file == null || !file.exists()) throw new IllegalArgumentException("File이 존재하지 않습니다!");
+        if (file.getName() == null || !file.getName().contains(".")) throw new IllegalArgumentException("파일명이 유효하지 않습니다.");
+
+        String uuid = UUID.randomUUID().toString();
+        String ext = file.getName().substring(file.getName().lastIndexOf('.'));
+        String key = dirName + "/" + uuid + ext;
+
+        // contentType 유추 (간단히 PNG 고정하거나 필요시 로직 추가)
+        String contentType = "image/png";
+
+        try (InputStream is = new FileInputStream(file)) {
+            S3Client s3 = getS3Client();
+
+            PutObjectRequest req = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType)
+                    .build();
+
+            s3.putObject(req, RequestBody.fromInputStream(is, file.length()));
+        }
+
+        return cloudFrontUrl + "/" + key;
     }
 }

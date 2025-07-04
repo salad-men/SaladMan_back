@@ -1,5 +1,6 @@
 package com.kosta.saladMan.service.order;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.controller.common.S3Uploader;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
@@ -52,6 +54,7 @@ import com.kosta.saladMan.repository.order.PuchaseOrderDslRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderItemRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
 import com.kosta.saladMan.repository.order.StoreIngredientDslRepository;
+import com.kosta.saladMan.util.QrCodeUtil;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -100,6 +103,10 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private IngredientCategoryRepository ingredientCategoryRepository;
+	
+	@Autowired
+    private S3Uploader s3Uploader;
+
 	
 	// 재료 리스트
 	@Override
@@ -252,6 +259,26 @@ public class OrderServiceImpl implements OrderService {
 	    } else {
 	        order.setStatus("주문취소");
 	    }
+	    
+	 // 1. QR코드 생성
+	    String link = "http://192.168.0.15:8080/store/stockInspection?id=" + order.getId();
+	    String filePath = "./qrcode-" + order.getId() + ".png";
+	    QrCodeUtil.generateQrCodeImage(link, 300, 300, filePath);
+
+	    // 2. File 객체 생성
+	    File qrFile = new File(filePath);
+
+	    // 3. S3 업로드
+	    String qrUrl = s3Uploader.uploadInputStream(qrFile, "qr-codes");
+
+	    // 4. DB에 URL 저장
+	    order.setQrImg(qrUrl);
+
+	    // 5. 필요 시 임시 파일 삭제
+	    qrFile.delete();
+	    
+	    System.out.println(qrUrl+"qrCode 업로드 완");
+	    
 	}
 
 	// -----------------매장-------------------------
