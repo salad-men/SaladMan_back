@@ -156,22 +156,31 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 		// 1. 이미지 저장
         String imageUrl = null;
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imgUrl = null;
 			try {
-				imgUrl = s3Uploader.upload(imageFile, "menu-img");
+				imageUrl = s3Uploader.upload(imageFile, "menu-img");
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("이미지 저장 실패", e);
 			}
+			System.out.println(imageUrl);
         }
         MenuCategory category = menuCategoryRepository.findById(dto.getCategoryId())
         	    .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
+        
+        String description = dto.getIngredients().stream()
+        .map(i -> {
+            Ingredient ing = ingredientRepository.findById(i.getIngredientId())
+                    .orElseThrow(() -> new IllegalArgumentException("재료 없음"));
+            return ing.getName();  // 이름만 추출
+        })
+        .collect(Collectors.joining(" + "));
         
         // 2. 메뉴 저장
         TotalMenu menu = TotalMenu.builder()
                 .name(dto.getName())
                 .salePrice(dto.getSalePrice())
                 .category(category)
+                .description(description)
                 .img(imageUrl)
                 .build();
         totalMenuRepository.save(menu);
