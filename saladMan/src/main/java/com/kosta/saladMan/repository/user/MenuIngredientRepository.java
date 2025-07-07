@@ -24,5 +24,8 @@ public interface MenuIngredientRepository extends JpaRepository<MenuIngredient, 
     //챗봇 재료 검색 
     @Query("SELECT mi.menu FROM MenuIngredient mi WHERE mi.ingredient.name LIKE %:ingredientName%")
     List<TotalMenu> findMenusByIngredientName(@Param("ingredientName") String ingredientName);
+    
+    @Query("SELECT DISTINCT mi.menu.id FROM MenuIngredient mi WHERE mi.ingredient.id = :ingredientId")
+    List<Integer> findMenuIdsByIngredientId(@Param("ingredientId") Integer ingredientId);
 }
 	

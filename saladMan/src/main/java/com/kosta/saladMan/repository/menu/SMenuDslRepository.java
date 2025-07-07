@@ -174,6 +174,7 @@ public class SMenuDslRepository {
                 totalMenu.name,
                 totalMenu.salePrice,
                 storeMenu.status,
+                storeMenu.isSoldOut,
                 menuCategory.name,
                 menuCategory.id
             ))
