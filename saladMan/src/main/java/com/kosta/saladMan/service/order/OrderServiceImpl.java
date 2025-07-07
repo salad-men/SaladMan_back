@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -22,10 +23,13 @@ import com.kosta.saladMan.controller.common.S3Uploader;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
+import com.kosta.saladMan.dto.inventory.StoreIngredientStockDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDetailDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemHistoryDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
@@ -175,6 +179,56 @@ public class OrderServiceImpl implements OrderService {
 		
 		return itemList;
 	}
+	
+	//발주서 상세
+	@Override
+	public PurchaseOrderDetailDto getPurchaseOrderDetail(Integer purchaseOrderId) throws Exception {
+		// TODO Auto-generated method stub
+        PurchaseOrder order = purchaseOrderRepository.findById(purchaseOrderId)
+                .orElseThrow(() -> new RuntimeException("발주서가 존재하지 않습니다."));
+
+        List<PurchaseOrderItem> items = purchaseOrderItemRepository.findByPurchaseOrderId(purchaseOrderId);
+
+        List<PurchaseOrderItemHistoryDto> itemDtos = items.stream()
+        	    .map(new Function<PurchaseOrderItem, PurchaseOrderItemHistoryDto>() {
+        	        @Override
+        	        public PurchaseOrderItemHistoryDto apply(PurchaseOrderItem item) {
+        	            List<StoreIngredientStockDto> receivedStock = storeIngredientStockRepository
+        	                .findFirstByPurchaseOrderIdAndIngredientId(purchaseOrderId, item.getIngredient().getId())
+        	                .stream()
+        	                .map(stock -> stock.toDto())
+        	                .collect(Collectors.toList());
+
+        	            return PurchaseOrderItemHistoryDto.builder()
+        	                .id(item.getId())
+        	                .ingredientId(item.getIngredient().getId())
+        	                .ingredientName(item.getIngredient().getName())
+        	                .categoryName(item.getIngredient().getCategory().getName())
+        	                .orderedQuantity(item.getOrderedQuantity())
+        	                .receivedQuantity(item.getReceivedQuantity())
+        	                .totalPrice(item.getTotalPrice())
+        	                .approvalStatus(item.getApprovalStatus())
+        	                .rejectionReason(item.getRejectionReason())
+        	                .unit(item.getIngredient().getUnit())
+        	                .receivedStockList(receivedStock)
+        	                .build();
+        	        }
+        	    })
+        	    .collect(Collectors.toList());
+
+        return PurchaseOrderDetailDto.builder()
+                .purchaseOrderId(order.getId())
+                .storeName(order.getStore().getName())
+                .status(order.getStatus())
+                .orderStatus(order.getOrderStatus())
+                .orderDateTime(order.getOrderDateTime())
+                .purType(order.getPurType())
+                .totalPrice(order.getTotalPrice())
+                .requestedBy(order.getRequestedBy())
+                .qrImg(order.getQrImg())
+                .items(itemDtos)
+                .build();
+    }	
 	
 	// 발주 신청 수락
 	@Transactional
@@ -501,8 +555,6 @@ public class OrderServiceImpl implements OrderService {
 		// TODO Auto-generated method stub
 		return storeRepository.findAllStoreNamesId();
 	}
-
-
 
 
 }

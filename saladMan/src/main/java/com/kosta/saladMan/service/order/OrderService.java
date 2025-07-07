@@ -11,6 +11,7 @@ import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDetailDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
@@ -29,8 +30,11 @@ public interface OrderService {
     List<PurchaseOrderItemDto> getOrderDetailByHq(Integer purchaseOrderId) throws Exception;
     //본사 발주 신청 수락
     void updateOrderItems(List<PurchaseOrderItemDto> items) throws Exception;
+    //본사 발주서 출력 상세
+    PurchaseOrderDetailDto getPurchaseOrderDetail(Integer purchaseOrderId) throws Exception;
+
     
-    
+
     //----------------------매장---------------------------- 
    
     //발주 수량 미달 확인

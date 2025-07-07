@@ -17,6 +17,8 @@ import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredientCategory;
+import com.kosta.saladMan.entity.inventory.QStoreIngredientStock;
+import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrderItem;
 import com.kosta.saladMan.entity.store.QStore;
@@ -152,7 +154,18 @@ public class PuchaseOrderDslRepository {
 		        .fetch();
 		
 	}
+	//본사 발주서 상세
+    public List<StoreIngredientStock> findByPurchaseOrderIdAndIngredientId(Integer purchaseOrderId, Integer ingredientId) {
+        QStoreIngredientStock stock = QStoreIngredientStock.storeIngredientStock;
 
+        return jpaQueryFactory
+                .selectFrom(stock)
+                .where(
+                        stock.purchaseOrder.id.eq(purchaseOrderId)
+                                .and(stock.ingredient.id.eq(ingredientId))
+                )
+                .fetch();
+    }
 	
 	// 매장--------------------------
 	// 매장 발주 목록 조회

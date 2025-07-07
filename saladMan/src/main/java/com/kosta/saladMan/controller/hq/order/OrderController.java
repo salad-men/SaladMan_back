@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDetailDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.store.StoreDto;
@@ -114,6 +115,18 @@ public class OrderController {
 	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	    }
 	}
+	
+    @GetMapping("/purchaseOrders/{id}")
+    public ResponseEntity<PurchaseOrderDetailDto> getPurchaseOrderDetail(@PathVariable Integer id) {
+        
+    	try {
+	        PurchaseOrderDetailDto result =orderService.getPurchaseOrderDetail(id);
+			return new ResponseEntity<>(result, HttpStatus.OK);
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	    }
+    }
 	
 	@GetMapping("/ingredientCategories")
 	public ResponseEntity<List<IngredientCategoryDto>> getIngredientCategories(){
