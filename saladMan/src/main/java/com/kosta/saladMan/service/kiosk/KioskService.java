@@ -21,7 +21,7 @@ public interface KioskService {
 	//메뉴 페이징처리
 	Page<KioskMenuDto> getStoreMenuByKiosk(Integer storeId, Integer categoryId, String categoryName, Pageable pageable)	throws Exception;
 	//카테고리 불러오기
-	List<MenuCategoryDto> getAllCategory() throws Exception;
+	List<MenuCategoryDto> getAllMenuCategory() throws Exception;
 	
     PaymentPrepareResponseDto preparePayment(PaymentPrepareDto paymentPrepareDto) throws Exception;
     void confirmPayment(PaymentConfirmDto paymentConfirmDto) throws Exception;

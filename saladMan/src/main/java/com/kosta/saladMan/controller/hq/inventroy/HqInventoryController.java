@@ -4,6 +4,7 @@ package com.kosta.saladMan.controller.hq.inventroy;
 import com.kosta.saladMan.util.PageInfo;
 import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
+import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
@@ -29,70 +30,57 @@ public class HqInventoryController {
 
     private final InventoryService inventoryService;
 
-    @GetMapping("/list2")
-    public ResponseEntity<String> testList() {
-        return ResponseEntity.ok("POST로 정상d 동작합니다!test");
-    }
-    
     @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
-        try {
-            String scope = (String) param.getOrDefault("scope", "all");
-            Object categoryObj = param.get("category");
-            String keyword = (String) param.getOrDefault("name", "");
-            int page = param.get("page") == null ? 1 : (int) param.get("page");
+    	  try {
+    	        String scope = (String) param.getOrDefault("scope", "all");
+    	        Object categoryObj = param.get("category");
+    	        String keyword = (String) param.getOrDefault("keyword", "");
+    	        int page = param.get("page") == null ? 1 : (int) param.get("page");
 
-            Object storeObj = param.get("store");
-            Integer storeId = null;
-            Integer categoryId = null;
+    	        Object storeObj = param.get("store");
+    	        Integer storeId = null;
+    	        Integer categoryId = null;
 
-            // categoryObj → Integer categoryId 변환
-            if (categoryObj != null && !"all".equals(categoryObj.toString().trim())) {
-                try {
-                    categoryId = Integer.valueOf(categoryObj.toString().trim());
-                } catch (NumberFormatException e) {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-            }
+    	        String startDate = (String) param.getOrDefault("startDate", null);
+    	        String endDate = (String) param.getOrDefault("endDate", null);
+    	        String sortOption = (String) param.getOrDefault("sortOption", "default");
 
-            // storeObj → Integer storeId 변환
-            if (storeObj != null && !"all".equals(storeObj.toString().trim())) {
-                try {
-                    storeId = Integer.valueOf(storeObj.toString().trim());
-                } catch (NumberFormatException e) {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-            }
+    	        if (categoryObj != null && !"all".equals(categoryObj.toString().trim())) {
+    	            categoryId = Integer.valueOf(categoryObj.toString().trim());
+    	        }
+    	        if (storeObj != null && !"all".equals(storeObj.toString().trim())) {
+    	            storeId = Integer.valueOf(storeObj.toString().trim());
+    	        }
 
-            PageInfo pageInfo = new PageInfo(page);
-            Map<String, Object> res = new HashMap<>();
+    	        PageInfo pageInfo = new PageInfo(page);
+    	        Map<String, Object> res = new HashMap<>();
 
-            // HQ(본사) 조회
-            if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope) || (storeId != null && storeId == 1)) {
-                List<HqIngredientDto> hqList = inventoryService.getHqInventory(storeId, categoryId, keyword, null, null, pageInfo);
-                res.put("hqInventory", hqList);
-            }
+    	        if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope) || (storeId != null && storeId == 1)) {
+    	            List<HqIngredientDto> hqInventory = inventoryService.getHqInventory(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
+    	            res.put("hqInventory", hqInventory);
+    	        }
 
-            // 매장 재고 조회
-            if ("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
-                List<StoreIngredientDto> storeList;
-                if (storeId == null) {
-                    storeList = inventoryService.getAllStoreInventory(categoryId, keyword, null, null, pageInfo);
-                } else if (storeId != 1) {
-                    storeList = inventoryService.getStoreInventory(storeId, categoryId, keyword, null, null, pageInfo);
-                } else {
-                    storeList = List.of();
-                }
-                res.put("storeInventory", storeList);
-            }
+    	        if ("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
+    	            List<StoreIngredientDto> storeList;
+    	            if (storeId == null) {
+    	                storeList = inventoryService.getAllStoreInventory(categoryId, keyword, startDate, endDate, pageInfo, sortOption);
+    	            } else if (storeId != 1) {
+    	                storeList = inventoryService.getStoreInventory(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
+    	            } else {
+    	                storeList = List.of();
+    	            }
+    	            res.put("storeInventory", storeList);
+    	        }
 
-            res.put("pageInfo", pageInfo);
-            return new ResponseEntity<>(res, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    	        res.put("pageInfo", pageInfo);
+    	        return ResponseEntity.ok(res);
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	    }
     }
+
 
 
     //추가
@@ -117,24 +105,6 @@ public class HqInventoryController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-    
-    
-    //카테고리 조회
-    @GetMapping("/categories")
-    public ResponseEntity<Map<String, Object>> categories() {
-        return ResponseEntity.ok(Map.of(
-            "categories", inventoryService.getAllCategories()
-        ));
-    }
-    
-    // 카테고리 추가
-    @PostMapping("/category-add")
-    public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, Object> body) {
-        String name = (String) body.get("name");
-        Integer id = inventoryService.addCategory(name);
-        return ResponseEntity.ok(Map.of("id", id));
-    }
-
 
     //매장 조회(추후 변경)
     @GetMapping("/stores")
@@ -142,22 +112,6 @@ public class HqInventoryController {
         return ResponseEntity.ok(Map.of(
             "stores", inventoryService.getAllStores()
         ));
-    }
-    
-    //재료 조회
-    @GetMapping("/ingredients")
-    public ResponseEntity<Map<String, Object>> ingredients() {
-        List<IngredientDto> list = inventoryService.getAllIngredients();
-        return ResponseEntity.ok(Map.of("ingredients", list));
-    }
- // 재료 추가
-    @PostMapping("/ingredient-add")
-    public ResponseEntity<Map<String, Object>> addIngredient(@RequestBody Map<String, Object> body) {
-        String name = (String) body.get("name");
-        Integer categoryId = (Integer) body.get("categoryId");
-        String unit = (String) body.get("unit");
-        Integer id = inventoryService.addIngredient(name, categoryId, unit);
-        return ResponseEntity.ok(Map.of("id", id));
     }
 
     //재료 설정
@@ -185,7 +139,7 @@ public class HqInventoryController {
         return ResponseEntity.ok(res);
     }
 
-    // 여러 건 수정(배열, id 必)
+    // 여러 건 수정
     @PostMapping("/settings-update")
     public ResponseEntity<Void> updateSettings(@RequestBody List<StoreIngredientSettingDto> dtos) {
         for (StoreIngredientSettingDto dto : dtos) {
@@ -201,6 +155,84 @@ public class HqInventoryController {
     public ResponseEntity<StoreIngredientSettingDto> addSetting(@RequestBody StoreIngredientSettingDto dto) {
         StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
         return ResponseEntity.ok(saved);
+    }
+    
+    
+    // 카테고리 조회
+    @GetMapping("/categories")
+    public ResponseEntity<Map<String, Object>> getCategories() {
+        List<IngredientCategoryDto> cats = inventoryService.getAllCategories();
+        return ResponseEntity.ok(Map.of("categories", cats));
+    }
+
+    // 카테고리 추가
+    @PostMapping("/category-add")
+    public ResponseEntity<Map<String, Object>> addCategory(@RequestBody Map<String, String> body) {
+        String name = body.get("name");
+        IngredientCategoryDto dto = inventoryService.addCategory(name);
+        return ResponseEntity.ok(Map.of(
+            "id",   dto.getId(),
+            "name", dto.getName()
+        ));
+    }
+
+    // 카테고리 수정
+    @PostMapping("/category-update")
+    public ResponseEntity<Void> updateCategory(@RequestBody Map<String, Object> body) {
+        Integer id   = (Integer) body.get("id");
+        String  name = (String)  body.get("name");
+        inventoryService.updateCategory(id, name);
+        return ResponseEntity.ok().build();
+    }
+    
+    // 카테고리 삭제
+    @PostMapping("/category-delete")
+    public ResponseEntity<Void> deleteCategory(@RequestBody Map<String, Object> body) {
+        Integer id = (Integer) body.get("id");
+        inventoryService.deleteCategory(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // 재료 조회
+    @GetMapping("/ingredients")
+    public ResponseEntity<Map<String, Object>> getIngredients() {
+        List<IngredientDto> list = inventoryService.getAllIngredients();
+        return ResponseEntity.ok(Map.of("ingredients", list));
+    }
+
+    // 재료 추가
+    @PostMapping("/ingredient-add")
+    public ResponseEntity<Map<String, Object>> addIngredient(@RequestBody Map<String, Object> body) {
+        String name       = (String)  body.get("name");
+        String unit       = (String)  body.get("unit");
+        Integer categoryId= (Integer) body.get("categoryId");
+        IngredientDto dto = inventoryService.addIngredient(name, categoryId, unit);
+        return ResponseEntity.ok(Map.of(
+            "id",         dto.getId(),
+            "name",       dto.getName(),
+            "unit",       dto.getUnit(),
+            "categoryId", dto.getCategoryId()
+        ));
+    }
+
+    // 재료 수정
+    @PostMapping("/ingredient-update")
+    public ResponseEntity<Void> updateIngredient(@RequestBody Map<String, Object> body) {
+        Integer id       = (Integer) body.get("id");
+        String  name     = (String)  body.get("name");
+        String  unit     = (String)  body.get("unit");
+        inventoryService.updateIngredient(id, name, unit);
+        return ResponseEntity.ok().build();
+    }
+    
+
+
+    //재료 삭제
+    @PostMapping("/ingredient-delete")
+    public ResponseEntity<Void> deleteIngredient(@RequestBody Map<String, Object> body) {
+        Integer id = (Integer) body.get("id");
+        inventoryService.deleteIngredient(id);
+        return ResponseEntity.ok().build();
     }
 
     

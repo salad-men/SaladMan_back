@@ -106,6 +106,7 @@ public class SecurityConfig {
 
 	    http
 	        .antMatcher("/kiosk/**")
+	        .cors().and()
 	        .csrf().disable()
 	        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 	        .and()

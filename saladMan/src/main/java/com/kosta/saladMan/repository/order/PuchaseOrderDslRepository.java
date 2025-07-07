@@ -156,7 +156,7 @@ public class PuchaseOrderDslRepository {
 	
 	// 매장--------------------------
 	// 매장 발주 목록 조회
-	public Page<PurchaseOrderDto> findPagedOrders(Integer id, String orderType, String productName, LocalDate startDate,
+	public Page<PurchaseOrderDto> findPagedOrders(Integer id, String orderType, String productName ,String status, LocalDate startDate,
 			LocalDate endDate, Pageable pageable) {
 		QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
@@ -181,6 +181,9 @@ public class PuchaseOrderDslRepository {
 		if (productName != null && !productName.isBlank()) {
 			builder.and(po.id.in(JPAExpressions.select(poi.purchaseOrder.id).from(poi).join(poi.ingredient, i)
 					.where(i.name.containsIgnoreCase(productName))));
+		}
+		if(status != null && !status.isBlank()) {
+		    builder.and(po.status.eq(status));
 		}
 
 		JPQLQuery<Long> receivedCount = JPAExpressions.select(poi.count()).from(poi)

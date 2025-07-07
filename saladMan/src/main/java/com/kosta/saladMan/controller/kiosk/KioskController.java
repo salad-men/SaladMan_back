@@ -55,7 +55,7 @@ public class KioskController {
 	@GetMapping("/menuCategories")
 	public ResponseEntity<List<MenuCategoryDto>> getMenus() {
 		try {
-			List<MenuCategoryDto> result = kioskService.getAllCategory();
+			List<MenuCategoryDto> result = kioskService.getAllMenuCategory();
 			return new ResponseEntity<>(result, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();

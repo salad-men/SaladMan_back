@@ -84,6 +84,10 @@ dependencies {
 	
 	//chat(websocket,stomp)
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	
+	//qrcode
+	implementation 'com.google.zxing:core:3.5.2'
+	implementation 'com.google.zxing:javase:3.5.2'
 }
 
 def querydslDir = "$buildDir/generated/querydsl"

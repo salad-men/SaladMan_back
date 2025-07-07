@@ -1,5 +1,6 @@
 package com.kosta.saladMan.service.order;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,15 +18,19 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.controller.common.S3Uploader;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
+import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
@@ -36,6 +41,7 @@ import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
+import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
@@ -48,6 +54,7 @@ import com.kosta.saladMan.repository.order.PuchaseOrderDslRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderItemRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
 import com.kosta.saladMan.repository.order.StoreIngredientDslRepository;
+import com.kosta.saladMan.util.QrCodeUtil;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -93,7 +100,14 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private FixedOrderItemRepository fixedOrderItemRepository;
+	
+	@Autowired
+	private IngredientCategoryRepository ingredientCategoryRepository;
+	
+	@Autowired
+    private S3Uploader s3Uploader;
 
+	
 	// 재료 리스트
 	@Override
 	public Page<IngredientItemDto> getIngredientList(Boolean available, String category, String keyword, int page,
@@ -245,6 +259,26 @@ public class OrderServiceImpl implements OrderService {
 	    } else {
 	        order.setStatus("주문취소");
 	    }
+	    
+	 // 1. QR코드 생성
+	    String link = "http://192.168.0.15:8080/store/stockInspection?id=" + order.getId();
+	    String filePath = "./qrcode-" + order.getId() + ".png";
+	    QrCodeUtil.generateQrCodeImage(link, 300, 300, filePath);
+
+	    // 2. File 객체 생성
+	    File qrFile = new File(filePath);
+
+	    // 3. S3 업로드
+	    String qrUrl = s3Uploader.uploadInputStream(qrFile, "qr-codes");
+
+	    // 4. DB에 URL 저장
+	    order.setQrImg(qrUrl);
+
+	    // 5. 필요 시 임시 파일 삭제
+	    qrFile.delete();
+	    
+	    System.out.println(qrUrl+"qrCode 업로드 완");
+	    
 	}
 
 	// -----------------매장-------------------------
@@ -296,12 +330,12 @@ public class OrderServiceImpl implements OrderService {
 
 	// 발주 목록
 	@Override
-	public Page<PurchaseOrderDto> getPagedOrderList(Integer id, String orderType, String productName,
+	public Page<PurchaseOrderDto> getPagedOrderList(Integer id, String orderType, String productName, String status,
 			LocalDate startDate, LocalDate endDate, int page, int size) throws Exception {
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("orderDateTime").descending());
 
-		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, startDate, endDate, pageable);
+		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, status, startDate, endDate, pageable);
 	}
 	
 	
@@ -448,6 +482,24 @@ public class OrderServiceImpl implements OrderService {
 		Store store = storeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Store not found: " + id));
         store.setAutoOrderEnabled(enable);		
+	}
+
+	//공통---------------------------------
+	
+	//재료 카테고리 호출
+	@Override
+	public List<IngredientCategoryDto> getAllIngredientCategory() throws Exception {
+		
+		List<IngredientCategoryDto> categoryDto = ingredientCategoryRepository.findAll().stream().map(IngredientCategory::toDto)
+				.collect(Collectors.toList());
+		return categoryDto;
+	}
+	
+	//매장 목록 오직 이름만
+	@Override
+	public List<StoreDto> getStoreName() throws Exception {
+		// TODO Auto-generated method stub
+		return storeRepository.findAllStoreNamesId();
 	}
 
 

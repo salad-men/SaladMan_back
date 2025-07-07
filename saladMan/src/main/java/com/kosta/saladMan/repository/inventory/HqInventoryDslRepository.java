@@ -13,6 +13,7 @@ import com.kosta.saladMan.entity.inventory.QInventoryRecord;
 import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
 import com.kosta.saladMan.entity.store.QStore;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Repository;
 import javax.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -33,8 +35,11 @@ public class HqInventoryDslRepository {
 	private JPAQueryFactory queryFactory;
 
 	// 재고 조회
+	// HqInventoryDslRepository.java
+
 	public List<HqIngredientDto> findHqInventoryByFilters(
-	        Integer categoryId, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
+	        Integer categoryId, String keyword, LocalDate startDate, LocalDate endDate,
+	        PageRequest pageRequest, String sortOption) {
 
 	    QHqIngredient q = QHqIngredient.hqIngredient;
 	    QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
@@ -42,16 +47,35 @@ public class HqInventoryDslRepository {
 
 	    BooleanBuilder builder = new BooleanBuilder();
 
-	    if (categoryId != null) {
-	        builder.and(q.category.id.eq(categoryId));
-	    }
-	    if (keyword != null && !keyword.isBlank()) {
-	        builder.and(q.ingredient.name.containsIgnoreCase(keyword));
-	    }
+	    if (categoryId != null) builder.and(q.category.id.eq(categoryId));
+	    if (keyword != null && !keyword.isBlank()) builder.and(q.ingredient.name.containsIgnoreCase(keyword));
 	    if (startDate != null) builder.and(q.expiredDate.goe(startDate));
 	    if (endDate != null) builder.and(q.expiredDate.loe(endDate));
-
 	    builder.and(q.quantity.gt(0));
+
+	    List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+	    if ("receivedAsc".equals(sortOption)) {
+	        orderSpecifiers.add(q.receivedDate.asc().nullsLast());
+	        orderSpecifiers.add(q.category.name.asc());
+	        orderSpecifiers.add(q.ingredient.name.asc());
+	    } else if ("receivedDesc".equals(sortOption)) {
+	        orderSpecifiers.add(q.receivedDate.desc().nullsLast());
+	        orderSpecifiers.add(q.category.name.asc());
+	        orderSpecifiers.add(q.ingredient.name.asc());
+	    } else if ("expiryAsc".equals(sortOption)) {
+	        orderSpecifiers.add(q.expiredDate.asc().nullsLast());
+	        orderSpecifiers.add(q.category.name.asc());
+	        orderSpecifiers.add(q.ingredient.name.asc());
+	    } else if ("expiryDesc".equals(sortOption)) {
+	        orderSpecifiers.add(q.expiredDate.desc().nullsLast());
+	        orderSpecifiers.add(q.category.name.asc());
+	        orderSpecifiers.add(q.ingredient.name.asc());
+	    } else {
+	        // 기본 분류-재료-유통기한 오름차순
+	        orderSpecifiers.add(q.category.name.asc());
+	        orderSpecifiers.add(q.ingredient.name.asc());
+	        orderSpecifiers.add(q.expiredDate.asc().nullsLast());
+	    }
 
 	    return queryFactory
 	        .select(Projections.bean(
@@ -77,11 +101,12 @@ public class HqInventoryDslRepository {
 	            .and(s.ingredient.eq(q.ingredient))
 	        )
 	        .where(builder)
-	        .orderBy(q.id.desc())
+	        .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0])) // ← 이거!
 	        .offset(pageRequest.getOffset())
 	        .limit(pageRequest.getPageSize())
 	        .fetch();
 	}
+
 
 	// 재고 개수 조회
 	public long countHqInventoryByFilters(Integer categoryId, String keyword, LocalDate startDate, LocalDate endDate) {
@@ -119,67 +144,64 @@ public class HqInventoryDslRepository {
 		clause.execute();
 	}
 
-	//폐기 개수 조회
-    public int countHqDisposals(Integer storeId, Integer categoryId, String keyword, LocalDate startDate, LocalDate endDate) {
-        QDisposal disposal = QDisposal.disposal;
+	// 폐기 개수 조회
+    public int countHqDisposals(Integer storeId, Integer categoryId, String status,
+                                LocalDate startDate, LocalDate endDate, String keyword) {
+        QDisposal d = QDisposal.disposal;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (storeId != null) {
-            builder.and(disposal.store.id.eq(storeId));
-        }
-        if (categoryId != null) {
-            builder.and(disposal.ingredient.category.id.eq(categoryId));
-        }
-        if (keyword != null && !keyword.isEmpty()) {
-            builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
-        }
-        if (startDate != null) {
-            builder.and(disposal.requestedAt.goe(startDate));
-        }
-        if (endDate != null) {
-            builder.and(disposal.requestedAt.loe(endDate));
+        if (storeId != null) builder.and(d.store.id.eq(storeId));
+        if (categoryId != null) builder.and(d.ingredient.category.id.eq(categoryId));
+        if (status != null && !"all".equals(status)) builder.and(d.status.eq(status));
+        if (startDate != null) builder.and(d.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(d.requestedAt.loe(endDate));
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(d.ingredient.name.containsIgnoreCase(keyword));
         }
 
-        Long count = queryFactory
-                .select(disposal.count())
-                .from(disposal)
-                .where(builder)
-                .fetchOne();
-
-        return count != null ? count.intValue() : 0;
+        Long cnt = queryFactory.select(d.count()).from(d).where(builder).fetchOne();
+        return cnt == null ? 0 : cnt.intValue();
     }
-    
-    //폐기조회
-    public List<Disposal> selectHqDisposalListByFiltersPaging(
-            Integer storeId, Integer categoryId, String keyword, LocalDate startDate, LocalDate endDate, PageRequest pageRequest) {
 
-        QDisposal disposal = QDisposal.disposal;
+    // 폐기목록 조회 
+    public List<Disposal> selectHqDisposalListByFiltersPaging(
+            Integer storeId, Integer categoryId, String status,
+            LocalDate startDate, LocalDate endDate,
+            int offset, int limit,
+            String sortOption, String keyword) {
+        
+        QDisposal d = QDisposal.disposal;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (storeId != null) {
-            builder.and(disposal.store.id.eq(storeId));
-        }
-        if (categoryId != null) {
-            builder.and(disposal.ingredient.category.id.eq(categoryId));
-        }
-        if (keyword != null && !keyword.isEmpty()) {
-            builder.and(disposal.ingredient.name.containsIgnoreCase(keyword));
-        }
-        if (startDate != null) {
-            builder.and(disposal.requestedAt.goe(startDate));
-        }
-        if (endDate != null) {
-            builder.and(disposal.requestedAt.loe(endDate));
+        if (storeId != null) builder.and(d.store.id.eq(storeId));
+        if (categoryId != null) builder.and(d.ingredient.category.id.eq(categoryId));
+        if (status != null && !"all".equals(status)) builder.and(d.status.eq(status));
+        if (startDate != null) builder.and(d.requestedAt.goe(startDate));
+        if (endDate != null) builder.and(d.requestedAt.loe(endDate));
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(d.ingredient.name.containsIgnoreCase(keyword));
         }
 
-        return queryFactory.selectFrom(disposal)
-                .leftJoin(disposal.store)
-                .leftJoin(disposal.ingredient)
-                .leftJoin(disposal.ingredient.category)
+        List<OrderSpecifier<?>> orders = new ArrayList<>();
+        switch (sortOption) {
+            case "dateAsc":
+                orders.add(d.requestedAt.asc());
+                break;
+            case "dateDesc":
+                orders.add(d.requestedAt.desc());
+                break;
+            default:
+                orders.add(d.ingredient.category.name.asc());
+                orders.add(d.ingredient.name.asc());
+                orders.add(d.requestedAt.desc());
+        }
+
+        return queryFactory
+                .selectFrom(d)
                 .where(builder)
-                .orderBy(disposal.requestedAt.desc())
-                .offset(pageRequest.getOffset())
-                .limit(pageRequest.getPageSize())
+                .orderBy(orders.toArray(new OrderSpecifier[0]))
+                .offset(offset)
+                .limit(limit)
                 .fetch();
     }
 

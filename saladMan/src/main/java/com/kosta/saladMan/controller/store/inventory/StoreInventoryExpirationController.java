@@ -26,20 +26,26 @@ public class StoreInventoryExpirationController {
             if (storeId == null) {
                 return ResponseEntity.badRequest().build();
             }
+
             Integer categoryId = null;
             if (params.get("category") != null && !"all".equals(params.get("category").toString())) {
                 categoryId = Integer.valueOf(params.get("category").toString());
             }
 
             String keyword = (String) params.getOrDefault("keyword", "");
-            String startDate = (String) params.getOrDefault("startDate", "");
-            String endDate = (String) params.getOrDefault("endDate", "");
+
+            String startDate = (String) params.getOrDefault("startDate", null);
+            String endDate = (String) params.getOrDefault("endDate", null);
+            String sortOption = (String) params.getOrDefault("sortOption", "default");
+
+
             int page = params.get("page") == null ? 1 : (int) params.get("page");
 
             PageInfo pageInfo = new PageInfo(page);
 
             List<?> storeInventory = inventoryService.getStoreInventory(
-                storeId, categoryId, keyword, startDate, endDate, pageInfo);
+                    storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption
+                );
 
             return ResponseEntity.ok(Map.of(
                 "storeInventory", storeInventory,
@@ -50,6 +56,7 @@ public class StoreInventoryExpirationController {
             return ResponseEntity.badRequest().build();
         }
     }
+
 
     @PostMapping("/disposal-request")
     public ResponseEntity<Void> disposalRequest(@RequestBody List<DisposalDto> disposalList) {

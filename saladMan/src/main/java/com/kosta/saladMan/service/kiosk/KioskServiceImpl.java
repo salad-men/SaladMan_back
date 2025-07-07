@@ -99,7 +99,7 @@ public class KioskServiceImpl implements KioskService {
 	}
 
 	@Override
-	public List<MenuCategoryDto> getAllCategory() {
+	public List<MenuCategoryDto> getAllMenuCategory() {
 		List<MenuCategoryDto> categoryDto = menuCategoryRepository.findAll().stream().map(MenuCategory::toDto)
 				.collect(Collectors.toList());
 
@@ -231,8 +231,7 @@ public class KioskServiceImpl implements KioskService {
 		} catch (OutOfStockException ex) {
 			ex.printStackTrace();
 			orderCancellationService.markOrderCanceled(saleOrder.getId());
-		    throw ex; // 이거 다시 살리기
-
+			throw ex; // 다시 예외 던지기
 		}
 
 	}
