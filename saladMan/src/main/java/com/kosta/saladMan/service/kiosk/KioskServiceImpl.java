@@ -194,7 +194,7 @@ public class KioskServiceImpl implements KioskService {
 		payment.setStatus("PAID");
 		payment.setApprovedAt(approvedAt.toLocalDateTime());
 
-		saleOrder.setStatus("PAID");
+		saleOrder.setStatus("결제완료");
 
 		// --- [5] 재고 차감
 		List<SaleOrderItem> saleItems = saleOrderItemRepository.findBySaleOrder(saleOrder);
