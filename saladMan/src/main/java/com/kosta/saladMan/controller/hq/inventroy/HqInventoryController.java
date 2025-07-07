@@ -234,7 +234,14 @@ public class HqInventoryController {
         inventoryService.deleteIngredient(id);
         return ResponseEntity.ok().build();
     }
-
+    
+ // 재료 설정 삭제
+    @PostMapping("/settings-delete")
+    public ResponseEntity<Void> deleteSetting(@RequestBody Map<String, Integer> body) {
+        Integer id = body.get("id");
+        inventoryService.deleteSetting(id);
+        return ResponseEntity.ok().build();
+    }
     
     
 }

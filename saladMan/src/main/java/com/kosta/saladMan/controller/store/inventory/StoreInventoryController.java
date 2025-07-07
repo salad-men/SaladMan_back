@@ -145,5 +145,17 @@ public class StoreInventoryController {
         StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
         return ResponseEntity.ok(saved);
     }
+    
+    @PostMapping("/add")
+    public ResponseEntity<Void> add(@RequestBody StoreIngredientDto dto) {
+        try {
+            inventoryService.addStoreIngredient(dto); 
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
 }

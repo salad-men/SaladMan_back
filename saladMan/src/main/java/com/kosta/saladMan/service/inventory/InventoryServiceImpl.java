@@ -372,7 +372,7 @@ public class InventoryServiceImpl implements InventoryService {
                         .status("완료")
                         .storeIngredientId(hqIngredient.getId()) 
                         .requestedAt(LocalDate.now())
-                        .memo("유통기한 초과로 폐기 처리(즉시완료)")
+                        .memo(item.getMemo() != null && !item.getMemo().isBlank() ? item.getMemo() : "유통기한 초과로 폐기 처리(즉시완료)")
                         .build();
                 disposalRepository.save(disposal);
 
@@ -408,9 +408,11 @@ public class InventoryServiceImpl implements InventoryService {
                         .status("대기")
                         .storeIngredientId(storeIngredient.getId()) 
                         .requestedAt(LocalDate.now())
-                        .memo("유통기한 초과로 폐기 신청")
+                        .memo(item.getMemo() != null && !item.getMemo().isBlank() ? item.getMemo() : "유통기한 초과로 폐기 신청") 
                         .build();
                 disposalRepository.save(disposal);
+                
+                System.out.println(item.getMemo());
             }
         }
     }
@@ -686,5 +688,48 @@ public class InventoryServiceImpl implements InventoryService {
             .orElseThrow(() -> new IllegalArgumentException("재료 없음: " + ingredientId));
         ingredientRepository.delete(ing);
     }
+    
+    //재료설정 삭제
+    @Override
+    @Transactional
+    public void deleteSetting(Integer id) {
+        StoreIngredientSetting setting = storeIngredientSettingRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("설정 ID 없음: " + id));
+        storeIngredientSettingRepository.delete(setting);
+    }
+    
+    // 매장 재고 추가
+    @Override
+    public void addStoreIngredient(StoreIngredientDto dto) {
+        // 분류(카테고리) 조회
+        IngredientCategory category = categoryRepository.findById(dto.getCategoryId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 ID: " + dto.getCategoryId()));
+        // 재료 조회
+        Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료 ID: " + dto.getIngredientId()));
+        // 매장 조회
+        Store store = storeRepository.findById(dto.getStoreId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + dto.getStoreId()));
+
+        StoreIngredient entity = dto.toEntity();
+        entity.setStore(store);
+        entity.setIngredient(ingredient);
+        entity.setCategory(category);
+
+        // 재고 저장
+        storeIngredientRepository.save(entity);
+
+        // 입고기록 추가
+        InventoryRecord record = InventoryRecord.builder()
+            .ingredient(ingredient)
+            .store(store)
+            .quantity(dto.getQuantity())
+            .changeType("입고")
+            .memo("매장 신규 입고")
+            .date(LocalDateTime.now())
+            .build();
+        recordRepository.save(record);
+    }
+
     
 }

@@ -14,10 +14,10 @@ import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.util.PageInfo;
 
 public interface StoreMenuService {
-	List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort) throws Exception;
+	List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort,Integer categoryId) throws Exception;
 	List<StoreMenuStatusDto> getMenuStatus(Integer storeId) throws Exception;
 	boolean toggleMenuStatus(Integer storeId, Integer menuId) throws Exception;
-	List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo) throws Exception;
+	List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo, Integer categoryId) throws Exception;
 	List<IngredientDto> getAllIngredients() throws Exception;
 	List<IngredientInfoDto> getIngredientInfo() throws Exception;
 	List<MenuCategoryDto> getMenuCategory() throws Exception;
