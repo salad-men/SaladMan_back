@@ -37,4 +37,7 @@ public class StoreMenu {
     private TotalMenu menu;
 
     private Boolean status;
+    
+    private Boolean isSoldOut;
+    
 }
