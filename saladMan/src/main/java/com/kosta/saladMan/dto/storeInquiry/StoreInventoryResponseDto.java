@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FindStoreDto {
-	private Integer id;
-	private String name;
-    private String location;
+public class StoreInventoryResponseDto {
+	private String storeName;
+    private String ingredientName;
+    private String unit;
+    private Integer quantity;
     private Double latitude;
     private Double longitude;
 }

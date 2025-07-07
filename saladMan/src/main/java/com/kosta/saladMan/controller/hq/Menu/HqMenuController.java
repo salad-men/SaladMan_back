@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,17 +30,20 @@ public class HqMenuController {
 	private final StoreMenuService menuService;
 	private final ObjectMapper objectMapper;
 	
-//	@PostMapping("/registerMenu")
-//    public ResponseEntity<?> registerMenu(
-//            @RequestParam("menu") String menuJson,
-//            @RequestParam(value = "image", required = false) MultipartFile imageFile) throws Exception {
-//
-//        MenuRegisterDto dto = objectMapper.readValue(menuJson, MenuRegisterDto.class);
-//
-//        Long id = menuService.saveMenu(dto, imageFile);
-//
-//        return ResponseEntity.ok("등록 완료, 메뉴 ID: " + id);
-//    }
+	@PostMapping("/registerMenu")
+    public ResponseEntity<?> registerMenu(
+            @RequestPart("menu") String menuJson,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
+    ) {
+        try {
+            MenuRegisterDto dto = objectMapper.readValue(menuJson, MenuRegisterDto.class);
+            menuService.registerMenu(dto, imageFile);
+            return ResponseEntity.ok("메뉴 등록 성공");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("메뉴 등록 실패");
+        }
+    }
 	
 	@GetMapping("/ingredientInfo")
 	public ResponseEntity<List<IngredientInfoDto>> getIngredients() {
