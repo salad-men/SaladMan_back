@@ -30,30 +30,19 @@ public class ComplaintServiceImpl implements ComplaintService {
     private final AlarmMsgRepository alarmMsgRepository;
 
     @Override
-    public List<ComplaintDto> searchComplaintList(PageInfo pageInfo, Integer storeId, String status, String keyword){
-        int pageSize = 10;
+    public List<ComplaintDto> searchComplaintList(PageInfo pageInfo, Integer storeId, String status, String keyword) {
         int curPage = pageInfo.getCurPage() == null || pageInfo.getCurPage() < 1 ? 1 : pageInfo.getCurPage();
-
         PageRequest pageRequest = PageRequest.of(curPage - 1, 10);
-
 
         Boolean isRead = null;
         Boolean isRelay = null;
 
-        if (status != null) {
-            switch (status) {
-                case "미열람":
-                    isRead = false;
-                    isRelay = false;
-                    break;
-                case "열람":
-                    isRead = true;
-                    isRelay = false;
-                    break;
-                case "전달완료":
-                    isRelay = true;
-                    break;
-            }
+        // storeId가 있으면 '매장 요청' → 전달된(isRelay=1)만 보여주기
+        if (storeId != null) {
+            isRelay = true;
+        } else {
+            // 본사 요청 → 전달 안 된(isRelay=0)만 보여주기
+            isRelay = false;
         }
 
         List<Complaint> complaintList = complaintDslRepository.findComplaintsByFilters(pageRequest, storeId, isRead, isRelay, keyword);
@@ -69,9 +58,15 @@ public class ComplaintServiceImpl implements ComplaintService {
         pageInfo.setEndPage(endPage);
 
         return complaintList.stream()
-                .map(Complaint::toDto)
+                .map(c -> {
+                    // 매장에선 isRead 항상 false(미열람)로 내려줌
+                    ComplaintDto dto = c.toDto();
+                    if (storeId != null) dto.setIsRead(false);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public ComplaintDto detailComplaint(Integer id) throws Exception {
@@ -92,9 +87,10 @@ public class ComplaintServiceImpl implements ComplaintService {
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new Exception("불편사항 없음"));
 
-        // 본사가 매장에게 전달: is_relay = 1 으로 변경
-        complaint.setIsRelay(true);
+        complaint.setIsRelay(true);  // 전달 완료
+        complaint.setIsRead(true);   // 본사가 읽음 표시
         complaintRepository.save(complaint);
+        
         
         AlarmMsg alarmMsg = alarmMsgRepository.findById(1)
                 .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
