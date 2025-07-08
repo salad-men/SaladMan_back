@@ -508,7 +508,7 @@ public class OrderServiceImpl implements OrderService {
 	        boolean allAvailable = true;
 
 	        for (MenuIngredient mi : ingredients) {
-	            StoreIngredient si = storeIngredientRepository.findByStoreIdAndIngredientIds(storeWithId.getId(), mi.getIngredient().getId());
+	            StoreIngredient si = storeIngredientRepository.findByStoreIdAndIngredientId(storeWithId.getId(), mi.getIngredient().getId());
 
 	            if (si == null || si.getQuantity() == null || si.getQuantity() < mi.getQuantity()) {
 	                allAvailable = false;
