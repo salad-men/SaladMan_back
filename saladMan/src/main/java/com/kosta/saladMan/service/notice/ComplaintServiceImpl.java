@@ -91,20 +91,22 @@ public class ComplaintServiceImpl implements ComplaintService {
     public void forwardComplaint(Integer id) throws Exception {
         Complaint complaint = complaintRepository.findById(id)
                 .orElseThrow(() -> new Exception("불편사항 없음"));
-
-        // 본사가 매장에게 전달: is_relay = 1 으로 변경
-        complaint.setIsRelay(true);
-        complaintRepository.save(complaint);
         
-        AlarmMsg alarmMsg = alarmMsgRepository.findById(1)
-                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
-        
-        AlarmDto alarmDto = new AlarmDto();
-        alarmDto.setStoreId(complaint.getStore().getId());
-        alarmDto.setTitle(alarmMsg.getTitle());
-        alarmDto.setContent(alarmMsg.getContent());
-        fcmMessageService.sendAlarm(alarmDto);
-        System.out.println("Complaint-Alarm :"+alarmDto);
+        if (!complaint.getIsRelay()) {
+	        // 본사가 매장에게 전달: is_relay = 1 으로 변경
+	        complaint.setIsRelay(true);
+	        complaintRepository.save(complaint);
+	        
+	        AlarmMsg alarmMsg = alarmMsgRepository.findById(1)
+	                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+	        
+	        AlarmDto alarmDto = new AlarmDto();
+	        alarmDto.setStoreId(complaint.getStore().getId());
+	        alarmDto.setTitle(alarmMsg.getTitle());
+	        alarmDto.setContent(alarmMsg.getContent());
+	        fcmMessageService.sendAlarm(alarmDto);
+	        System.out.println("Complaint-Alarm :"+alarmDto);
+        }
     }
     
     @Override

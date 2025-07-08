@@ -1,9 +1,16 @@
 package com.kosta.saladMan.service.notice;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
+import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.notice.NoticeDto;
+import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.notice.Notice;
+import com.kosta.saladMan.entity.store.Store;
+import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.alarm.AlarmMsgRepository;
 import com.kosta.saladMan.repository.notice.NoticeRepository;
+import com.kosta.saladMan.service.alarm.FcmMessageService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -21,6 +28,10 @@ public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final S3Uploader s3Uploader;
+    //fcm알람
+    private final AlarmMsgRepository alarmMsgRepository;
+    private final FcmMessageService fcmMessageService;
+    private final StoreRepository storeRepository;
 
     @Override
     @Transactional
@@ -36,6 +47,22 @@ public class NoticeServiceImpl implements NoticeService {
         }
         Notice entity = noticeDto.toEntity();
         noticeRepository.save(entity);
+        
+        //alarm
+        AlarmMsg alarmMsg = alarmMsgRepository.findById(4)
+                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+        
+        List<Store> storeList = storeRepository.findAll();
+        
+        for (Store store : storeList) {
+            AlarmDto alarmDto = new AlarmDto();
+            alarmDto.setStoreId(store.getId());
+            alarmDto.setTitle(alarmMsg.getTitle());
+            alarmDto.setContent(alarmMsg.getContent());
+            
+            fcmMessageService.sendAlarm(alarmDto);
+        }
+        //
         return entity.getId();
     }
 

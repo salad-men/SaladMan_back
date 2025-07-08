@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderItem;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderTemplate;
@@ -20,10 +22,12 @@ import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.alarm.AlarmMsgRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
 import com.kosta.saladMan.repository.order.FixedOrderItemRepository;
 import com.kosta.saladMan.repository.order.FixedOrderTemplateRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
+import com.kosta.saladMan.service.alarm.FcmMessageService;
 
 @Service
 public class AutoOrderScheduler {
@@ -40,6 +44,12 @@ public class AutoOrderScheduler {
 
 	@Autowired
 	private OrderService orderService;
+	
+	//fcm알람
+	@Autowired
+	private AlarmMsgRepository alarmMsgRepository;
+	@Autowired
+	private FcmMessageService fcmMessageService;
 
 	// 매일 오후 5시
 	@Scheduled(cron = "0 0 17 * * *")
@@ -91,6 +101,17 @@ public class AutoOrderScheduler {
 			    } catch (Exception e) {
 			        System.err.println("[" + store.getName() + "] 품목 처리 실패 - 재료 ID: "
 			            + fixedItem.getIngredient().getId() + ", 사유: " + e.getMessage());
+			        
+			        AlarmMsg alarmMsg = alarmMsgRepository.findById(3)
+			                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+			        
+			        AlarmDto alarmDto = new AlarmDto();
+			        alarmDto.setStoreId(store.getId());
+			        alarmDto.setTitle(alarmMsg.getTitle());
+			        alarmDto.setContent(alarmMsg.getContent());
+			        fcmMessageService.sendAlarm(alarmDto);
+			        System.out.println("AutoOrderFAIL-Alarm :"+alarmDto);
+			        
 			        return null;
 			    }
 			}).filter(Objects::nonNull)
@@ -104,6 +125,17 @@ public class AutoOrderScheduler {
 			try {
 				orderService.createOrder(store, orderItemList, "자동발주");
 				System.out.println(store.getName() + " 자동발주 생성 완료");
+				
+				AlarmMsg alarmMsg = alarmMsgRepository.findById(2)
+		                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+		        
+		        AlarmDto alarmDto = new AlarmDto();
+		        alarmDto.setStoreId(store.getId());
+		        alarmDto.setTitle(alarmMsg.getTitle());
+		        alarmDto.setContent(alarmMsg.getContent());
+		        fcmMessageService.sendAlarm(alarmDto);
+		        System.out.println("AutoOrder-Alarm :"+alarmDto);
+		        
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.err.println(store.getName() + " 자동발주 실패: " + e.getMessage());
