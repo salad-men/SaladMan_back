@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
+import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.menu.IngredientInfoDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
@@ -20,6 +21,7 @@ import com.kosta.saladMan.dto.menu.MenuRegisterDto;
 import com.kosta.saladMan.dto.menu.RecipeDto;
 import com.kosta.saladMan.dto.menu.StoreMenuStatusDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
+import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.menu.MenuCategory;
 import com.kosta.saladMan.entity.menu.MenuIngredient;
@@ -28,6 +30,7 @@ import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.MenuRepository;
 import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.alarm.AlarmMsgRepository;
 import com.kosta.saladMan.repository.inventory.CategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.menu.MenuCategoryRepository;
@@ -36,6 +39,7 @@ import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.repository.saleOrder.SalesDslRepository;
 import com.kosta.saladMan.repository.user.MenuIngredientRepository;
 import com.kosta.saladMan.repository.user.TotalMenuRepository;
+import com.kosta.saladMan.service.alarm.FcmMessageService;
 import com.kosta.saladMan.util.PageInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -53,6 +57,10 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	private final CategoryRepository categoryRepository; //ingredientcategory
 	private final TotalMenuRepository totalMenuRepository;
 	private final MenuIngredientRepository menuIngredientRepository;
+	
+	//fcm알람
+	private final AlarmMsgRepository alarmMsgRepository;
+	private final FcmMessageService fcmMessageService;
 
 	@Override
 	public List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort, Integer categoryId) throws Exception {
@@ -199,6 +207,22 @@ public class StoreMenuServiceImpl implements StoreMenuService {
                 .img(imageUrl)
                 .build();
         totalMenuRepository.save(menu);
+        
+        //alarm
+        AlarmMsg alarmMsg = alarmMsgRepository.findById(5)
+                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+        
+        List<Store> storeList = storeRepository.findAll();
+        
+        for (Store store : storeList) {
+            AlarmDto alarmDto = new AlarmDto();
+            alarmDto.setStoreId(store.getId());
+            alarmDto.setTitle(alarmMsg.getTitle());
+            alarmDto.setContent(alarmMsg.getContent());
+            
+            fcmMessageService.sendAlarm(alarmDto);
+        }
+        //
 
         // 3. 메뉴 재료 저장
         for (MenuIngredientDto ingDto : dto.getIngredients()) {
