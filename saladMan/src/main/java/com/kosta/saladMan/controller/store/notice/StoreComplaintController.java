@@ -34,6 +34,7 @@ public class StoreComplaintController {
 	    PageInfo pageInfo = new PageInfo(page);
 	    Map<String, Object> res = new HashMap<>();
 	    try {
+	        // status 없이 요청해도 됨
 	        List<ComplaintDto> complaintList = complaintService.searchComplaintList(pageInfo, storeId, null, keyword);
 	        res.put("complaintList", complaintList);
 	        res.put("pageInfo", pageInfo);
@@ -45,6 +46,7 @@ public class StoreComplaintController {
 	        return ResponseEntity.badRequest().body(res);
 	    }
 	}
+
 	
     // 상세 조회
     @GetMapping("/detail")

@@ -30,32 +30,27 @@ public class HqComplaintController {
     @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
         int page = param.get("page") != null ? (Integer) param.get("page") : 1;
-        String status = (String) param.get("status");
         Integer storeId = param.get("storeId") != null ? (Integer) param.get("storeId") : null;
         String keyword = (String) param.get("keyword");
 
         PageInfo pageInfo = new PageInfo(page);
-
         Map<String, Object> res = new HashMap<>();
         try {
-            List<ComplaintDto> complaintList = complaintService.searchComplaintList(pageInfo, storeId, status, keyword);
+            List<ComplaintDto> complaintList = complaintService.searchComplaintList(pageInfo, storeId, null, keyword);
 
-            // 본사 제외 전체 점포 리스트 추가
             List<StoreDto> storeList = inventoryService.getStoresExceptHQ();
-            
             res.put("complaintList", complaintList);
             res.put("pageInfo", pageInfo);
-            res.put("storeList", storeList); 
+            res.put("storeList", storeList);
             res.put("result", "ok");
-
             return ResponseEntity.ok(res);
         } catch (Exception e) {
-            e.printStackTrace();
             res.put("result", "fail");
             res.put("msg", e.getMessage());
             return ResponseEntity.badRequest().body(res);
         }
     }
+
 
 
 
