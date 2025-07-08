@@ -28,16 +28,22 @@ public class CommonController {
 	@GetMapping("/totalMenu")
 	public ResponseEntity<Map<String,Object>> getTotalMenu(@RequestParam(required = false) Map<String,String> param) {
 		String sort = null;
+	    Integer categoryId = null;
+
 		PageInfo pageInfo = new PageInfo(1);
 		if(param != null) {
 			if(param.get("page")!=null) {
 				pageInfo.setCurPage(Integer.parseInt(param.get("page")));
 			}
 			sort = param.get("sort");
+			
+			if(param.get("category_id") != null) {
+	            categoryId = Integer.parseInt(param.get("category_id"));
+	        }
 		}
 		
 	    try {
-	        List<TotalMenuDto> totalMenu = menuService.getTotalMenu(pageInfo, sort);
+	        List<TotalMenuDto> totalMenu = menuService.getTotalMenu(pageInfo, sort, categoryId);
 	        Map<String, Object> res = new HashMap<>();
 	        res.put("menus", totalMenu);
 	        res.put("pageInfo", pageInfo);
@@ -51,12 +57,15 @@ public class CommonController {
 	
 	//레시피 조회
 	@GetMapping("/recipe")
-	public ResponseEntity<Map<String,Object>> getAllMenuRecipes(@RequestParam(defaultValue = "1") int page) {
-		try {
+	public ResponseEntity<Map<String,Object>> getAllMenuRecipes(
+	    @RequestParam(defaultValue = "1") int page,
+	    @RequestParam(value="category_id", required=false) Integer categoryId
+	) {
+	    try {
 	        PageInfo pageInfo = new PageInfo();
 	        pageInfo.setCurPage(page);
 
-	        List<RecipeDto> menus = menuService.getAllMenuRecipes(pageInfo);
+	        List<RecipeDto> menus = menuService.getAllMenuRecipes(pageInfo, categoryId);
 
 	        Map<String, Object> result = new HashMap<>();
 	        result.put("menus", menus);
@@ -68,6 +77,7 @@ public class CommonController {
 	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	    }
 	}
+
 	
 	// 전체 재료 목록 조회
     @GetMapping

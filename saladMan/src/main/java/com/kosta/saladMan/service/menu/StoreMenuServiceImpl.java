@@ -55,7 +55,7 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	private final MenuIngredientRepository menuIngredientRepository;
 
 	@Override
-	public List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort) throws Exception {
+	public List<TotalMenuDto> getTotalMenu(PageInfo pageInfo, String sort, Integer categoryId) throws Exception {
 		Sort sorting = Sort.by(Sort.Direction.ASC, "createdAt"); // 기본값
 		
 		if ("release_desc".equals(sort)) {
@@ -73,7 +73,15 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	    }
 		
 		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 10, sorting);
-		Page<TotalMenu> pages = menuRepository.findAll(pageRequest);
+		Page<TotalMenu> pages;
+		
+	    if (categoryId != null) {
+	        // 카테고리별 메뉴만
+	        pages = menuRepository.findByCategoryId(categoryId, pageRequest);
+	    } else {
+	        // 전체 메뉴
+	        pages = menuRepository.findAll(pageRequest);
+	    }
 		
 		pageInfo.setAllPage(pages.getTotalPages());
 		int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;
@@ -117,18 +125,25 @@ public class StoreMenuServiceImpl implements StoreMenuService {
 	}
 	
 	@Override
-	public List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo) throws Exception {
-		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 12);
-		Page<TotalMenu> pages = menuRepository.findAll(pageRequest);
-		
-		pageInfo.setAllPage(pages.getTotalPages());
-		int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;
-		int endPage = Math.min(startPage + 9, pageInfo.getAllPage());
-		pageInfo.setStartPage(startPage);
-		pageInfo.setEndPage(endPage);
-		
-		return sMenuDslRepository.findAllMenusWithIngredients(pageRequest);
+	public List<RecipeDto> getAllMenuRecipes(PageInfo pageInfo, Integer categoryId) throws Exception {
+	    PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 12);
+
+	    Page<TotalMenu> pages;
+	    if (categoryId != null) {
+	        pages = menuRepository.findByCategoryId(categoryId, pageRequest);
+	    } else {
+	        pages = menuRepository.findAll(pageRequest);
+	    }
+
+	    pageInfo.setAllPage(pages.getTotalPages());
+	    int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;
+	    int endPage = Math.min(startPage + 9, pageInfo.getAllPage());
+	    pageInfo.setStartPage(startPage);
+	    pageInfo.setEndPage(endPage);
+
+	    return sMenuDslRepository.findAllMenusWithIngredients(pageRequest, categoryId);
 	}
+
 
 	@Override
 	public List<IngredientDto> getAllIngredients() throws Exception {

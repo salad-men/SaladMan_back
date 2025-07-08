@@ -119,6 +119,10 @@ public interface InventoryService {
     IngredientDto addIngredient(String name, Integer categoryId, String unit);
     void updateIngredient(Integer id, String name, String unit);
     void deleteIngredient(Integer ingredientId);
+    
+    void deleteSetting(Integer id); 
 
+    
+    void addStoreIngredient(StoreIngredientDto dto);
 
 }

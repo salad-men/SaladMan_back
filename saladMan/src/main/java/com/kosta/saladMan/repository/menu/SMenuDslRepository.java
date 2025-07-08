@@ -2,13 +2,16 @@ package com.kosta.saladMan.repository.menu;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -26,6 +29,7 @@ import com.kosta.saladMan.entity.menu.QMenuCategory;
 import com.kosta.saladMan.entity.menu.QMenuIngredient;
 import com.kosta.saladMan.entity.menu.QStoreMenu;
 import com.kosta.saladMan.entity.menu.QTotalMenu;
+import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
@@ -199,4 +203,54 @@ public class SMenuDslRepository {
         return new PageImpl<>(content, pageable, total);
     
 	}
+
+	public List<RecipeDto> findAllMenusWithIngredients(Pageable pageable, Integer categoryId) {
+        QTotalMenu menu = QTotalMenu.totalMenu;
+        QMenuIngredient mi = QMenuIngredient.menuIngredient;
+        QIngredient ing = QIngredient.ingredient;
+
+        // 1. 메뉴 리스트 (카테고리 조건 분기)
+        List<TotalMenu> menuList = queryFactory
+            .selectFrom(menu)
+            .where(categoryId != null ? menu.category.id.eq(categoryId) : null)
+            .orderBy(menu.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        List<Integer> menuIds = menuList.stream()
+            .map(TotalMenu::getId)
+            .collect(Collectors.toList());
+        if (menuIds.isEmpty()) return new ArrayList<>();
+
+        // 2. 메뉴별 재료 bulk 조회 (id 제외)
+        List<Tuple> ingredientTuples = queryFactory
+            .select(mi.menu.id, ing.name, ing.unit, mi.quantity)
+            .from(mi)
+            .join(mi.ingredient, ing)
+            .where(mi.menu.id.in(menuIds))
+            .fetch();
+
+        // 3. 메뉴별 재료 매핑
+        Map<Integer, List<RecipeIngredientDto>> menuIdToIngredients = new HashMap<>();
+        for (Tuple t : ingredientTuples) {
+            Integer mId = t.get(mi.menu.id);
+            RecipeIngredientDto ingredientDto = RecipeIngredientDto.builder()
+                .name(t.get(ing.name))
+                .unit(t.get(ing.unit))
+                .quantity(t.get(mi.quantity))
+                .build();
+            menuIdToIngredients.computeIfAbsent(mId, k -> new ArrayList<>()).add(ingredientDto);
+        }
+
+        // 4. DTO 변환
+        return menuList.stream().map(m ->
+            RecipeDto.builder()
+                .id(m.getId())
+                .name(m.getName())
+                .img(m.getImg())
+                .ingredients(menuIdToIngredients.getOrDefault(m.getId(), new ArrayList<>()))
+                .build()
+        ).collect(Collectors.toList());
+    }
 }
