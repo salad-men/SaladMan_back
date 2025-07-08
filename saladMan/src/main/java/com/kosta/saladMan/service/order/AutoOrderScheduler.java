@@ -2,6 +2,7 @@ package com.kosta.saladMan.service.order;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -68,22 +69,37 @@ public class AutoOrderScheduler {
 			}
 
 			List<StoreOrderItemDto> orderItemList = itemList.stream().map(fixedItem -> {
-				Integer ingredientId = fixedItem.getIngredient().getId();
-				Integer quantity = fixedItem.getAutoOrderQty();
+			    try {
+			        Integer ingredientId = fixedItem.getIngredient().getId();
+			        Integer quantity = fixedItem.getAutoOrderQty();
 
-				// 최신 단가 조회
-				HqIngredient hq = hqIngredientRepository
-						.findTopByIngredientIdOrderByReceivedDateDescIdDesc(ingredientId)
-						.orElseThrow(() -> new RuntimeException("HQ 재료 정보 없음: " + ingredientId));
+			        HqIngredient hq = hqIngredientRepository
+			            .findTopByIngredientIdOrderByReceivedDateDescIdDesc(ingredientId)
+			            .orElseThrow(() -> new RuntimeException("HQ 재료 정보 없음: " + ingredientId));
 
-				Integer unitCost = hq.getUnitCost();
-				Integer minimunUnit = hq.getMinimumOrderUnit();
-				Integer totalPrice = quantity / minimunUnit * unitCost;
+			        Integer unitCost = hq.getUnitCost();
+			        Integer minimumUnit = hq.getMinimumOrderUnit();
+			        Integer totalPrice = quantity / minimumUnit * unitCost;
 
-				// 여기서 리턴 타입을 명시적으로 생성
-				return StoreOrderItemDto.builder().ingredientId(ingredientId).quantity(quantity).unitCost(unitCost)
-						.totalPrice(totalPrice).build();
-			}).collect(Collectors.toList());
+			        return StoreOrderItemDto.builder()
+			            .ingredientId(ingredientId)
+			            .quantity(quantity)
+			            .unitCost(unitCost)
+			            .totalPrice(totalPrice)
+			            .build();
+
+			    } catch (Exception e) {
+			        System.err.println("[" + store.getName() + "] 품목 처리 실패 - 재료 ID: "
+			            + fixedItem.getIngredient().getId() + ", 사유: " + e.getMessage());
+			        return null;
+			    }
+			}).filter(Objects::nonNull)
+			  .collect(Collectors.toList());
+			
+			if (orderItemList.isEmpty()) {
+			    System.err.println("[" + store.getName() + "] 유효한 발주 품목이 없어 자동발주 생략");
+			    continue;
+			}
 
 			try {
 				orderService.createOrder(store, orderItemList, "자동발주");
