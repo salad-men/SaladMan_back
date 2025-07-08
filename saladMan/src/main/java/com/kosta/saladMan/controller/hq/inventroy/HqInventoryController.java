@@ -2,15 +2,11 @@ package com.kosta.saladMan.controller.hq.inventroy;
 
 
 import com.kosta.saladMan.util.PageInfo;
-import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
-import com.kosta.saladMan.entity.inventory.Ingredient;
-import com.kosta.saladMan.entity.inventory.IngredientCategory;
-import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.service.inventory.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -99,6 +95,7 @@ public class HqInventoryController {
     public ResponseEntity<Void> update(@RequestBody HqIngredientDto dto) {
         try {
             inventoryService.updateHqIngredient(dto);
+            System.out.println(dto); 
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
         	e.printStackTrace();

@@ -5,6 +5,7 @@ import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.entity.inventory.Disposal;
 import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.QDisposal;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredient;
@@ -130,19 +131,36 @@ public class HqInventoryDslRepository {
 
 
 	// 재고 업데이트
+	// HqInventoryDslRepository.java
+
 	@Transactional
 	public void updateHqIngredient(HqIngredientDto dto) {
-		QHqIngredient q = QHqIngredient.hqIngredient;
-		JPAUpdateClause clause = 
-				queryFactory
-				.update(q)
-				.set(q.minimumOrderUnit, dto.getMinimumOrderUnit())
-				.set(q.unitCost, dto.getUnitCost())
-				.set(q.quantity, dto.getQuantity())
-				.set(q.expiredDate, dto.getExpiredDate())
-				.where(q.id.eq(dto.getId()));
-		clause.execute();
+	    QHqIngredient q = QHqIngredient.hqIngredient;
+
+	    // category, ingredient, store 객체 생성
+	    IngredientCategory category = null;
+	    if (dto.getCategoryId() != null)
+	        category = IngredientCategory.builder().id(dto.getCategoryId()).build();
+
+	    Ingredient ingredient = null;
+	    if (dto.getIngredientId() != null)
+	        ingredient = Ingredient.builder().id(dto.getIngredientId()).build();
+
+	    
+	    JPAUpdateClause clause = queryFactory
+	        .update(q)
+	        .set(q.category, category)
+	        .set(q.ingredient, ingredient)
+	        .set(q.minimumOrderUnit, dto.getMinimumOrderUnit())
+	        .set(q.unitCost, dto.getUnitCost())
+	        .set(q.quantity, dto.getQuantity())
+	        .set(q.expiredDate, dto.getExpiredDate())
+	        .set(q.receivedDate, dto.getReceivedDate())
+	        .set(q.reservedQuantity, dto.getReservedQuantity()) 
+	        .where(q.id.eq(dto.getId()));
+	    clause.execute();
 	}
+
 
 	// 폐기 개수 조회
     public int countHqDisposals(Integer storeId, Integer categoryId, String status,
