@@ -38,6 +38,9 @@ import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
+import com.kosta.saladMan.entity.menu.MenuIngredient;
+import com.kosta.saladMan.entity.menu.StoreMenu;
+import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderItem;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderTemplate;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
@@ -50,6 +53,7 @@ import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientStockRepository;
+import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.repository.order.FixedOrderDslRepository;
 import com.kosta.saladMan.repository.order.FixedOrderItemRepository;
 import com.kosta.saladMan.repository.order.FixedOrderTemplateRepository;
@@ -58,6 +62,7 @@ import com.kosta.saladMan.repository.order.PuchaseOrderDslRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderItemRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
 import com.kosta.saladMan.repository.order.StoreIngredientDslRepository;
+import com.kosta.saladMan.repository.user.MenuIngredientRepository;
 import com.kosta.saladMan.util.QrCodeUtil;
 
 @Service
@@ -110,6 +115,12 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
     private S3Uploader s3Uploader;
+	
+	@Autowired
+	private StoreMenuRepository storeMenuRepository;
+	
+	@Autowired
+	private MenuIngredientRepository menuIngredientRepository;
 
 	
 	// 재료 리스트
@@ -409,6 +420,9 @@ public class OrderServiceImpl implements OrderService {
 	    Integer orderId = items.get(0).getPurchaseOrderId();
 	    PurchaseOrder order = purchaseOrderRepository.findById(orderId)
 	            .orElseThrow(() -> new Exception("해당 발주가 존재하지 않습니다. id: " + orderId));
+	    
+	    Store storeWithId = order.getStore();
+
 
 		for (PurchaseOrderItemDto dto : items) {
 	        // 1. 발주 품목 조회
@@ -481,7 +495,34 @@ public class OrderServiceImpl implements OrderService {
 	    // 5. 주문 상태 '검수 완료'로 변경
 	    order.setStatus("검수완료");
 	    purchaseOrderRepository.save(order);
+	    
+	 // 6. 입고 후 품절 메뉴 자동 해제
+	    List<StoreMenu> menus = storeMenuRepository.findByStoreId(storeWithId.getId());
+
+	    for (StoreMenu storeMenu : menus) {
+	        if (Boolean.FALSE.equals(storeMenu.getIsSoldOut())) continue; // 이미 품절 아님
+
+	        TotalMenu menu = storeMenu.getMenu();
+	        List<MenuIngredient> ingredients = menuIngredientRepository.findByMenuId(menu.getId());
+
+	        boolean allAvailable = true;
+
+	        for (MenuIngredient mi : ingredients) {
+	            StoreIngredient si = storeIngredientRepository.findByStoreIdAndIngredientIds(storeWithId.getId(), mi.getIngredient().getId());
+
+	            if (si == null || si.getQuantity() == null || si.getQuantity() < mi.getQuantity()) {
+	                allAvailable = false;
+	                break;
+	            }
+	        }
+
+	        if (allAvailable) {
+	            storeMenu.setIsSoldOut(false); // 품절 해제
+	            storeMenuRepository.save(storeMenu);
+	        }
+	    }
 	}
+	
 	
 	//발주 설정 조회
 	@Override

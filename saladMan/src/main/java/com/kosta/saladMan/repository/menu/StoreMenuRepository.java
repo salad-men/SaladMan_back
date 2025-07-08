@@ -17,5 +17,8 @@ public interface StoreMenuRepository extends JpaRepository<StoreMenu, Integer> {
 
 	@Query("SELECT sm FROM StoreMenu sm WHERE sm.store.id = :storeId AND sm.menu.id IN :menuIds")
 	List<StoreMenu> findByStoreAndMenuIds(@Param("storeId") Integer storeId, @Param("menuIds") List<Integer> menuIds);
+	
+	List<StoreMenu> findByStoreId(Integer storeId);
+
 
 }
