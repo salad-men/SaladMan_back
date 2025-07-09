@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 public class StoreOrderItemDto {
 	private Integer ingredientId;
 	private String name;
-	private String category;
+	private Integer categoryId;
+	private String categoryName;
 	private Integer quantity; // 현재 재고
 	private Integer incoming; // 입고 중 수량
 	private String unit; // 단위 (g, 개 등)
@@ -22,12 +23,13 @@ public class StoreOrderItemDto {
 	private Integer totalPrice;
 	private Boolean available;
 
-	public StoreOrderItemDto(Integer ingredientId, String name, String category, Integer quantity, Integer incoming,
+	public StoreOrderItemDto(Integer ingredientId, String name, Integer categoryId,String categoryName, Integer quantity, Integer incoming,
 			String unit,  Integer unitCost,Integer minimumOrderUnit, Integer hqStock,Boolean available) {
 		
 		this.ingredientId = ingredientId;
 		this.name = name;
-		this.category = category;
+		this.categoryId = categoryId;
+		this.categoryName = categoryName;
 		this.quantity = quantity;
 		this.incoming = incoming;
 		this.unit = unit;

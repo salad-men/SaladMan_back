@@ -364,7 +364,8 @@ public class OrderServiceImpl implements OrderService {
 	// 발주 신청
 	@Transactional
 	@Override
-	public void createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception {
+	public Integer createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception {
+		
 		int total = items.stream().mapToInt(item -> {
 			Integer qty = item.getQuantity();
 			Integer cost = item.getUnitCost();
@@ -390,6 +391,8 @@ public class OrderServiceImpl implements OrderService {
 			purchaseOrderItemRepository.save(orderItem);
 
 		}
+	    return order.getId();
+
 
 	}
 
@@ -439,45 +442,34 @@ public class OrderServiceImpl implements OrderService {
 	        item.setInspection(dto.getInspection());
 	        item.setInspectionNote(dto.getInspectionNote());
 	        item.setReceivedQuantity(dto.getOrderedQuantity()); // 실제 입고 수량 반영
+	        System.out.println("실제 입고 수량 반영"+dto.getOrderedQuantity());
 	        purchaseOrderItemRepository.save(item);
 	        
 	        
 
-	        // 3. StoreIngredient 업데이트 or 생성
+	        // 3. StoreIngredient 생성
 	        Store store = item.getPurchaseOrder().getStore();
 	        Ingredient ingredient = item.getIngredient();
 	        int quantity = dto.getOrderedQuantity();
 
 	        //유통기한 조회
-	        Optional<StoreIngredientStock> stockOptional = storeIngredientStockRepository
-	            .findFirstByPurchaseOrderIdAndIngredientId(orderId, ingredient.getId());
+	        List<StoreIngredientStock> stockList = storeIngredientStockRepository
+	        	    .findByPurchaseOrderIdAndIngredientId(orderId, ingredient.getId());
 
-	        LocalDate expiredDate = stockOptional
-	            .map(StoreIngredientStock::getExpiredDate)
-	            .orElse(LocalDate.now().plusDays(5));
-	        
-	        LocalDate receivedDate = LocalDate.now(); // 오늘 날짜
-	        
-	        Integer minimumOrderUnit = stockOptional
-	        	    .map(StoreIngredientStock::getMinimumOrderUnit)
-	        	    .orElse(null);
-	        
-	        Integer stockQuantity = stockOptional
-	        	    .map(StoreIngredientStock::getQuantity)
-	        	    .orElse(0);
-	        
-	        StoreIngredient storeIngredient = StoreIngredient.builder()
-	                        .store(store)
-	                        .ingredient(ingredient)
-	                        .category(ingredient.getCategory())
-	                        .unitCost(dto.getUnitCost())
-	                        .quantity(stockQuantity) // 검수된 수량만
-	                        .expiredDate(expiredDate)
-	                        .receivedDate(receivedDate)
-	                        .minimumOrderUnit(minimumOrderUnit)
-	                        .build();
+	        for (StoreIngredientStock stock : stockList) {
+	            StoreIngredient storeIngredient = StoreIngredient.builder()
+	                .store(store)
+	                .ingredient(ingredient)
+	                .category(ingredient.getCategory())
+	                .unitCost(dto.getUnitCost())
+	                .quantity(stock.getQuantity()) // 각각 개별 수량
+	                .expiredDate(stock.getExpiredDate())
+	                .receivedDate(LocalDate.now())
+	                .minimumOrderUnit(stock.getMinimumOrderUnit())
+	                .build();
 
-	        storeIngredientRepository.save(storeIngredient);
+	            storeIngredientRepository.save(storeIngredient);
+	        }
 
 	        // 4. InventoryRecord 기록 추가 (입고)
 	        InventoryRecord record = InventoryRecord.builder()
@@ -508,9 +500,23 @@ public class OrderServiceImpl implements OrderService {
 	        boolean allAvailable = true;
 
 	        for (MenuIngredient mi : ingredients) {
-	            StoreIngredient si = storeIngredientRepository.findByStoreIdAndIngredientId(storeWithId.getId(), mi.getIngredient().getId());
+	            Integer ingredientId = mi.getIngredient().getId();
 
-	            if (si == null || si.getQuantity() == null || si.getQuantity() < mi.getQuantity()) {
+	            // ✅ 유통기한 안 지난 + 수량 > 0 인 모든 재고 조회
+	            List<StoreIngredient> ingredientStocks = storeIngredientRepository
+	                    .findByStoreIdAndIngredientIdAndExpiredDateAfterAndQuantityGreaterThan(
+	                            storeWithId.getId(),
+	                            ingredientId,
+	                            LocalDate.now(),
+	                            0
+	                    );
+
+	            // ✅ 총 수량 계산
+	            int totalAvailable = ingredientStocks.stream()
+	                    .mapToInt(si -> Optional.ofNullable(si.getQuantity()).orElse(0))
+	                    .sum();
+
+	            if (totalAvailable < mi.getQuantity()) {
 	                allAvailable = false;
 	                break;
 	            }

@@ -182,7 +182,6 @@ public class KioskServiceImpl implements KioskService {
 		String approvedAtStr = (String) body.get("approvedAt");
 
 		OffsetDateTime approvedAt = OffsetDateTime.parse(approvedAtStr);
-		System.out.println("SaleOrder조회<<<<<<<<<<<<<<<<<<<<<<<<<");
 		// --- [2] SaleOrder 조회
 		Integer orderPk = Integer.parseInt(dto.getOrderId().replace("ORDER-", ""));
 		SaleOrder saleOrder = saleOrderRepository.findById(orderPk)
@@ -253,11 +252,8 @@ public class KioskServiceImpl implements KioskService {
 							e.printStackTrace();
 						}
 
-
-
 	                    // ❗ 주문 전체 취소 로직도 호출
 	                    orderCancellationService.markOrderCanceled(saleOrder.getId());
-
 	                    // ❗ 이제 예외 던지기
 	                    throw new OutOfStockException("재고 없음 또는 부족: " + ingredientName);
 	                }

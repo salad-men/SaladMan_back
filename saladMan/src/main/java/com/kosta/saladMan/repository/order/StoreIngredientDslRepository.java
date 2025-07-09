@@ -1,5 +1,6 @@
 package com.kosta.saladMan.repository.order;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
@@ -10,12 +11,16 @@ import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredient;
+import com.kosta.saladMan.entity.inventory.QIngredientCategory;
 import com.kosta.saladMan.entity.inventory.QStoreIngredient;
 import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrderItem;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -60,55 +65,75 @@ public class StoreIngredientDslRepository {
 	
 	//발주 신청을 위한 재료 리스트 
 	public List<StoreOrderItemDto> findAvailableOrderItemsByStore(Integer id,String category,String keyword){
-		QIngredient ing = QIngredient.ingredient;
-		QHqIngredient hq = QHqIngredient.hqIngredient;
-		QStoreIngredient si = QStoreIngredient.storeIngredient;
-		QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
-		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
 
-		return jpaQueryFactory
-			    .select(Projections.constructor(
-			        StoreOrderItemDto.class,
-			        ing.id,
-			        ing.name,
-			        ing.category.name,
-			        si.quantity.coalesce(0),
-			        JPAExpressions.select(poi.orderedQuantity.sum().coalesce(0))
-			            .from(poi)
-			            .join(poi.purchaseOrder, po)
-			            .where(
-			                poi.ingredient.id.eq(ing.id),
-			                po.store.id.eq(id),
-			                po.status.in("대기중", "승인됨")
-			            ),
-			        ing.unit,
-			        hq.unitCost.coalesce(0),           // max 단가로 대표값 처리
-			        hq.minimumOrderUnit.coalesce(0),    // 여러 개일 경우도 방지
-			        hq.quantity.coalesce(0),
-			        ing.available
-			    ))
-			    .from(ing)
-			    .leftJoin(si).on(
-			        si.store.id.eq(id),
-			        si.ingredient.id.eq(ing.id)
-			    )
-			    .leftJoin(hq).on(
-			        hq.ingredient.id.eq(ing.id)
-			    )
-			    .where(
-			        category != null && !category.equals("전체")
-			            ? ing.category.name.eq(category) : null,
-			        keyword != null && !keyword.isBlank()
-			            ? ing.name.containsIgnoreCase(keyword) : null
-			    )
-			    .groupBy(
-			        ing.id,
-			        ing.name,
-			        ing.category.name,
-			        si.quantity,
-			        ing.unit
-			    )
-			    .fetch();
+	    QIngredient ing = QIngredient.ingredient;
+	    QIngredientCategory cat = QIngredientCategory.ingredientCategory;
+	    QStoreIngredient si = QStoreIngredient.storeIngredient;
+	    QHqIngredient hq = QHqIngredient.hqIngredient;
+	    QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
+	    QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
+
+	    LocalDate today = LocalDate.now();
+	    
+	    Expression<Integer> hqStockExpr = ExpressionUtils.as(
+	    	    JPAExpressions
+	    	        .select(hq.quantity.sum().coalesce(0))
+	    	        .from(hq)
+	    	        .where(
+	    	            hq.ingredient.id.eq(ing.id),
+	    	            hq.expiredDate.goe(today),
+	    	            hq.quantity.gt(0)
+	    	        ),
+	    	    "hqStock"
+	    	);
+
+	    Expression<Integer> incomingExpr = ExpressionUtils.as(
+	    	    JPAExpressions
+	    	        .select(poi.orderedQuantity.sum().coalesce(0))
+	    	        .from(poi)
+	    	        .join(poi.purchaseOrder, po)
+	    	        .where(
+	    	            poi.ingredient.id.eq(ing.id),
+	    	            po.store.id.eq(id),
+	    	            po.status.in("대기중", "입고완료")
+	    	        ),
+	    	    "incoming"
+	    	);
+	    
+	    return jpaQueryFactory
+	    	    .select(Projections.constructor(
+	    	        StoreOrderItemDto.class,
+	    	        ing.id,
+	    	        ing.name,
+	    	        cat.id,
+	    	        cat.name,
+	    	        si.quantity.coalesce(0),
+	    	        incomingExpr,
+	    	        ing.unit,
+	    	        hq.unitCost.max().coalesce(0),
+	    	        hq.minimumOrderUnit.min().coalesce(0),
+	    	        hqStockExpr,
+	    	        ing.available
+	    	    ))
+	    	    .from(ing)
+	    	    .join(ing.category, cat)
+	    	    .leftJoin(si).on(
+	    	        si.ingredient.id.eq(ing.id),
+	    	        si.store.id.eq(id)
+	    	    )
+	    	    .leftJoin(hq).on(hq.ingredient.id.eq(ing.id))
+	    	    .where(
+	    	       	    category != null && !category.equals("전체")
+	    	    	        ? cat.name.eq(category) : null,
+
+	    	    	    keyword != null && !keyword.isBlank()
+	    	    	        ? ing.name.containsIgnoreCase(keyword) : null
+	    	    )
+	    	    .groupBy(
+	    	        ing.id, ing.name, cat.id, cat.name,
+	    	        si.quantity, ing.unit, ing.available
+	    	    )
+	    	    .fetch();
 	}
 
 }

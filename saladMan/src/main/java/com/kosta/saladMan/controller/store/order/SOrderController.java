@@ -38,13 +38,13 @@ public class SOrderController {
 
 	// 매장 발주 신청
 	@PostMapping("/orderApply")
-	public ResponseEntity<List<StoreOrderItemDto>> orderApply(@RequestBody List<StoreOrderItemDto> items,
+	public ResponseEntity<Map<String, Integer>> orderApply(@RequestBody List<StoreOrderItemDto> items,
 			@AuthenticationPrincipal PrincipalDetails principal) {
 		Store storeInfo = principal.getStore(); // JWT에서 store 정보 추출
 		System.out.println(storeInfo.getId());
 		try {
-			orderService.createOrder(storeInfo, items,"수기발주");
-			return new ResponseEntity<>(HttpStatus.OK);
+			Integer orderId= orderService.createOrder(storeInfo, items,"수기발주");
+			return new ResponseEntity<>(Map.of("orderId",orderId),HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();

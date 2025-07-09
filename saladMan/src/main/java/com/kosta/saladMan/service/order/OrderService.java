@@ -42,7 +42,7 @@ public interface OrderService {
     List<StoreOrderItemDto>getOrderItems(Integer id, String category, String keyword)throws Exception;
     
     //발주 신청
-    void createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception;
+    Integer createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception;
     //발주 목록
     Page<PurchaseOrderDto> getPagedOrderList(Integer storeId, String orderType, String productName, String status,
             LocalDate startDate, LocalDate endDate, int page, int size) throws Exception;

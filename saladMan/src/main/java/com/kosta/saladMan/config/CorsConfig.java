@@ -68,6 +68,7 @@ public class CorsConfig implements WebMvcConfigurer {
             "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
             "https://api.saladman.com",
             "http://192.168.0.15:8080",
+            "http://192.168.0.15:8090",
             "http://192.168.0.15:5173"
 
         ));

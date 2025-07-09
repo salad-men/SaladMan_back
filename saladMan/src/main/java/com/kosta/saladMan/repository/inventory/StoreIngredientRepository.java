@@ -1,6 +1,7 @@
 // StoreIngredientRepository.java
 package com.kosta.saladMan.repository.inventory;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,5 +17,10 @@ public interface StoreIngredientRepository extends JpaRepository<StoreIngredient
 	Optional<StoreIngredient> findByStoreAndIngredient(Store store, Ingredient ingredient);
     List<StoreIngredient> findByStoreAndIngredientId(Store store, Integer ingredientId);
     StoreIngredient findByStoreIdAndIngredientId(Integer storeId, Integer ingredientId);
-
+    List<StoreIngredient> findByStoreIdAndIngredientIdAndExpiredDateAfterAndQuantityGreaterThan(
+    	    Integer storeId,
+    	    Integer ingredientId,
+    	    LocalDate expiredAfter,
+    	    int quantityThreshold
+    	);
 }
