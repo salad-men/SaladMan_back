@@ -11,7 +11,7 @@ import com.kosta.saladMan.entity.store.Store;
 
 public interface StoreManagementService {
 	
-	void storeRegister(StoreDto storeDto) throws Exception;
+	Integer storeRegister(StoreDto storeDto) throws Exception;
 	Boolean isStoreNameDouble(String storeName) throws Exception;
 	Boolean isStoreUsernameDouble(String storeUsername) throws Exception;
     Page<StoreDto> searchStores(String region, String status, String keyword, Pageable pageable);

@@ -37,16 +37,16 @@ public class HqStoreManageController {
 	private StoreManagementService hqStoreManagementService;
 
 	@PostMapping("/storeRegister")
-	public ResponseEntity<Boolean> storeRegister(@RequestBody StoreDto storeDto) {
-		try {
-			hqStoreManagementService.storeRegister(storeDto);
-			return new ResponseEntity<>(true, HttpStatus.OK);
-
-		} catch (Exception e) {
-			return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
-		}
-
+	public ResponseEntity<Map<String, Object>> storeRegister(@RequestBody StoreDto storeDto) {
+	    try {
+	        Integer storeId = hqStoreManagementService.storeRegister(storeDto); 
+	        return ResponseEntity.ok(Map.of("success", true, "id", storeId));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("success", false));
+	    }
 	}
+
 
 	@GetMapping("/checkStorename")
 	public ResponseEntity<Boolean> checkStorename(@RequestParam String name) {

@@ -29,7 +29,8 @@ public class ChatbotComplaintServiceImpl implements ChatbotComplaintService {
                 .writerDate(dto.getWriterDate()) // LocalDate 타입
                 .writerEmail(dto.getWriterEmail())
                 .writerNickname(dto.getWriterNickname())
-                .isRead(false)
+                .isHqRead(false)
+                .isStoreRead(false)
                 .isRelay(false)
                 .build();
 

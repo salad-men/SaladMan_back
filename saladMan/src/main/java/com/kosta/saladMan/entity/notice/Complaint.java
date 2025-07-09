@@ -48,7 +48,8 @@ public class Complaint {
 
     private String writerNickname;
     
-    private Boolean isRead;
+    private Boolean isHqRead;
+    private Boolean isStoreRead;
     
     private Boolean isRelay;
     
@@ -62,7 +63,8 @@ public class Complaint {
                 .writerDate(writerDate)
                 .writerEmail(writerEmail)
                 .writerNickname(writerNickname)
-                .isRead(isRead)
+                .isHqRead(isHqRead)
+                .isStoreRead(isStoreRead)
                 .isRelay(isRelay)
                 .build();
     }
