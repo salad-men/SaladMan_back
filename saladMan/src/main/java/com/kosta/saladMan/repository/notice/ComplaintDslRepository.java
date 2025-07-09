@@ -18,16 +18,15 @@ public class ComplaintDslRepository {
     private JPAQueryFactory queryFactory;
 
 	// 목록 조회 (페이징 + 필터)
-    public List<Complaint> findComplaintsByFilters(PageRequest pageRequest, Integer storeId, Boolean isRead, Boolean isRelay, String keyword) {
+    public List<Complaint> findComplaintsByFilters(PageRequest pageRequest, Integer storeId, Boolean isHqRead, Boolean isStoreRead, Boolean isRelay, String keyword) {
         QComplaint complaint = QComplaint.complaint;
         BooleanBuilder builder = new BooleanBuilder();
 
         if (storeId != null) {
             builder.and(complaint.store.id.eq(storeId));
         }
-        if (isRead != null) {
-            builder.and(complaint.isRead.eq(isRead));
-        }
+        if (isHqRead != null) builder.and(complaint.isHqRead.eq(isHqRead));
+        if (isStoreRead != null) builder.and(complaint.isStoreRead.eq(isStoreRead));
         if (isRelay != null) {
             builder.and(complaint.isRelay.eq(isRelay));
         }
@@ -44,16 +43,15 @@ public class ComplaintDslRepository {
     }
 
     // 전체 개수 조회
-    public Long countComplaintsByFilters(Integer storeId, Boolean isRead, Boolean isRelay, String keyword) {
+    public Long countComplaintsByFilters(Integer storeId, Boolean isHqRead, Boolean isStoreRead, Boolean isRelay, String keyword) {
         QComplaint complaint = QComplaint.complaint;
         BooleanBuilder builder = new BooleanBuilder();
 
         if (storeId != null) {
             builder.and(complaint.store.id.eq(storeId));
         }
-        if (isRead != null) {
-            builder.and(complaint.isRead.eq(isRead));
-        }
+        if (isHqRead != null) builder.and(complaint.isHqRead.eq(isHqRead));
+        if (isStoreRead != null) builder.and(complaint.isStoreRead.eq(isStoreRead));
         if (isRelay != null) {
             builder.and(complaint.isRelay.eq(isRelay));
         }

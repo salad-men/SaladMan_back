@@ -28,20 +28,16 @@ public class HqComplaintController {
     private final InventoryService inventoryService;
 
     @PostMapping("/list")
-    public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> param) {
+    public ResponseEntity<Map<String, Object>> hqList(@RequestBody Map<String, Object> param) {
         int page = param.get("page") != null ? (Integer) param.get("page") : 1;
-        Integer storeId = param.get("storeId") != null ? (Integer) param.get("storeId") : null;
         String keyword = (String) param.get("keyword");
-
         PageInfo pageInfo = new PageInfo(page);
+
         Map<String, Object> res = new HashMap<>();
         try {
-            List<ComplaintDto> complaintList = complaintService.searchComplaintList(pageInfo, storeId, null, keyword);
-
-            List<StoreDto> storeList = inventoryService.getStoresExceptHQ();
+            List<ComplaintDto> complaintList = complaintService.searchHqComplaintList(pageInfo, keyword);
             res.put("complaintList", complaintList);
             res.put("pageInfo", pageInfo);
-            res.put("storeList", storeList);
             res.put("result", "ok");
             return ResponseEntity.ok(res);
         } catch (Exception e) {
@@ -56,18 +52,17 @@ public class HqComplaintController {
 
     // 상세 조회
     @GetMapping("/detail")
-    public ResponseEntity<Map<String, Object>> detail(@RequestParam("id") Integer id) {
+    public ResponseEntity<Map<String, Object>> hqDetail(@RequestParam("id") Integer id) {
         Map<String, Object> res = new HashMap<>();
         try {
-            ComplaintDto dto = complaintService.detailComplaint(id);
+            ComplaintDto dto = complaintService.detailComplaintHq(id);
             res.put("complaint", dto);
             res.put("result", "ok");
-            return new ResponseEntity<>(res, HttpStatus.OK);
+            return ResponseEntity.ok(res);
         } catch (Exception e) {
-            e.printStackTrace();
             res.put("result", "fail");
             res.put("msg", e.getMessage());
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(res);
         }
     }
 

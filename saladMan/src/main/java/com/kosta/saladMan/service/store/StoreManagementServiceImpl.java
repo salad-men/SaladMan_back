@@ -34,15 +34,15 @@ public class StoreManagementServiceImpl implements StoreManagementService {
 
 
 	@Override
-	public void storeRegister(StoreDto storeDto) throws Exception {
+	public Integer storeRegister(StoreDto storeDto) throws Exception {
 		Optional<Store> oStore = storeRepository.findByUsername(storeDto.getUsername());
-
-		if (oStore.isPresent()) {
-			throw new Exception("이미 존재하는 아이디");
-		}
-		storeDto.setPassword(passwordEncoder.encode(storeDto.getPassword()));
-		storeDto.setRole("ROLE_STORE");
-		storeRepository.save(storeDto.toEntity());
+	    if (oStore.isPresent()) {
+	        throw new Exception("이미 존재하는 아이디");
+	    }
+	    storeDto.setPassword(passwordEncoder.encode(storeDto.getPassword()));
+	    storeDto.setRole("ROLE_STORE");
+	    Store savedStore = storeRepository.save(storeDto.toEntity());
+	    return savedStore.getId(); 
 	}
 
 	@Override
