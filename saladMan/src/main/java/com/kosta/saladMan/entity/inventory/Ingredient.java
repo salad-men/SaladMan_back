@@ -40,6 +40,9 @@ public class Ingredient {
     @Column(nullable = false)
     private Boolean available;
     
+    @Column(nullable = false)
+    private Integer price;
+    
 
 
     public IngredientDto toDto() {
@@ -49,6 +52,7 @@ public class Ingredient {
                 .name(name)
                 .unit(unit)
                 .available(available == null ? true : available)
+                .price(price)
                 .build();
     }
 }

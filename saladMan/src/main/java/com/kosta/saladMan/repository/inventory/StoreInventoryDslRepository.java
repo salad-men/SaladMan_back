@@ -13,7 +13,7 @@ import com.kosta.saladMan.entity.inventory.QStoreIngredient;
 import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
 import com.kosta.saladMan.entity.store.QStore;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.OrderSpecifier;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -27,7 +27,10 @@ import javax.transaction.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import com.querydsl.core.types.OrderSpecifier;
 
 @Repository
 public class StoreInventoryDslRepository {
@@ -55,6 +58,7 @@ public class StoreInventoryDslRepository {
 
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
+        // 정렬 옵션 세팅
         if ("receivedAsc".equals(sortOption)) {
             orderSpecifiers.add(q.receivedDate.asc().nullsLast());
             orderSpecifiers.add(q.category.name.asc());
@@ -77,8 +81,8 @@ public class StoreInventoryDslRepository {
             orderSpecifiers.add(q.expiredDate.asc().nullsLast());
         }
 
-
-        return queryFactory
+        
+        List<StoreIngredientDto> list = queryFactory
                 .select(Projections.bean(
                         StoreIngredientDto.class,
                         q.id,
@@ -86,14 +90,15 @@ public class StoreInventoryDslRepository {
                         q.expiredDate,
                         q.receivedDate,
                         q.ingredient.name.as("ingredientName"),
+                        q.ingredient.id.as("ingredientId"),
                         q.ingredient.unit.as("unit"),
                         q.category.name.as("categoryName"),
+                        q.category.id.as("categoryId"), 
                         store.name.as("storeName"),
                         s.minQuantity.as("minQuantity"),
                         hq.unitCost.as("unitCost"),
                         hq.minimumOrderUnit.as("minimumOrderUnit")
                 ))
-                .distinct()
                 .from(q)
                 .leftJoin(q.ingredient)
                 .leftJoin(q.category)
@@ -105,6 +110,13 @@ public class StoreInventoryDslRepository {
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();
+
+            // 중복 id 제거
+            Map<Integer, StoreIngredientDto> map = new LinkedHashMap<>();
+            for (StoreIngredientDto dto : list) {
+                map.put(dto.getId(), dto);
+            }
+            return new ArrayList<>(map.values());
     }
 
     

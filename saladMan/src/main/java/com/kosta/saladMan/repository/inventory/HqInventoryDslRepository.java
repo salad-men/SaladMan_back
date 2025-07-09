@@ -91,7 +91,9 @@ public class HqInventoryDslRepository {
 	            q.ingredient.unit.as("unit"),
 	            q.category.name.as("categoryName"),
 	            store.name.as("storeName"),
-	            s.minQuantity.as("minquantity")
+	            s.minQuantity.as("minquantity"),
+	            q.category.id.as("categoryId"),
+	            q.ingredient.id.as("ingredientId")
 	        ))
 	        .from(q)
 	        .leftJoin(q.ingredient)
@@ -157,6 +159,7 @@ public class HqInventoryDslRepository {
 	        .set(q.expiredDate, dto.getExpiredDate())
 	        .set(q.receivedDate, dto.getReceivedDate())
 	        .set(q.reservedQuantity, dto.getReservedQuantity()) 
+	        
 	        .where(q.id.eq(dto.getId()));
 	    clause.execute();
 	}

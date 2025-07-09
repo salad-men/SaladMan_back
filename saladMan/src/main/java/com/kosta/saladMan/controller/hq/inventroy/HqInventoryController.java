@@ -149,10 +149,23 @@ public class HqInventoryController {
 
     // 단일 추가(id 없이 신규)
     @PostMapping("/settings-add")
-    public ResponseEntity<StoreIngredientSettingDto> addSetting(@RequestBody StoreIngredientSettingDto dto) {
-        StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<?> addSetting(@RequestBody StoreIngredientSettingDto dto) {
+        try {
+            StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
+            return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            // 이미 등록된 경우(또는 검증 오류)
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                                 .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            // 예기치 못한 서버 오류
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(Map.of("error", "서버 오류가 발생했습니다."));
+        }
     }
+
+
     
     
     // 카테고리 조회
