@@ -64,6 +64,7 @@ public class StoreIngredient {
                 .categoryId(category != null ? category.getId() : null)
                 .categoryName(category != null ? category.getName() : null)  
                 .ingredientId(ingredient != null ? ingredient.getId() : null)
+                .ingredientName(ingredient != null ? ingredient.getName() : null)
                 .storeId(store != null ? store.getId() : null)
                 .storeName(store != null ? store.getName() : null)
                 .unit(ingredient != null ? ingredient.getUnit() : null)

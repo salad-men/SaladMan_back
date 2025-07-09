@@ -21,6 +21,7 @@ public class IngredientDto {
     private String name;
     private String unit;
     private Boolean available;
+    private Integer price;
 
 
     public Ingredient toEntity() {
@@ -30,6 +31,7 @@ public class IngredientDto {
                 .name(name)
                 .unit(unit)
                 .available(available)
+                .price(price)
                 .build();
     }
 }

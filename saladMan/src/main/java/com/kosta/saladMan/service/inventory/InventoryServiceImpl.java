@@ -174,7 +174,18 @@ public class InventoryServiceImpl implements InventoryService {
         StoreIngredient entity = storeIngredientRepository.findById(dto.getId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 재고 ID: " + dto.getId()));
 
-        // 필요한 필드만 수정 (수량, 단가, 최소주문단위, 유통기한, 입고날짜 등)
+        // 필드 수정 (카테고리, 재료명, 수량, 단가, 최소주문단위, 유통기한, 입고날짜 등)
+        
+        if (dto.getCategoryId() != null) {
+            IngredientCategory category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
+            entity.setCategory(category);
+        }
+        if (dto.getIngredientId() != null) {
+            Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
+                .orElseThrow(() -> new IllegalArgumentException("재료 없음"));
+            entity.setIngredient(ingredient);
+        }
         entity.setQuantity(dto.getQuantity());
         entity.setUnitCost(dto.getUnitCost());
         entity.setMinimumOrderUnit(dto.getMinimumOrderUnit());
@@ -375,12 +386,12 @@ public class InventoryServiceImpl implements InventoryService {
                         .memo(item.getMemo() != null && !item.getMemo().isBlank() ? item.getMemo() : "유통기한 초과로 폐기 처리(즉시완료)")
                         .build();
                 disposalRepository.save(disposal);
-
+            	//폐기 기록 추가
                 InventoryRecord record = InventoryRecord.builder()
                         .ingredient(hqIngredient.getIngredient())
                         .store(hqStore)
                         .quantity(disposalAmount)
-                        .changeType("출고")
+                        .changeType("폐기")
                         .memo("폐기")
                         .date(LocalDateTime.now())
                         .build();
@@ -537,7 +548,7 @@ public class InventoryServiceImpl implements InventoryService {
         return storeInventoryDslRepository.findStoreSettingsByFilters(storeId, categoryId, keyword, offset, PAGE_SIZE);
     }
 
-    // 수정
+    // 재료설정 수정
     @Transactional
     public void updateSetting(StoreIngredientSettingDto dto) {
         if (dto.getId() == null) throw new IllegalArgumentException("id는 필수입니다");
@@ -557,6 +568,9 @@ public class InventoryServiceImpl implements InventoryService {
             .orElseThrow(() -> new IllegalArgumentException("매장 없음"));
         Ingredient ingredient = ingredientRepository.findById(dto.getIngredientId())
             .orElseThrow(() -> new IllegalArgumentException("재료 없음"));
+        // 이미 등록 체크 등은 ingredientId/storeId로만 확인
+        boolean exists = storeIngredientSettingRepository.existsByStoreIdAndIngredientId(dto.getStoreId(), dto.getIngredientId());
+        if (exists) throw new IllegalArgumentException("이미 등록된 재료입니다.");
 
         StoreIngredientSetting entity = StoreIngredientSetting.builder()
             .store(store)
@@ -567,6 +581,7 @@ public class InventoryServiceImpl implements InventoryService {
         StoreIngredientSetting saved = storeIngredientSettingRepository.save(entity);
         return saved.toDto();
     }
+
 
     //전체 재료 조회
     @Override
@@ -644,10 +659,14 @@ public class InventoryServiceImpl implements InventoryService {
     public void deleteCategory(Integer categoryId) {
         IngredientCategory cat = categoryRepository.findById(categoryId)
             .orElseThrow(() -> new IllegalArgumentException("카테고리 없음: " + categoryId));
-        // (선택) 연관 재료를 먼저 삭제하거나 분리 처리
-        // ingredientRepository.deleteByCategoryId(categoryId);
+
+        // (1) 해당 카테고리의 재료 먼저 삭제
+        ingredientRepository.deleteByCategoryId(categoryId);
+
+        // (2) 카테고리 삭제
         categoryRepository.delete(cat);
     }
+
     
     
 
