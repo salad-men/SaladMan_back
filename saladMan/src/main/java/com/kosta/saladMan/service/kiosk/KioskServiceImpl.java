@@ -49,6 +49,7 @@ import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.repository.saleOrder.SaleOrderItemRepository;
 import com.kosta.saladMan.repository.saleOrder.SaleOrderRepository;
 import com.kosta.saladMan.repository.user.MenuIngredientRepository;
+import com.kosta.saladMan.service.menu.StoreMenuService;
 import com.kosta.saladMan.util.OutOfStockException;
 
 @Service
@@ -84,6 +85,9 @@ public class KioskServiceImpl implements KioskService {
 	
 	@Autowired
 	private OrderCancellationService orderCancellationService;
+	
+	@Autowired
+	private StoreMenuService storeMenuService;
 
 	@Value("${toss.test-secret-key}")
 	private String tossSecretKey;
@@ -203,53 +207,66 @@ public class KioskServiceImpl implements KioskService {
 	            // 해당 메뉴 재료
 	            List<MenuIngredient> ingredients = menuIngredientRepository.findByMenuId(item.getMenuId());
 	            for (MenuIngredient mi : ingredients) {
-	                List<StoreIngredient> siList = storeIngredientRepository
+	                
+	            	List<StoreIngredient> siList = storeIngredientRepository
 	                        .findByStoreAndIngredientId(saleOrder.getStore(), mi.getIngredient().getId());
-	                if (siList.isEmpty()) {
-	                    throw new OutOfStockException("재고 정보가 없습니다.");
-	                }
-	                StoreIngredient si = siList.get(0);
-
+	                
 	                int deduction = mi.getQuantity() * item.getQuantity();
-	                if (si.getQuantity() < deduction) {
-	                    throw new OutOfStockException("재고 부족: " + mi.getIngredient().getName());
+	                boolean isOutOfStock = false;
+	                
+	                if (siList.isEmpty()) {
+	                    // ❗ 재고 정보 자체가 없을 경우 품절 처리 대상으로 판단
+	                    isOutOfStock = true;
+	                }else {
+	                    StoreIngredient si = siList.get(0);
+
+	                    if (si.getQuantity() < deduction) {
+	                        isOutOfStock = true;
+	                    } else {
+	                        // 정상 차감
+	                        si.setQuantity(si.getQuantity() - deduction);
+
+	                        // 출고 기록 저장
+	                        InventoryRecord record = new InventoryRecord();
+	                        record.setChangeType("출고");
+	                        record.setDate(LocalDateTime.now());
+	                        record.setMemo("매장 판매");
+	                        record.setQuantity(deduction);
+	                        record.setIngredient(mi.getIngredient());
+	                        record.setStore(saleOrder.getStore());
+	                        inventoryRecordRepository.save(record);
+	                    }
 	                }
 
-	                // 차감
-	                si.setQuantity(si.getQuantity() - deduction);
-
-	                // 출고 기록 저장
-	                InventoryRecord record = new InventoryRecord();
-	                record.setChangeType("출고");
-	                record.setDate(LocalDateTime.now());
-	                record.setMemo("매장 판매");
-	                record.setQuantity(deduction);
-	                record.setIngredient(mi.getIngredient());
-	                record.setStore(saleOrder.getStore());
-	                inventoryRecordRepository.save(record);
-
-	                // 품절 여부 검사
-	                int remaining = si.getQuantity();
-	                int required = mi.getQuantity();
-	                if (remaining < required) {
-	                    // 이 재료로 하나라도 못만듦
-	                    // 이 재료를 사용하는 모든 메뉴 ID 찾기
+	                if (isOutOfStock) {
+	                    // ❗ ingredient 이름 미리 꺼내두기
+	                    String ingredientName = mi.getIngredient().getName();
+	                    
+	                    // ❗ 해당 재료로 품절처리 대상 메뉴 식별
 	                    List<Integer> menuIds = menuIngredientRepository.findMenuIdsByIngredientId(mi.getIngredient().getId());
+	                    System.out.println("❗ 품절 처리 대상 메뉴 IDs: " + menuIds);
+	                   
+	                    try {
+							storeMenuService.markSoldOut(saleOrder.getStore().getId(), menuIds);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 
-	                    // 현재 매장에서 파는 메뉴 중에서 해당 메뉴들 찾기
-	                    List<StoreMenu> storeMenus = storeMenuRepository.findByStoreAndMenuIds(saleOrder.getStore().getId(), menuIds);
 
-	                    for (StoreMenu sm : storeMenus) {
-	                        sm.setIsSoldOut(true);
-	                    }
+
+	                    // ❗ 주문 전체 취소 로직도 호출
+	                    orderCancellationService.markOrderCanceled(saleOrder.getId());
+
+	                    // ❗ 이제 예외 던지기
+	                    throw new OutOfStockException("재고 없음 또는 부족: " + ingredientName);
 	                }
 	            }
 	        }
-		} catch (OutOfStockException ex) {
-			ex.printStackTrace();
-			orderCancellationService.markOrderCanceled(saleOrder.getId());
-			throw ex; // 다시 예외 던지기
-		}
+	    } catch (OutOfStockException ex) {
+	        ex.printStackTrace();
+	        throw ex;
+	    }
 
 	}
 	

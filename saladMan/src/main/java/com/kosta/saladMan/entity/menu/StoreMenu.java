@@ -1,5 +1,6 @@
 package com.kosta.saladMan.entity.menu;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -38,6 +39,7 @@ public class StoreMenu {
 
     private Boolean status;
     
+    @Column(name = "is_sold_out") 
     private Boolean isSoldOut;
     
 }

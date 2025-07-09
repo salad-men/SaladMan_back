@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
@@ -235,4 +237,11 @@ public class StoreMenuServiceImpl implements StoreMenuService {
             menuIngredientRepository.save(menuIngredient);
         }
     }
+	
+	//메뉴 품절처리
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void markSoldOut(Integer storeId, List<Integer> menuIds) throws Exception {
+        int updatedCount = storeMenuRepository.markMenusSoldOut(storeId, menuIds);
+	}
 }

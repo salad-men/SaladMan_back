@@ -22,4 +22,6 @@ public interface StoreMenuService {
 	List<IngredientInfoDto> getIngredientInfo() throws Exception;
 	List<MenuCategoryDto> getMenuCategory() throws Exception;
 	void registerMenu(MenuRegisterDto dto, MultipartFile imageFile);
+	
+	void markSoldOut(Integer storeId, List<Integer> menuIds) throws Exception;
 }

@@ -16,7 +16,7 @@ public class OrderCancellationService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void markOrderCanceled(Integer saleOrderId) {
         saleOrderRepository.updateStatus(saleOrderId, "결제취소");
         paymentRepository.updateStatus(saleOrderId, "CANCELED");
