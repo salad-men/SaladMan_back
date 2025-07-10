@@ -1,6 +1,8 @@
 package com.kosta.saladMan.entity.alarm;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
@@ -45,5 +47,5 @@ public class Alarm {
     private String content;
     
     @CreationTimestamp
-    private LocalDate sentAt;
+    private LocalDateTime sendAt;
 }

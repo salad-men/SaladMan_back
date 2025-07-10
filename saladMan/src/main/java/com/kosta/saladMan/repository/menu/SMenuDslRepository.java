@@ -141,14 +141,16 @@ public class SMenuDslRepository {
 	            ingredient.name,
 	            ingredient.unit,
 	            ingredient.category.id.as("categoryId"),
-	            category.name,	            
+	            ingredient.price,
+	            category.name,
 	            roundedPrice
 	        ))
 	        .from(ingredient)
 	        .join(ingredient.category, category)
-	        .join(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
+	        .leftJoin(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
 	        .where(category.id.ne(8))
 	        .groupBy(ingredient.id, ingredient.name, category.name, ingredient.unit)  // groupBy 추가
+	        .orderBy(ingredient.name.asc())
 	        .fetch();
 	}
 

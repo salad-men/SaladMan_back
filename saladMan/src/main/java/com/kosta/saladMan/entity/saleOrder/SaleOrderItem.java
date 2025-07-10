@@ -11,6 +11,8 @@ import javax.persistence.FetchType;
 
 import org.hibernate.annotations.DynamicInsert;
 
+import com.kosta.saladMan.entity.menu.TotalMenu;
+
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;

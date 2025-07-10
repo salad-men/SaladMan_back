@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.alarm.AlarmDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
@@ -143,17 +144,14 @@ public class AutoOrderScheduler {
 					System.err.println("[" + store.getName() + "] 품목 처리 실패 - 재료 ID: "
 							+ fixedItem.getIngredient().getId() + ", 사유: " + e.getMessage());
 
-					AlarmMsg alarmMsg = alarmMsgRepository.findById(3)
-							.orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+			        SendAlarmDto alarmDto = SendAlarmDto.builder()
+			                .storeId(store.getId())
+			                .alarmMsgId(3) // 템플릿 ID만 넘김
+			                .build();
 
-					AlarmDto alarmDto = new AlarmDto();
-					alarmDto.setStoreId(store.getId());
-					alarmDto.setTitle(alarmMsg.getTitle());
-					alarmDto.setContent(alarmMsg.getContent());
-					fcmMessageService.sendAlarm(alarmDto);
-					System.out.println("AutoOrderFAIL-Alarm :" + alarmDto);
-
-					return null;
+			        fcmMessageService.sendAlarm(alarmDto);
+			        
+			        return null;
 				}
 			}).filter(Objects::nonNull).collect(Collectors.toList());
 
@@ -166,20 +164,17 @@ public class AutoOrderScheduler {
 				orderService.createOrder(store, orderItemList, "자동발주");
 				System.out.println(store.getName() + " 자동발주 생성 완료");
 
-				AlarmMsg alarmMsg = alarmMsgRepository.findById(2).orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+				SendAlarmDto alarmDto = SendAlarmDto.builder()
+		                .storeId(store.getId())
+		                .alarmMsgId(2) // 템플릿 ID만 넘김
+		                .build();
 
-				AlarmDto alarmDto = new AlarmDto();
-				alarmDto.setStoreId(store.getId());
-				alarmDto.setTitle(alarmMsg.getTitle());
-				alarmDto.setContent(alarmMsg.getContent());
-				fcmMessageService.sendAlarm(alarmDto);
-				System.out.println("AutoOrder-Alarm :" + alarmDto);
+		        fcmMessageService.sendAlarm(alarmDto);
 
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.err.println(store.getName() + " 자동발주 실패: " + e.getMessage());
 			}
-
 		}
 	}
 

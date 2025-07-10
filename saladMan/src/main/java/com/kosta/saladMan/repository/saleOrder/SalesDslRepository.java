@@ -27,6 +27,7 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 @Repository
@@ -46,6 +47,7 @@ public class SalesDslRepository {
 	public List<DailySalesDto> getGroupedSales(Integer storeId, LocalDateTime start, LocalDateTime end, GroupType groupType) {
 	    QSaleOrder saleOrder = QSaleOrder.saleOrder;
 	    QSaleOrderItem item = QSaleOrderItem.saleOrderItem;
+	    QTotalMenu menu = QTotalMenu.totalMenu;
 
 	    Expression<String> groupExpr;
 	    switch (groupType) {
@@ -60,20 +62,30 @@ public class SalesDslRepository {
 	        	groupExpr = Expressions.stringTemplate("DATE_FORMAT({0}, '%Y-%m-%d')", saleOrder.orderTime);
 	            break;
 	    }
+	    // 원가 = sum(originPrice * quantity)
+	    NumberExpression<Integer> cost = menu.originPrice.multiply(item.quantity).sum().intValue();
 	    
+	    // 매출 = item.price.sum().intValue() (기존)
+	    // 순수익 = 매출 - 원가
+	    NumberExpression<Integer> revenue = item.price.sum().intValue();
+	    NumberExpression<Integer> profit = revenue.subtract(cost);
+
 	    return jpaQueryFactory.select(Projections.fields(
-	                DailySalesDto.class,
-	                ExpressionUtils.as(groupExpr, "date"),
-	                item.quantity.sum().intValue().as("quantity"),
-	                item.price.sum().intValue().as("revenue")
-	            ))
-	            .from(item)
-	            .join(item.saleOrder, saleOrder)
-	            .where(saleOrder.orderTime.between(start, end)
-	            		.and(storeId != null ? saleOrder.store.id.eq(storeId) : null))
-	            .groupBy(groupExpr)
-	            .orderBy(new OrderSpecifier(Order.ASC, groupExpr))
-	            .fetch();
+                DailySalesDto.class,
+                ExpressionUtils.as(groupExpr, "date"),
+                ExpressionUtils.as(item.quantity.sum().intValue(), "quantity"),
+                ExpressionUtils.as(revenue, "revenue"),
+                ExpressionUtils.as(cost, "cost"),
+                ExpressionUtils.as(profit, "profit")
+            ))
+            .from(item)
+            .join(item.saleOrder, saleOrder)
+            .join(menu).on(item.menuId.eq(menu.id))
+            .where(saleOrder.orderTime.between(start, end)
+                    .and(storeId != null ? saleOrder.store.id.eq(storeId) : null))
+            .groupBy(groupExpr)
+            .orderBy(new OrderSpecifier<>(Order.DESC, groupExpr))
+            .fetch();
 	}
 	
 	// 메뉴별 매출조회

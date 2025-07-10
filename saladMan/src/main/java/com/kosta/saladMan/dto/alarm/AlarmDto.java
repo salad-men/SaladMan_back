@@ -1,6 +1,7 @@
 package com.kosta.saladMan.dto.alarm;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public class AlarmDto {
     private Boolean isRead;
     private String title;
     private String content;
-    private LocalDate sentAt;
+    private LocalDateTime sendAt;
 
     public Alarm toEntity() {
         return Alarm.builder()
@@ -29,7 +30,7 @@ public class AlarmDto {
                 .isRead(isRead)
                 .title(title)
                 .content(content)
-                .sentAt(sentAt)
+                .sendAt(sendAt)
                 .build();
     }
 }

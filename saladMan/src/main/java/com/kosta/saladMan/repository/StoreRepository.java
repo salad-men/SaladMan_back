@@ -40,5 +40,8 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
 	@Query("select new com.kosta.saladMan.dto.store.StoreDto(s.id, s.name) from Store s where s.name != '본사'")
 	List<StoreDto> findAllStoreNamesId();
 	
+	@Query("SELECT s.id FROM Store s")
+	List<Integer> findAllStoreIds();
+	
 	
 }

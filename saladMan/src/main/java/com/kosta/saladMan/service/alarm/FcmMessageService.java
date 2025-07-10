@@ -1,6 +1,7 @@
 package com.kosta.saladMan.service.alarm;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,9 +14,12 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.kosta.saladMan.dto.alarm.AlarmDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.entity.alarm.Alarm;
+import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.alarm.AlarmMsgRepository;
 import com.kosta.saladMan.repository.alarm.AlarmRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,12 +27,23 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class FcmMessageService {
+	
 	private final FirebaseMessaging firebaseMessaging;
 	private final StoreRepository storeRepository;
 	private final AlarmRepository alarmRepository;
+	private final AlarmMsgRepository alarmMsgRepository;
 	
 	@Transactional
-	public Boolean sendAlarm(AlarmDto messageDto) {
+	public Boolean sendAlarm(SendAlarmDto messageDto) {
+		
+		// 메시지 템플릿 ID가 있으면 DB에서 title/content 가져오기
+	    if (messageDto.getAlarmMsgId() != null) {
+	        AlarmMsg alarmMsg = alarmMsgRepository.findById(messageDto.getAlarmMsgId())
+	                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+	        messageDto.setTitle(alarmMsg.getTitle());
+	        messageDto.setContent(alarmMsg.getContent());
+	    }
+	    
 		//1. Id로 fcmToken 가져오기
 		Optional<Store> ouser = storeRepository.findById(messageDto.getStoreId());
 		if(ouser.isEmpty()) {
@@ -54,7 +69,6 @@ public class FcmMessageService {
 			    .title(messageDto.getTitle())
 			    .content(messageDto.getContent())
 			    .isRead(false)
-			    .sentAt(LocalDate.now())
 			    .build();
 			alarmRepository.save(alarm);
 			System.out.println("FcmMessageService : " + alarm);
