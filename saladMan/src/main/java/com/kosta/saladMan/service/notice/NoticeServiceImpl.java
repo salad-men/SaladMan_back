@@ -113,6 +113,10 @@ public class NoticeServiceImpl implements NoticeService {
             pages = noticeRepository.findAll(pageable);
         } else if ("title".equals(field)) {
             pages = noticeRepository.findByTitleContaining(keyword, pageable);
+        } else if("content".equals(field)){
+        	pages = noticeRepository.findByContentContaining(keyword, pageable);
+        } else if("all".equals(field)){
+        	pages = noticeRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
         } else {
             pages = noticeRepository.findAll(pageable);
         }
