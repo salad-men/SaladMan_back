@@ -2,6 +2,7 @@ package com.kosta.saladMan.service.notice;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
 import com.kosta.saladMan.dto.alarm.AlarmDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.dto.notice.NoticeDto;
 import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.notice.Notice;
@@ -48,17 +49,14 @@ public class NoticeServiceImpl implements NoticeService {
         Notice entity = noticeDto.toEntity();
         noticeRepository.save(entity);
         
-        //alarm
-        AlarmMsg alarmMsg = alarmMsgRepository.findById(4)
-                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
+        //alarm     
+        List<Integer> storeList = storeRepository.findAllStoreIds();
         
-        List<Store> storeList = storeRepository.findAll();
-        
-        for (Store store : storeList) {
-            AlarmDto alarmDto = new AlarmDto();
-            alarmDto.setStoreId(store.getId());
-            alarmDto.setTitle(alarmMsg.getTitle());
-            alarmDto.setContent(alarmMsg.getContent());
+        for (Integer store : storeList) {
+        	SendAlarmDto alarmDto = SendAlarmDto.builder()
+                    .storeId(store)
+                    .alarmMsgId(4) // 템플릿 ID만 넘김
+                    .build();
             
             fcmMessageService.sendAlarm(alarmDto);
         }

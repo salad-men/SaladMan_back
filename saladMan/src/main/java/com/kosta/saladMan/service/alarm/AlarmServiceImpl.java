@@ -42,9 +42,9 @@ public class AlarmServiceImpl implements AlarmService {
 		            alarm.getId(),
 		            alarm.getStore().getId(),
 		            alarm.getIsRead(),
-		            alarm.getTitle(),		            
+		            alarm.getTitle(),
 		            alarm.getContent(),
-		            alarm.getSentAt()
+		            alarm.getSendAt()
 		        ))
 		        .collect(Collectors.toList());
 	}

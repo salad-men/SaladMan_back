@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.alarm.AlarmDto;
 import com.kosta.saladMan.dto.alarm.AlarmMsgDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.alarm.FcmMessageService;
 
@@ -55,7 +56,7 @@ public class FcmController {
 	}
 	
 	@PostMapping("/sendAlarm")
-	public ResponseEntity<Boolean> sendAlarm(@RequestBody AlarmDto messageDto) {
+	public ResponseEntity<Boolean> sendAlarm(@RequestBody SendAlarmDto messageDto) {
 		System.out.println(messageDto);
 		Boolean sendSucces = fcmMessageService.sendAlarm(messageDto);
 		return new ResponseEntity<Boolean>(sendSucces, HttpStatus.OK);
