@@ -15,6 +15,7 @@ public class IngredientInfoDto {
 	private String name;
 	private String unit;
 	private Integer categoryId;
+	private Integer price;
 	//ingredient_category
 	private String category;
 	

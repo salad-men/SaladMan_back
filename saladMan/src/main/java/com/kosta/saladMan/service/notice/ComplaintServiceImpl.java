@@ -5,6 +5,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.dto.alarm.AlarmDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.dto.notice.ComplaintDto;
 import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.notice.Complaint;
@@ -104,17 +105,14 @@ public class ComplaintServiceImpl implements ComplaintService {
 	        complaint.setIsHqRead(true);   // 본사가 읽음 표시
 	        complaintRepository.save(complaint);
 	        
-	        AlarmMsg alarmMsg = alarmMsgRepository.findById(1)
-	                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
-	        
-	        AlarmDto alarmDto = new AlarmDto();
-	        alarmDto.setStoreId(complaint.getStore().getId());
-	        alarmDto.setTitle(alarmMsg.getTitle());
-	        alarmDto.setContent(alarmMsg.getContent());
+	        SendAlarmDto alarmDto = SendAlarmDto.builder()
+	                .storeId(complaint.getStore().getId())
+	                .alarmMsgId(1) // 템플릿 ID만 넘김
+	                .build();
+
 	        fcmMessageService.sendAlarm(alarmDto);
 	        System.out.println("Complaint-Alarm :"+alarmDto);
         }
-
     }
     
     @Override

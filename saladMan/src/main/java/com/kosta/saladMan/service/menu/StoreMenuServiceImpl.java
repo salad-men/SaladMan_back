@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
 import com.kosta.saladMan.dto.alarm.AlarmDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.dto.inventory.IngredientDto;
 import com.kosta.saladMan.dto.menu.IngredientInfoDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
@@ -211,16 +212,13 @@ public class StoreMenuServiceImpl implements StoreMenuService {
         totalMenuRepository.save(menu);
         
         //alarm
-        AlarmMsg alarmMsg = alarmMsgRepository.findById(5)
-                .orElseThrow(() -> new RuntimeException("알림 메시지 없음"));
-        
         List<Store> storeList = storeRepository.findAll();
         
         for (Store store : storeList) {
-            AlarmDto alarmDto = new AlarmDto();
-            alarmDto.setStoreId(store.getId());
-            alarmDto.setTitle(alarmMsg.getTitle());
-            alarmDto.setContent(alarmMsg.getContent());
+        	SendAlarmDto alarmDto = SendAlarmDto.builder()
+	                .storeId(store.getId())
+	                .alarmMsgId(5) // 템플릿 ID만 넘김
+	                .build();
             
             fcmMessageService.sendAlarm(alarmDto);
         }
