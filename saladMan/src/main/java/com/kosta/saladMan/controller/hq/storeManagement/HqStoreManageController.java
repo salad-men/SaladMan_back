@@ -1,5 +1,6 @@
 package com.kosta.saladMan.controller.hq.storeManagement;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,13 +72,19 @@ public class HqStoreManageController {
 	@GetMapping("/storeAccountList")
 	public ResponseEntity<Page<StoreDto>> getStoreAccountList(
 			@RequestParam(required = false, defaultValue = "전체 지역") String location,
-			@RequestParam(required = false) String status, @RequestParam(required = false) String keyword,
+			@RequestParam(required = false, defaultValue = "") String status, @RequestParam(required = false) String keyword,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 		Page<StoreDto> storePage = hqStoreManagementService.searchStores(location, status, keyword, pageable);
 		return ResponseEntity.ok(storePage);
 
+	}
+	
+	@GetMapping("/storeNamesByLocation")
+	public ResponseEntity<List<String>> getStoreNamesByLocation(@RequestParam String location) {
+	    List<String> storeNames = hqStoreManagementService.getStoreNamesByLocation(location);
+	    return ResponseEntity.ok(storeNames);
 	}
 
 	@GetMapping("/storeAccountDetail")

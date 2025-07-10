@@ -1,5 +1,6 @@
 package com.kosta.saladMan.service.store;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,12 +122,19 @@ public class StoreManagementServiceImpl implements StoreManagementService {
 		targetStore.setPassword(encodedPassword);
 		storeRepository.save(targetStore);
 	}
-
+	
+	@Override
 	public void closeStore(CloseStoreDto dto) {
 	    Store store = storeRepository.findById(dto.getId())
 	        .orElseThrow(() -> new RuntimeException("매장을 찾을 수 없습니다."));
 	    store.setClosedAt(dto.getClosedAt()); //
 	    storeRepository.save(store);
+	}
+
+	@Override
+	public List<String> getStoreNamesByLocation(String location) {
+		List<String> storeList = storeDslRepository.findStoreNamesByLocation(location);
+		return storeList;
 	}
 
 }

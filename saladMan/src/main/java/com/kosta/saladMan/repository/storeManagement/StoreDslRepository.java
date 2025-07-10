@@ -35,20 +35,24 @@ public class StoreDslRepository {
             where.and(store.location.eq(location));
         }
 
-        if (status != null && !status.equals("전체 상태")) {
-            if (status.equals("활성")) {
+        if (status != null && !status.equals("매장상태")) {
+            if (status.equals("운영중")) {
                 where.and(store.closedAt.isNull());
-            } else if (status.equals("비활성")) {
+            } else if (status.equals("운영종료")) {
                 where.and(store.closedAt.isNotNull());
             }
         }
 
         if (keyword != null && !keyword.isBlank()) {
-            where.and(store.name.containsIgnoreCase(keyword).or(store.username.containsIgnoreCase(keyword)));
+            where.and(store.name.containsIgnoreCase(keyword)
+            		.or(store.username.containsIgnoreCase(keyword))
+            		.or(store.address.containsIgnoreCase(keyword))
+            		.or(store.phoneNumber.containsIgnoreCase(keyword))
+            );
         }
 
         List<Store> results = jpaQueryFactory
-                .selectFrom(store) // 여기도 .select(store.id, ...)가 아닌 .selectFrom(store) 써야 entity 반환됨
+                .selectFrom(store)
                 .where(where)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -65,5 +69,16 @@ public class StoreDslRepository {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(storeList, pageable, total);
+    }
+    
+    public List<String> findStoreNamesByLocation(String location) {
+        QStore store = QStore.store;
+
+        return jpaQueryFactory
+                .select(store.name)
+                .from(store)
+                .where(store.address.contains(location))
+                .orderBy(store.name.asc())
+                .fetch();
     }
 }

@@ -1,5 +1,7 @@
 package com.kosta.saladMan.service.store;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,5 +21,7 @@ public interface StoreManagementService {
 	Boolean updateStore(StoreUpdateDto storeUpdateDto) throws Exception;
 	void resetStorePassword(Store admin, ResetStorePasswordDto dto) throws Exception;
 	void closeStore(CloseStoreDto dto) throws Exception;
+	
+	List<String> getStoreNamesByLocation(String location);
 
 }
