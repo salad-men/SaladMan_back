@@ -1,5 +1,7 @@
 package com.kosta.saladMan.service.inventory;
 
+import com.kosta.saladMan.dto.dashboard.DisposalSummaryDto;
+import com.kosta.saladMan.dto.dashboard.InventoryExpireSummaryDto;
 import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
@@ -748,6 +750,36 @@ public class InventoryServiceImpl implements InventoryService {
             .date(LocalDateTime.now())
             .build();
         recordRepository.save(record);
+    }
+
+    
+ // 임박재고 Top3+전체건수 
+    @Override
+    public InventoryExpireSummaryDto getExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
+        return hqInventoryDslRepository.findExpireSummaryTop3WithCountMerged(startDate, endDate);
+    }
+
+
+    // 폐기 Top3+전체건수 
+    @Override
+    public DisposalSummaryDto getDisposalSummaryTop3WithCountMerged(String startDate, String endDate) {
+        return hqInventoryDslRepository.findDisposalSummaryTop3WithCountMerged(startDate, endDate);
+    }
+    
+    //재고 부족
+    @Override
+    public int getLowStockCount() {
+        Integer hqStoreId = 1;
+        // 재고 전체를 불러오고 minQuantity 이하 필터
+        List<HqIngredientDto> all = getHqInventory(hqStoreId, null, null, null, null, new PageInfo(1), null);
+        int cnt = 0;
+        for (HqIngredientDto i : all) {
+            // quantity가 null이 아니고, minQuantity도 null이 아니고, quantity <= minQuantity면 재고부족으로 집계
+            if (i.getQuantity() != null && i.getMinquantity() != null && i.getQuantity() <= i.getMinquantity()) {
+                cnt++;
+            }
+        }
+        return cnt;
     }
 
     

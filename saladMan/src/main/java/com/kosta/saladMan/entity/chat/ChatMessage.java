@@ -40,6 +40,7 @@ public class ChatMessage extends BaseTimeEntity {
         return ChatMessageDto.builder()
                 .message(content)
                 .senderUsername(store.getUsername())
+                .senderStoreName(store.getName())
                 .roomId(chatRoom.getId())     
                 .roomName(chatRoom.getName()) 
                 .build();
