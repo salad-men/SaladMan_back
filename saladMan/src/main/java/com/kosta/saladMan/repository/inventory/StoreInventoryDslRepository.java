@@ -1,5 +1,6 @@
 package com.kosta.saladMan.repository.inventory;
 
+import com.kosta.saladMan.dto.dashboard.MainStockSummaryDto;
 import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
@@ -376,6 +377,40 @@ public class StoreInventoryDslRepository {
                 .from(setting)
                 .where(builder)
                 .offset(offset)
+                .limit(limit)
+                .fetch();
+    }
+    
+    
+    
+    
+    public List<MainStockSummaryDto> findTopUsedIngredients(
+            Integer storeId, LocalDate startDate, int limit
+    ) {
+        QInventoryRecord ir = QInventoryRecord.inventoryRecord;
+        QIngredient ingredient = QIngredient.ingredient;
+        QIngredientCategory category = QIngredientCategory.ingredientCategory;
+
+        // QueryDSL Group By, SUM
+        return queryFactory
+                .select(Projections.constructor(
+                        MainStockSummaryDto.class,
+                        ingredient.id,
+                        ingredient.name,
+                        category.name,
+                        ir.quantity.sum().as("totalUsedQuantity"),
+                        ingredient.unit
+                ))
+                .from(ir)
+                .leftJoin(ir.ingredient, ingredient)
+                .leftJoin(ingredient.category, category)
+                .where(
+                        ir.store.id.eq(storeId),
+                        ir.changeType.eq("사용"),
+                        ir.date.goe(startDate.atStartOfDay())
+                )
+                .groupBy(ingredient.id, ingredient.name, category.name, ingredient.unit)
+                .orderBy(ir.quantity.sum().desc())
                 .limit(limit)
                 .fetch();
     }

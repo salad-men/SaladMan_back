@@ -2,6 +2,7 @@ package com.kosta.saladMan.controller.chat;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.kosta.saladMan.dto.chat.ChatMessageDto;
@@ -116,6 +117,23 @@ public class ChatController {
         chatService.leavePrivateChatRoom(roomId);
         return ResponseEntity.ok().build();
     }
+    
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyStoreInfo() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Store store = storeRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("매장 정보를 찾을 수 없습니다."));
+
+        return ResponseEntity.ok(
+            Map.of(
+                "id", store.getId(),
+                "username", store.getUsername(),
+                "name", store.getName(),
+                "role", store.getRole()
+            )
+        );
+    }
+    
 
 
 }

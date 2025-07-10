@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.DailySalesDto;
@@ -156,5 +157,57 @@ public class SalesDslRepository {
 
         return new PageImpl<>(content, pageRequest, total);
     }   
+    
+    
+    
+    public OrderSummaryDto findOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
+        QSaleOrderItem soi = QSaleOrderItem.saleOrderItem;
+        QTotalMenu tm = QTotalMenu.totalMenu;
+        QSaleOrder so = QSaleOrder.saleOrder;
+
+        LocalDate sDate = startDate != null && !startDate.isBlank() ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = endDate != null && !endDate.isBlank() ? LocalDate.parse(endDate) : null;
+
+        // TOP3 리스트 뽑기
+        List<OrderSummaryDto.OrderItemDto> top3 = jpaQueryFactory
+            .select(Projections.bean(
+                OrderSummaryDto.OrderItemDto.class,
+                tm.name.as("ingredientName"),
+                tm.category.name.as("categoryName"),
+                soi.quantity.sum().as("orderCount"),
+                so.orderTime.stringValue().as("lastOrderDate")
+            ))
+            .from(soi)
+            .join(tm).on(soi.menuId.eq(tm.id))      
+            .join(soi.saleOrder, so)
+            .where(
+                sDate != null ? so.orderTime.goe(sDate.atStartOfDay()) : null,
+                eDate != null ? so.orderTime.loe(eDate.atTime(23,59,59)) : null
+            )
+            .groupBy(tm.name, tm.category.name)
+            .orderBy(soi.quantity.sum().desc())
+            .limit(3)
+            .fetch();
+
+        // 전체 발주 건수
+        Integer totalCount = jpaQueryFactory
+            .select(soi.count().intValue())
+            .from(soi)
+            .join(soi.saleOrder, so)
+            .where(
+                sDate != null ? so.orderTime.goe(sDate.atStartOfDay()) : null,
+                eDate != null ? so.orderTime.loe(eDate.atTime(23,59,59)) : null
+            )
+            .fetchOne();
+
+        // 통합 DTO에 세팅
+        OrderSummaryDto dto = new OrderSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount : 0);
+        return dto;
+    }
+
+
+    
     
 }

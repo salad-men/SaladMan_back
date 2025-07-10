@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
@@ -105,4 +106,12 @@ public class SalesServiceImpl implements SalesService {
                 .map(s -> new StoreFilterDto(s.getId(), s.getName(), s.getLocation()))
                 .collect(Collectors.toList());
 	}
+	
+	
+	@Override
+	public OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
+	    return salesDslRepository.findOrderSummaryTop3WithCountMerged(startDate, endDate);
+	}
+
+
 }

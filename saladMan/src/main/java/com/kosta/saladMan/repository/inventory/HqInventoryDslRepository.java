@@ -1,5 +1,7 @@
 package com.kosta.saladMan.repository.inventory;
 
+import com.kosta.saladMan.dto.dashboard.DisposalSummaryDto;
+import com.kosta.saladMan.dto.dashboard.InventoryExpireSummaryDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
@@ -325,4 +327,117 @@ public class HqInventoryDslRepository {
                 .limit(limit)
                 .fetch();
     }
+    
+    
+    
+ // 임박재고 Top3+전체건수+임박카운트
+    public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
+        QHqIngredient hq = QHqIngredient.hqIngredient;
+
+        LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+
+        // Top3 조회
+        List<InventoryExpireSummaryDto.Item> top3 = queryFactory
+            .select(Projections.bean(
+                InventoryExpireSummaryDto.Item.class,
+                hq.ingredient.name.as("ingredientName"),
+                hq.category.name.as("categoryName"),
+                hq.quantity.as("remainQuantity"),
+                hq.expiredDate.stringValue().as("expiredDate")
+            ))
+            .from(hq)
+            .where(
+                hq.quantity.gt(0),
+                sDate != null ? hq.expiredDate.goe(sDate) : null,
+                eDate != null ? hq.expiredDate.loe(eDate) : null
+            )
+            .orderBy(hq.expiredDate.asc(), hq.quantity.desc())
+            .limit(3)
+            .fetch();
+
+        // 전체 임박재고 건수
+        Long totalCount = queryFactory
+            .select(hq.count())
+            .from(hq)
+            .where(
+                hq.quantity.gt(0),
+                sDate != null ? hq.expiredDate.goe(sDate) : null,
+                eDate != null ? hq.expiredDate.loe(eDate) : null
+            )
+            .fetchOne();
+
+        // 오늘 기준 계산 (D-1, D-DAY)
+        LocalDate today = LocalDate.now();
+
+        // D-1 (내일이 유통기한인 건)
+        Long d1Count = queryFactory
+            .select(hq.count())
+            .from(hq)
+            .where(
+                hq.quantity.gt(0),
+                hq.expiredDate.eq(today.plusDays(1))
+            )
+            .fetchOne();
+
+        // D-DAY (오늘이 유통기한인 건)
+        Long todayCount = queryFactory
+            .select(hq.count())
+            .from(hq)
+            .where(
+                hq.quantity.gt(0),
+                hq.expiredDate.eq(today)
+            )
+            .fetchOne();
+
+        InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
+        dto.setD1Count(d1Count != null ? d1Count.intValue() : 0);
+        dto.setTodayCount(todayCount != null ? todayCount.intValue() : 0);
+
+        return dto;
+    }
+
+
+    // 폐기 Top3+전체건수 (단일 DTO)
+    public DisposalSummaryDto findDisposalSummaryTop3WithCountMerged(String startDate, String endDate) {
+        QDisposal d = QDisposal.disposal;
+
+        LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+
+        List<DisposalSummaryDto.Item> top3 = queryFactory
+            .select(Projections.bean(
+                DisposalSummaryDto.Item.class,
+                d.ingredient.name.as("ingredientName"),
+                d.ingredient.category.name.as("categoryName"),
+                d.quantity,
+                d.requestedAt.stringValue().as("requestedAt")
+            ))
+            .from(d)
+            .where(
+                sDate != null ? d.requestedAt.goe(sDate) : null,
+                eDate != null ? d.requestedAt.loe(eDate) : null
+            )
+            .orderBy(d.requestedAt.desc())
+            .limit(3)
+            .fetch();
+
+        Long totalCount = queryFactory
+            .select(d.count())
+            .from(d)
+            .where(
+                sDate != null ? d.requestedAt.goe(sDate) : null,
+                eDate != null ? d.requestedAt.loe(eDate) : null
+            )
+            .fetchOne();
+
+        DisposalSummaryDto dto = new DisposalSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
+
+        return dto;
+    }
+
 }
