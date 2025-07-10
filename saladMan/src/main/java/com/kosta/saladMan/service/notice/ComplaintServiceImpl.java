@@ -121,4 +121,17 @@ public class ComplaintServiceImpl implements ComplaintService {
     public ComplaintDto save(ComplaintDto dto) {
         return complaintRepository.save(dto.toEntity()).toDto();
     }
+    
+    
+ // 미확인(읽지 않은) 고객문의 개수
+    public int countUnreadComplaintsByStore(Integer storeId) {
+        return complaintRepository.countByStoreIdAndIsRelayTrueAndIsStoreReadFalse(storeId);
+    }
+
+    // 본사 미확인(읽지 않은) 고객문의 카운트
+    @Override
+    public int countUnreadComplaintsByHq() {
+        // isRelay=false, isHqRead=false 인 항목 개수
+        return complaintRepository.countByIsRelayFalseAndIsHqReadFalse();
+    }
 }

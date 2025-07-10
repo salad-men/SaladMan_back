@@ -10,13 +10,19 @@ import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.dashboard.StoreDashboardSummaryDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
+import com.kosta.saladMan.dto.store.ScheduleDto;
 import com.kosta.saladMan.dto.notice.NoticeDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.MenuSalesDto;
 import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.empolyee.EmployeeDslRepository;
 import com.kosta.saladMan.repository.inventory.StoreInventoryDslRepository;
+import com.kosta.saladMan.repository.notice.ComplaintRepository;
+import com.kosta.saladMan.service.empolyee.EmployeeServiceImpl;
 import com.kosta.saladMan.service.inventory.InventoryServiceImpl;
+import com.kosta.saladMan.service.notice.ComplaintServiceImpl;
 import com.kosta.saladMan.service.notice.NoticeServiceImpl;
+import com.kosta.saladMan.service.order.OrderServiceImpl;
 import com.kosta.saladMan.service.saleOrder.SalesServiceImpl;
 
 import java.time.LocalDate;
@@ -31,6 +37,10 @@ public class DashboardService {
     private final NoticeServiceImpl noticeService;
     private final StoreRepository storeRepository;
     private final StoreInventoryDslRepository storeInventoryDslRepository;
+    private final ComplaintServiceImpl complaintService;
+    private final ComplaintRepository complaintRepository;
+    private final OrderServiceImpl orderService;
+    private final EmployeeDslRepository employeeDslRepository;
 
     public DashboardSummaryDto getSummary(String startDate, String endDate) {
         DashboardSummaryDto result = new DashboardSummaryDto();
@@ -68,20 +78,19 @@ public class DashboardService {
             .collect(Collectors.toList());
         result.setStores(stores);
 
-        // 3. 임박재고 TOP3+전체건수 (단일 DTO)
+        // 3. 임박재고 TOP3+전체건수
         InventoryExpireSummaryDto expireSummary = inventoryService.getExpireSummaryTop3WithCountMerged(startDate, endDate);
         result.setExpireSummary(expireSummary);
 
-        // 4. 폐기 TOP3+전체건수 (단일 DTO)
+        // 4. 폐기 TOP3+전체건수
         DisposalSummaryDto disposalSummary = inventoryService.getDisposalSummaryTop3WithCountMerged(startDate, endDate);
         result.setDisposalSummary(disposalSummary);
 
-        // 5. 발주 TOP3+전체건수 (단일 DTO)
+        // 5. 발주 TOP3+전체건수
         OrderSummaryDto orderSummary = salesService.getOrderSummaryTop3WithCountMerged(startDate, endDate);
         result.setOrderSummary(orderSummary);
 
         // 6. 최근 공지 5개
-        @SuppressWarnings("unchecked")
         List<NoticeDto> notices = (List<NoticeDto>) noticeService.searchNoticeList(0, 5, "title", null)
                 .get("noticeList");
         result.setNotices(notices);
@@ -92,56 +101,55 @@ public class DashboardService {
                 : List.of();
         result.setTopMenus(topMenus);
         
-        //8. 재고부족
+        // 8. 재고부족
         int lowStockCount = inventoryService.getLowStockCount();
         result.setLowStockCount(lowStockCount);
 
         return result;
     }
-    
-    public List<MainStockSummaryDto> getTopUsedIngredients(Integer storeId, int days, int limit) {
-        LocalDate monthAgo = LocalDate.now().minusDays(days);
-        return storeInventoryDslRepository.findTopUsedIngredients(storeId, monthAgo, limit);
+
+    // 주간 근무표 조회 (year는 내부에서 자동으로 처리)
+    public List<ScheduleDto> getWeekSchedule(Integer storeId, Integer weekNo) {
+        int year = LocalDate.now().getYear();  // 현재 연도를 자동으로 가져옵니다.
+        
+        // employeeDslRepository에서 직접 데이터를 가져옵니다.
+        return employeeDslRepository.findWeekSchedulesByStore(storeId, weekNo);  
     }
 
-    
-//    public StoreDashboardSummaryDto getStoreSummary(Integer storeId, String startDate, String endDate, int weekNo) {
-//        StoreDashboardSummaryDto dto = new StoreDashboardSummaryDto();
-//
-//        // 1. 매출, 인기메뉴
-//        SalesResultDto sales = salesService.getStoreSales(
-//            storeId, LocalDate.parse(startDate), LocalDate.parse(endDate), GroupType.DAY);
-//        dto.setSales(sales);
-//        dto.setTopMenus(sales.getPopularMenus());
-//
-//        // 2. 임박/폐기
-//        InventoryExpireSummaryDto expireSummary = inventoryService.getExpireSummaryTop3WithCountMerged(startDate, endDate, storeId);
-//        dto.setExpireSummary(expireSummary);
-//
-//        // 3. 자동발주 예정 품목 수
-//        int autoOrderExpectedCount = inventoryService.getAutoOrderExpectedCount(storeId);
-//        dto.setAutoOrderExpectedCount(autoOrderExpectedCount);
-//
-//        // 4. 주요 재고 현황
-//        List<MainStockSummaryDto> mainStocks = inventoryService.getTopUsedIngredients(storeId, 30, 5);
-//        dto.setMainStocks(mainStocks);
-//
-//
-//        // 5. 공지
-//        List<NoticeDto> notices = noticeService.searchNoticeList(0, 5, "title", null).get("noticeList");
-//        dto.setNotices(notices);
-//
-//        // 6. 미확인 문의
-//        int unreadComplaintCount = complaintService.countUnreadComplaintsByStore(storeId);
-//        dto.setUnreadComplaintCount(unreadComplaintCount);
-//
-//        // 7. 주간 근무표
-//        List<ScheduleDto> weekSchedules = scheduleService.getWeekSchedule(storeId, weekNo);
-//        dto.setWeekSchedules(weekSchedules);
-//
-//        return dto;
-//    }
+    // 매장 대시보드 요약 전체 반환
+    public StoreDashboardSummaryDto getStoreSummary(Integer storeId, String startDate, String endDate, int weekNo) {
+        StoreDashboardSummaryDto dto = new StoreDashboardSummaryDto();
 
-    
-    
+        // 매출/주문/인기메뉴
+        StoreSalesResultDto sales = salesService.getStoreSales(storeId, LocalDate.parse(startDate), LocalDate.parse(endDate), SalesResultDto.GroupType.DAY);
+        dto.setSales(sales);
+        dto.setTopMenus(sales.getPopularMenus());
+
+        // 임박/폐기 예정 재고 요약
+        InventoryExpireSummaryDto expireSummary = inventoryService.getStoreExpireSummary(storeId, startDate, endDate);
+        dto.setExpireSummary(expireSummary);
+
+        // 자동 발주 예정 품목 수
+        int autoOrderExpectedCount = orderService.getAutoOrderExpectedCount(storeId);
+        dto.setAutoOrderExpectedCount(autoOrderExpectedCount);
+
+        // 주요 재고
+        List<MainStockSummaryDto> mainStocks = inventoryService.getMainStocksByMonth(storeId);
+        dto.setMainStocks(mainStocks);
+
+        // 최근 공지사항 (최신 5개)
+        List<NoticeDto> notices = noticeService.getRecentNotices(5);
+        dto.setNotices(notices);
+
+        // 고객문의 수
+        int unreadComplaintCount = complaintService.countUnreadComplaintsByStore(storeId);
+        dto.setUnreadComplaintCount(unreadComplaintCount);
+
+        // 주간 근무표
+        List<ScheduleDto> weekSchedules = getWeekSchedule(storeId, weekNo);  
+        dto.setWeekSchedules(weekSchedules);
+
+        return dto;
+    }
 }
+

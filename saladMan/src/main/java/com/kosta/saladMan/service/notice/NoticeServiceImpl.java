@@ -162,4 +162,14 @@ public class NoticeServiceImpl implements NoticeService {
             s3Uploader.delete(key);
         }
     }
+    
+    @Override
+    public List<NoticeDto> getRecentNotices(int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("id").descending());
+        return noticeRepository.findAll(pageable)
+                              .getContent()
+                              .stream()
+                              .map(Notice::toDto)
+                              .collect(Collectors.toList());
+    }
 }

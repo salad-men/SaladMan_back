@@ -4,11 +4,15 @@ import com.kosta.saladMan.dto.dashboard.DashboardSummaryDto;
 import com.kosta.saladMan.dto.dashboard.DisposalSummaryDto;
 import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
+import com.kosta.saladMan.dto.store.ScheduleDto;
+import com.kosta.saladMan.repository.empolyee.EmployeeDslRepository;
 import com.kosta.saladMan.service.dashboard.DashboardService;
 import com.kosta.saladMan.service.inventory.InventoryService;
 import com.kosta.saladMan.service.saleOrder.SalesService;
 import com.kosta.saladMan.util.PageInfo;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -24,7 +28,8 @@ public class HqDashboardController {
     private final InventoryService inventoryService;
     private final SalesService salesService;
     private final DashboardService dashboardService;
-    
+    private final EmployeeDslRepository employeeDslRepository; 
+
     @GetMapping("/summary")
     public DashboardSummaryDto getDashboardSummary(
         @RequestParam(required = false) String startDate,
@@ -40,15 +45,14 @@ public class HqDashboardController {
     @GetMapping("/low-stock")
     public List<HqIngredientDto> getLowStockList() {
         Integer hqStoreId = 1;
-        // 필요한 경우, 'minQuantity' 이하 필터는 서비스 내부에서 추가해도 됨
         return inventoryService.getHqInventory(
                 hqStoreId, 
-                null, // categoryId
-                null, // keyword
-                null, // startDate
-                null, // endDate
+                null, 
+                null, 
+                null, 
+                null, 
                 new PageInfo(1), 
-                null // sortOption
+                null 
         );
     }
 
@@ -80,8 +84,6 @@ public class HqDashboardController {
                 .collect(Collectors.toList());
     }
 
-
-
     /**
      * 발주 집계 (지점 수, 전체 건수 등)
      */
@@ -90,7 +92,6 @@ public class HqDashboardController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ) {
-        // null 전달 시 전체 기간, 필요시 쿼리스트링으로 날짜 지정 가능
         return salesService.getOrderSummaryTop3WithCountMerged(startDate, endDate);
     }
 
@@ -103,5 +104,17 @@ public class HqDashboardController {
             @RequestParam(required = false) String endDate
     ) {
         return inventoryService.getDisposalSummaryTop3WithCountMerged(startDate, endDate);
+    }
+
+    /**
+     * 주간 근무표 조회
+     */
+    @GetMapping("/week-schedule")
+    public ResponseEntity<List<ScheduleDto>> getWeekSchedule(
+        @RequestParam Integer storeId,
+        @RequestParam Integer weekNo
+    ) {
+        List<ScheduleDto> weekSchedules = employeeDslRepository.findWeekSchedulesByStore(storeId, weekNo);
+        return ResponseEntity.ok(weekSchedules);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
 import com.kosta.saladMan.dto.store.EmployeeDto;
+import com.kosta.saladMan.dto.store.ScheduleDto;
 import com.kosta.saladMan.entity.store.Employee;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
@@ -24,6 +25,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeDslRepository employeeDslRepository;
     private final EmployeeRepository employeeRepository;
+    
     private final StoreRepository storeRepository;
     private final S3Uploader s3Uploader;
 
@@ -122,4 +124,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee saved = employeeRepository.save(emp);
         return saved.toDto();
     }
+    
+    @Override
+    public List<ScheduleDto> getWeekSchedule(Integer storeId, int weekNo) {
+        // weekNo를 Integer로 변환하여 전달
+        return employeeDslRepository.findWeekSchedulesByStore(storeId, weekNo);
+    }
+
 }

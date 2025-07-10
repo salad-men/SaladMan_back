@@ -603,5 +603,11 @@ public class OrderServiceImpl implements OrderService {
 		return storeRepository.findAllStoreNamesId();
 	}
 
+	
+	
+	//대시보드
+	public int getAutoOrderExpectedCount(Integer storeId) {
+	    return storeIngredientDslRepository.countAutoOrderExpectedByStore(storeId);
+	}
 
 }

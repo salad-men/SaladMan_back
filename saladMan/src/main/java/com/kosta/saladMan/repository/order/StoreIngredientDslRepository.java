@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.kosta.saladMan.dto.dashboard.InventoryExpireSummaryDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
@@ -135,5 +136,116 @@ public class StoreIngredientDslRepository {
 	    	    )
 	    	    .fetch();
 	}
+	
+	
+	
+	 // 임박재고 Top3+전체건수+임박카운트
+    public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
+        QStoreIngredient si = QStoreIngredient.storeIngredient;
+
+        LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+
+        // Top3 임박재고
+        List<InventoryExpireSummaryDto.Item> top3 = jpaQueryFactory
+            .select(Projections.bean(
+                InventoryExpireSummaryDto.Item.class,
+                si.ingredient.name.as("ingredientName"),
+                si.category.name.as("categoryName"),
+                si.quantity.as("remainQuantity"),
+                si.expiredDate.stringValue().as("expiredDate")
+            ))
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                sDate != null ? si.expiredDate.goe(sDate) : null,
+                eDate != null ? si.expiredDate.loe(eDate) : null
+            )
+            .orderBy(si.expiredDate.asc(), si.quantity.desc())
+            .limit(3)
+            .fetch();
+
+        // 전체 임박재고 건수
+        Long totalCount = jpaQueryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                sDate != null ? si.expiredDate.goe(sDate) : null,
+                eDate != null ? si.expiredDate.loe(eDate) : null
+            )
+            .fetchOne();
+
+        LocalDate today = LocalDate.now();
+
+        // D-1 (내일 유통기한)
+        Long d1Count = jpaQueryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                si.expiredDate.eq(today.plusDays(1))
+            )
+            .fetchOne();
+
+        // D-DAY (오늘 유통기한)
+        Long todayCount = jpaQueryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                si.expiredDate.eq(today)
+            )
+            .fetchOne();
+
+        InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
+        dto.setD1Count(d1Count != null ? d1Count.intValue() : 0);
+        dto.setTodayCount(todayCount != null ? todayCount.intValue() : 0);
+
+        return dto;
+    }
+    
+    
+    
+    // 자동 발주 예정 품목 수 카운트
+    public int countAutoOrderExpectedByStore(Integer storeId) {
+        QStoreIngredientSetting setting = QStoreIngredientSetting.storeIngredientSetting;
+        QStoreIngredient stock = QStoreIngredient.storeIngredient;
+        QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
+        QPurchaseOrderItem orderItem = QPurchaseOrderItem.purchaseOrderItem;
+
+        // 최소수량 > (재고 + 입고대기)
+        Long count = jpaQueryFactory
+                .select(setting.count())
+                .from(setting)
+                .leftJoin(stock).on(
+                        setting.store.id.eq(stock.store.id)
+                        .and(setting.ingredient.id.eq(stock.ingredient.id))
+                )
+                .where(
+                        setting.store.id.eq(storeId),
+                        // 최소수량 > (재고 + 입고대기)
+                        setting.minQuantity.gt(
+                                stock.quantity.coalesce(0)
+                                        .add(
+                                                JPAExpressions
+                                                        .select(orderItem.orderedQuantity.subtract(orderItem.receivedQuantity).sum().coalesce(0))
+                                                        .from(orderItem)
+                                                        .join(orderItem.purchaseOrder, order)
+                                                        .where(
+                                                                order.store.id.eq(storeId),
+                                                                orderItem.ingredient.id.eq(setting.ingredient.id),
+                                                                order.status.in("대기중")
+                                                        )
+                                        )
+                        )
+                )
+                .fetchOne();
+
+        return count != null ? count.intValue() : 0;
+    }
+    
 
 }
