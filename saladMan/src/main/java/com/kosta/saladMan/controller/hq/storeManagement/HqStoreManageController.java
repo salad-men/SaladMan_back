@@ -82,9 +82,10 @@ public class HqStoreManageController {
 	}
 	
 	@GetMapping("/storeNamesByLocation")
-	public ResponseEntity<List<String>> getStoreNamesByLocation(@RequestParam String location) {
-	    List<String> storeNames = hqStoreManagementService.getStoreNamesByLocation(location);
-	    return ResponseEntity.ok(storeNames);
+	public ResponseEntity<List<Map<String, Object>>> getStoreNamesByLocation(@RequestParam String location) {
+		List<Map<String, Object>> storeNames = hqStoreManagementService.getStoreNamesByLocation(location);
+	    System.out.println(storeNames);
+		return ResponseEntity.ok(storeNames);
 	}
 
 	@GetMapping("/storeAccountDetail")

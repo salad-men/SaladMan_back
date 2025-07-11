@@ -1,6 +1,8 @@
 package com.kosta.saladMan.repository.storeManagement;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -14,6 +16,7 @@ import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.QStore;
 import com.kosta.saladMan.entity.store.Store;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 @Repository
@@ -71,14 +74,20 @@ public class StoreDslRepository {
         return new PageImpl<>(storeList, pageable, total);
     }
     
-    public List<String> findStoreNamesByLocation(String location) {
+    public List<Map<String, Object>> findStoreNamesByLocation(String location) {
         QStore store = QStore.store;
 
-        return jpaQueryFactory
-                .select(store.name)
+        List<Tuple> results = jpaQueryFactory
+                .select(store.id, store.name)
                 .from(store)
-                .where(store.address.contains(location))
-                .orderBy(store.name.asc())
+                .where(store.location.eq(location))
                 .fetch();
+
+            return results.stream().map(tuple -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", tuple.get(store.id));
+                map.put("name", tuple.get(store.name));
+                return map;
+            }).collect(Collectors.toList());
     }
 }
