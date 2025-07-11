@@ -2,6 +2,7 @@ package com.kosta.saladMan.service.inventory;
 
 import com.kosta.saladMan.dto.dashboard.DisposalSummaryDto;
 import com.kosta.saladMan.dto.dashboard.InventoryExpireSummaryDto;
+import com.kosta.saladMan.dto.dashboard.MainStockSummaryDto;
 import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
@@ -128,11 +129,20 @@ public interface InventoryService {
     void addStoreIngredient(StoreIngredientDto dto);
 
     
-  InventoryExpireSummaryDto getExpireSummaryTop3WithCountMerged(String startDate, String endDate);
+    InventoryExpireSummaryDto getExpireSummaryTop3WithCountMerged(String startDate, String endDate);
 
     DisposalSummaryDto getDisposalSummaryTop3WithCountMerged(String startDate, String endDate);
     
     int getLowStockCount();
+
+    
+    InventoryExpireSummaryDto getStoreExpireSummary(Integer storeId, String startDate, String endDate);
+    
+    List<MainStockSummaryDto> getMainStocksByMonth(Integer storeId);
+    
+    int getAutoOrderExpectedCount(Integer storeId);
+
+
 
 }
 

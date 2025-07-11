@@ -1,5 +1,6 @@
 package com.kosta.saladMan.repository.inventory;
 
+import com.kosta.saladMan.dto.dashboard.InventoryExpireSummaryDto;
 import com.kosta.saladMan.dto.dashboard.MainStockSummaryDto;
 import com.kosta.saladMan.dto.inventory.InventoryRecordDto;
 import com.kosta.saladMan.dto.inventory.StoreIngredientDto;
@@ -12,10 +13,13 @@ import com.kosta.saladMan.entity.inventory.QIngredientCategory;
 import com.kosta.saladMan.entity.inventory.QInventoryRecord;
 import com.kosta.saladMan.entity.inventory.QStoreIngredient;
 import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
+import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrder;
+import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrderItem;
 import com.kosta.saladMan.entity.store.QStore;
 import com.querydsl.core.BooleanBuilder;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
@@ -385,33 +389,318 @@ public class StoreInventoryDslRepository {
     
     
     public List<MainStockSummaryDto> findTopUsedIngredients(
-            Integer storeId, LocalDate startDate, int limit
-    ) {
+            Integer storeId, LocalDate fromDate, int limit) {
         QInventoryRecord ir = QInventoryRecord.inventoryRecord;
-        QIngredient ingredient = QIngredient.ingredient;
-        QIngredientCategory category = QIngredientCategory.ingredientCategory;
+        QIngredient i = QIngredient.ingredient;
+        QIngredientCategory c = QIngredientCategory.ingredientCategory;
 
-        // QueryDSL Group By, SUM
+        // 판매로 인한 출고(changeType = '사용') 집계
         return queryFactory
-                .select(Projections.constructor(
-                        MainStockSummaryDto.class,
-                        ingredient.id,
-                        ingredient.name,
-                        category.name,
-                        ir.quantity.sum().as("totalUsedQuantity"),
-                        ingredient.unit
+            .select(Projections.constructor(MainStockSummaryDto.class,
+                    ir.ingredient.id,
+                    i.name,
+                    c.name,
+                    ir.quantity.sum(),   // 주의: 출고라면 음수 합계가 나올 수 있음
+                    i.unit
+            ))
+            .from(ir)
+            .join(ir.ingredient, i)
+            .join(i.category, c)
+            .where(
+                ir.store.id.eq(storeId),
+                ir.changeType.eq("사용"),
+                ir.date.goe(fromDate.atStartOfDay())
+            )
+            .groupBy(ir.ingredient.id, i.name, c.name, i.unit)
+            .orderBy(ir.quantity.sum().abs().desc()) // 출고량 큰 순(절대값)
+            .limit(limit)
+            .fetch();
+    }
+    
+    public int countAutoOrderExpectedItems(Integer storeId) {
+        QStoreIngredientSetting setting = QStoreIngredientSetting.storeIngredientSetting;
+        QStoreIngredient stock = QStoreIngredient.storeIngredient;
+        QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
+        QPurchaseOrderItem orderItem = QPurchaseOrderItem.purchaseOrderItem;
+
+        // 현재 보유 재고 + 입고 대기중 수량
+        // (최소수량 > (재고 + 입고대기)) 인 품목의 개수
+
+        Long count = queryFactory
+                .select(setting.count())
+                .from(setting)
+                // 실제 보유 재고와 연결(없으면 0)
+                .leftJoin(stock).on(
+                    setting.store.id.eq(stock.store.id)
+                    .and(setting.ingredient.id.eq(stock.ingredient.id))
+                )
+                .where(
+                    setting.store.id.eq(storeId),
+                    // 자동발주 세팅이 되어있는 품목만 (autoOrderEnabled == true)
+                    // FixedOrderItem 쪽에 세팅이 있을 때만 카운트하는게 더 정확, 아니면 모든 세팅 품목 대상으로 체크
+                    // 아래는 StoreIngredientSetting 기준, 필요하면 FixedOrderItem 쿼리로도 가능
+
+                    // 최소수량 > (재고 + 입고대기)
+                    setting.minQuantity.gt(
+                        stock.quantity.coalesce(0)
+                            .add(
+                                // 입고 대기중(대기중 상태)인 주문의 미입고 수량 합계
+                                JPAExpressions
+                                    .select(orderItem.orderedQuantity.subtract(orderItem.receivedQuantity).sum().coalesce(0))
+                                    .from(orderItem)
+                                    .join(orderItem.purchaseOrder, order)
+                                    .where(
+                                        order.store.id.eq(storeId),
+                                        orderItem.ingredient.id.eq(setting.ingredient.id),
+                                        order.status.in("대기중") // 입고 전 상태
+                                    )
+                            )
+                    )
+                )
+                .fetchOne();
+
+        return count != null ? count.intValue() : 0;
+    }
+    
+ // InventoryExpireSummaryDto는 기존처럼 Item List, 건수, D-DAY, D-1 포함 DTO 설계
+    public InventoryExpireSummaryDto getExpireSummaryTop3WithCountMerged(String startDate, String endDate, Integer storeId) {
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+
+        // Top3
+        List<InventoryExpireSummaryDto.Item> top3 = queryFactory
+            .select(Projections.bean(
+                InventoryExpireSummaryDto.Item.class,
+                q.ingredient.name.as("ingredientName"),
+                q.category.name.as("categoryName"),
+                q.quantity.as("remainQuantity"),
+                q.expiredDate.stringValue().as("expiredDate")
+            ))
+            .from(q)
+            .where(
+                q.store.id.eq(storeId),
+                q.quantity.gt(0),
+                sDate != null ? q.expiredDate.goe(sDate) : null,
+                eDate != null ? q.expiredDate.loe(eDate) : null
+            )
+            .orderBy(q.expiredDate.asc(), q.quantity.desc())
+            .limit(3)
+            .fetch();
+
+        // 전체 임박재고 건수
+        Long totalCount = queryFactory
+            .select(q.count())
+            .from(q)
+            .where(
+                q.store.id.eq(storeId),
+                q.quantity.gt(0),
+                sDate != null ? q.expiredDate.goe(sDate) : null,
+                eDate != null ? q.expiredDate.loe(eDate) : null
+            )
+            .fetchOne();
+
+        // D-1, D-DAY
+        LocalDate today = LocalDate.now();
+        Long d1Count = queryFactory.select(q.count()).from(q)
+            .where(q.store.id.eq(storeId), q.quantity.gt(0), q.expiredDate.eq(today.plusDays(1))).fetchOne();
+        Long todayCount = queryFactory.select(q.count()).from(q)
+            .where(q.store.id.eq(storeId), q.quantity.gt(0), q.expiredDate.eq(today)).fetchOne();
+
+        InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
+        dto.setD1Count(d1Count != null ? d1Count.intValue() : 0);
+        dto.setTodayCount(todayCount != null ? todayCount.intValue() : 0);
+        return dto;
+    }
+    
+    // 임박재고 Top3+전체건수+임박카운트
+    public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
+        QStoreIngredient si = QStoreIngredient.storeIngredient;
+
+        LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+
+        // Top3 임박재고
+        List<InventoryExpireSummaryDto.Item> top3 = queryFactory
+            .select(Projections.bean(
+                InventoryExpireSummaryDto.Item.class,
+                si.ingredient.name.as("ingredientName"),
+                si.category.name.as("categoryName"),
+                si.quantity.as("remainQuantity"),
+                si.expiredDate.stringValue().as("expiredDate")
+            ))
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                sDate != null ? si.expiredDate.goe(sDate) : null,
+                eDate != null ? si.expiredDate.loe(eDate) : null
+            )
+            .orderBy(si.expiredDate.asc(), si.quantity.desc())
+            .limit(3)
+            .fetch();
+
+        // 전체 임박재고 건수
+        Long totalCount = queryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                sDate != null ? si.expiredDate.goe(sDate) : null,
+                eDate != null ? si.expiredDate.loe(eDate) : null
+            )
+            .fetchOne();
+
+        LocalDate today = LocalDate.now();
+
+        // D-1 (내일 유통기한)
+        Long d1Count = queryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                si.expiredDate.eq(today.plusDays(1))
+            )
+            .fetchOne();
+
+        // D-DAY (오늘 유통기한)
+        Long todayCount = queryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.quantity.gt(0),
+                si.expiredDate.eq(today)
+            )
+            .fetchOne();
+
+        InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
+        dto.setD1Count(d1Count != null ? d1Count.intValue() : 0);
+        dto.setTodayCount(todayCount != null ? todayCount.intValue() : 0);
+
+        return dto;
+    }
+
+    // 자동발주 예정 품목 카운트
+    public int countAutoOrderExpectedByStore(Integer storeId) {
+        QStoreIngredientSetting setting = QStoreIngredientSetting.storeIngredientSetting;
+        QStoreIngredient stock = QStoreIngredient.storeIngredient;
+        QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
+        QPurchaseOrderItem orderItem = QPurchaseOrderItem.purchaseOrderItem;
+
+        Long count = queryFactory
+                .select(setting.count())
+                .from(setting)
+                .leftJoin(stock).on(
+                        setting.store.id.eq(stock.store.id)
+                        .and(setting.ingredient.id.eq(stock.ingredient.id))
+                )
+                .where(
+                        setting.store.id.eq(storeId),
+                        setting.minQuantity.gt(
+                                stock.quantity.coalesce(0)
+                                        .add(
+                                                JPAExpressions
+                                                        .select(orderItem.orderedQuantity.subtract(orderItem.receivedQuantity).sum().coalesce(0))
+                                                        .from(orderItem)
+                                                        .join(orderItem.purchaseOrder, order)
+                                                        .where(
+                                                                order.store.id.eq(storeId),
+                                                                orderItem.ingredient.id.eq(setting.ingredient.id),
+                                                                order.status.in("대기중")
+                                                        )
+                                        )
+                        )
+                )
+                .fetchOne();
+
+        return count != null ? count.intValue() : 0;
+    }
+    
+ // 2. 매장 임박재고 Top3 + 전체건수 + D-1, D-day 개수 (DTO로 반환)
+    public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMergedByStore(
+            Integer storeId, String startDate, String endDate) {
+
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
+        LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+
+        // Top3
+        List<InventoryExpireSummaryDto.Item> top3 = queryFactory
+                .select(Projections.bean(
+                        InventoryExpireSummaryDto.Item.class,
+                        q.ingredient.name.as("ingredientName"),
+                        q.category.name.as("categoryName"),
+                        q.quantity.as("remainQuantity"),
+                        q.expiredDate.stringValue().as("expiredDate")
+                ))
+                .from(q)
+                .where(
+                        q.store.id.eq(storeId),
+                        q.quantity.gt(0),
+                        sDate != null ? q.expiredDate.goe(sDate) : null,
+                        eDate != null ? q.expiredDate.loe(eDate) : null
+                )
+                .orderBy(q.expiredDate.asc(), q.quantity.desc())
+                .limit(3)
+                .fetch();
+
+        // 전체 임박재고 건수
+        Long totalCount = queryFactory
+                .select(q.count())
+                .from(q)
+                .where(
+                        q.store.id.eq(storeId),
+                        q.quantity.gt(0),
+                        sDate != null ? q.expiredDate.goe(sDate) : null,
+                        eDate != null ? q.expiredDate.loe(eDate) : null
+                )
+                .fetchOne();
+
+        LocalDate today = LocalDate.now();
+        Long d1Count = queryFactory.select(q.count()).from(q)
+                .where(q.store.id.eq(storeId), q.quantity.gt(0), q.expiredDate.eq(today.plusDays(1))).fetchOne();
+        Long todayCount = queryFactory.select(q.count()).from(q)
+                .where(q.store.id.eq(storeId), q.quantity.gt(0), q.expiredDate.eq(today)).fetchOne();
+
+        InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
+        dto.setTop3(top3);
+        dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
+        dto.setD1Count(d1Count != null ? d1Count.intValue() : 0);
+        dto.setTodayCount(todayCount != null ? todayCount.intValue() : 0);
+
+        return dto;
+    }
+
+    // 3. 최근 한달간 가장 많이 사용한 재고 Top5 (매장별)
+    public List<MainStockSummaryDto> findMainStocksByStoreForMonth(Integer storeId) {
+        QInventoryRecord ir = QInventoryRecord.inventoryRecord;
+        QIngredient i = QIngredient.ingredient;
+        QIngredientCategory c = QIngredientCategory.ingredientCategory;
+
+        LocalDate monthAgo = LocalDate.now().minusDays(30);
+
+        return queryFactory
+                .select(Projections.constructor(MainStockSummaryDto.class,
+                        ir.ingredient.id,
+                        i.name,
+                        c.name,
+                        ir.quantity.sum(),
+                        i.unit
                 ))
                 .from(ir)
-                .leftJoin(ir.ingredient, ingredient)
-                .leftJoin(ingredient.category, category)
+                .join(ir.ingredient, i)
+                .join(i.category, c)
                 .where(
                         ir.store.id.eq(storeId),
                         ir.changeType.eq("사용"),
-                        ir.date.goe(startDate.atStartOfDay())
+                        ir.date.goe(monthAgo.atStartOfDay())
                 )
-                .groupBy(ingredient.id, ingredient.name, category.name, ingredient.unit)
-                .orderBy(ir.quantity.sum().desc())
-                .limit(limit)
+                .groupBy(ir.ingredient.id, i.name, c.name, i.unit)
+                .orderBy(ir.quantity.sum().abs().desc())
+                .limit(5)
                 .fetch();
     }
 }

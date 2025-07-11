@@ -13,4 +13,9 @@ public interface ComplaintService {
     ComplaintDto detailComplaintHq(Integer id) throws Exception;
     ComplaintDto detailComplaintStore(Integer id) throws Exception;
     void forwardComplaint(Integer id) throws Exception;
+    
+	int countUnreadComplaintsByStore(Integer storeId);
+	int countUnreadComplaintsByHq();
+
+    
 }

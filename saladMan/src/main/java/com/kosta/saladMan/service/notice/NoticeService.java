@@ -2,6 +2,8 @@ package com.kosta.saladMan.service.notice;
 
 import com.kosta.saladMan.dto.notice.NoticeDto;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 import java.util.Map;
 
 public interface NoticeService {
@@ -12,5 +14,6 @@ public interface NoticeService {
     void deleteNotice(Integer id) throws Exception;
     void deleteImg(String url);
     void deleteFile(String url);
-    
+    List<NoticeDto> getRecentNotices(int limit);
+
 }

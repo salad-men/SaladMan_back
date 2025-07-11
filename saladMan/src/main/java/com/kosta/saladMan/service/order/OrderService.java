@@ -68,6 +68,12 @@ public interface OrderService {
     
     //매장 이름만
     List<StoreDto> getStoreName() throws Exception;
+    
+    
+    
+    //-----------------------대시보드---------------------------
+	int getAutoOrderExpectedCount(Integer storeId);
+
 } 
 
 

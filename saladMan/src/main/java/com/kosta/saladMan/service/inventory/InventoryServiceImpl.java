@@ -2,6 +2,7 @@ package com.kosta.saladMan.service.inventory;
 
 import com.kosta.saladMan.dto.dashboard.DisposalSummaryDto;
 import com.kosta.saladMan.dto.dashboard.InventoryExpireSummaryDto;
+import com.kosta.saladMan.dto.dashboard.MainStockSummaryDto;
 import com.kosta.saladMan.dto.inventory.DisposalDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
@@ -756,7 +757,7 @@ public class InventoryServiceImpl implements InventoryService {
  // 임박재고 Top3+전체건수 
     @Override
     public InventoryExpireSummaryDto getExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
-        return hqInventoryDslRepository.findExpireSummaryTop3WithCountMerged(startDate, endDate);
+        return storeInventoryDslRepository.findExpireSummaryTop3WithCountMerged(startDate, endDate);
     }
 
 
@@ -781,6 +782,21 @@ public class InventoryServiceImpl implements InventoryService {
         }
         return cnt;
     }
-
+    
+    @Override
+    public InventoryExpireSummaryDto getStoreExpireSummary(Integer storeId, String startDate, String endDate) {
+        return storeInventoryDslRepository.findExpireSummaryTop3WithCountMergedByStore(storeId, startDate, endDate);
+    }
+    
+    @Override
+    public List<MainStockSummaryDto> getMainStocksByMonth(Integer storeId) {
+        // 최근 1달간 가장 많이 사용한 재고 Top5 반환
+        return storeInventoryDslRepository.findMainStocksByStoreForMonth(storeId);
+    }
+    
+    @Override
+    public int getAutoOrderExpectedCount(Integer storeId) {
+        return storeInventoryDslRepository.countAutoOrderExpectedByStore(storeId);
+    }
     
 }

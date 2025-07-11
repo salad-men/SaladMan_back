@@ -32,11 +32,13 @@ public class SalesServiceImpl implements SalesService {
     private final StoreRepository storeRepository;
 
     @Override
-    public StoreSalesResultDto getStoreSales(Integer storeId, LocalDate start, LocalDate end, GroupType groupType) {
+    public StoreSalesResultDto getStoreSales(
+            Integer storeId,
+            LocalDate start,
+            LocalDate end,
+            GroupType groupType) {
         LocalDateTime startDateTime = start.atStartOfDay();
         LocalDateTime endDateTime = end.atTime(LocalTime.MAX);
-        System.out.println("startDate: " + start);
-        System.out.println("endDate: " + end);
 
         List<SalesResultDto.DailySalesDto> daily = salesDslRepository.getStoreSales(storeId, startDateTime, endDateTime, groupType);
         List<SalesResultDto.MenuSalesDto> popular = salesDslRepository.getStoreMenuSales(storeId, startDateTime, endDateTime);
@@ -113,5 +115,5 @@ public class SalesServiceImpl implements SalesService {
 	    return salesDslRepository.findOrderSummaryTop3WithCountMerged(startDate, endDate);
 	}
 
-
+	
 }

@@ -6,13 +6,14 @@ import java.util.List;
 import com.kosta.saladMan.dto.notice.NoticeDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.MenuSalesDto;
+import com.kosta.saladMan.dto.saleOrder.StoreSalesResultDto;
 import com.kosta.saladMan.dto.store.ScheduleDto;
 
 import lombok.Data;
 
 @Data
 public class StoreDashboardSummaryDto {
-    private SalesResultDto sales;                     // 매장별 매출(일/주/월)
+    private StoreSalesResultDto sales;               
     private List<MenuSalesDto> topMenus;              // 인기메뉴 TOP5
     private InventoryExpireSummaryDto expireSummary;  // 임박/폐기예정 재고 요약
     private int autoOrderExpectedCount;               // 자동발주 예정 품목 수
