@@ -33,10 +33,12 @@ public class HqDashboardController {
     @GetMapping("/summary")
     public DashboardSummaryDto getDashboardSummary(
         @RequestParam(required = false) String startDate,
-        @RequestParam(required = false) String endDate
+        @RequestParam(required = false) String endDate,
+        @RequestParam(required = false, defaultValue = "day") String groupType 
+
     ) {
         // 서비스에서 집계 데이터 리턴
-        return dashboardService.getSummary(startDate, endDate);
+        return dashboardService.getSummary(startDate, endDate, groupType);
     }
 
     /** 

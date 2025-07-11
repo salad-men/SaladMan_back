@@ -20,6 +20,8 @@ import lombok.Setter;
 public class SalesResultDto {
 	private SummaryDto summary;
     private List<DailySalesDto> daily;
+    private List<DailySalesDto> weekly;   
+    private List<DailySalesDto> monthly;
     private List<MenuSalesDto> popularMenus;
     	
 	@Getter
