@@ -103,15 +103,15 @@ public class DashboardService {
         result.setStores(stores);
 
         // 4. 임박재고 TOP3+전체건수
-        InventoryExpireSummaryDto expireSummary = inventoryService.getExpireSummaryTop3WithCountMerged(startDate, endDate);
+        InventoryExpireSummaryDto expireSummary = inventoryService.getExpireSummaryTop3WithCountMerged(null, null);
         result.setExpireSummary(expireSummary);
 
         // 5. 폐기 TOP3+전체건수
-        DisposalSummaryDto disposalSummary = inventoryService.getDisposalSummaryTop3WithCountMerged(startDate, endDate);
+        DisposalSummaryDto disposalSummary = inventoryService.getDisposalSummaryTop3WithCountMerged(null, null);
         result.setDisposalSummary(disposalSummary);
 
-        // 6. 발주 TOP3+전체건수
-        OrderSummaryDto orderSummary = salesService.getOrderSummaryTop3WithCountMerged(startDate, endDate);
+        // 6. 수주 TOP3+전체건수
+        OrderSummaryDto orderSummary = orderService.getOrderSummaryTop3WithCountMerged(null, null); 
         result.setOrderSummary(orderSummary);
 
         // 7. 최근 공지 5개
@@ -171,7 +171,7 @@ public class DashboardService {
         );
 
         // 2. 임박/폐기 예정 재고 요약
-        InventoryExpireSummaryDto expireSummary = inventoryService.getStoreExpireSummary(storeId, startDate, endDate);
+        InventoryExpireSummaryDto expireSummary = inventoryService.getStoreExpireSummary(storeId, null, null);
         dto.setExpireSummary(expireSummary);
 
         // 3. 자동 발주 예정 품목 수
@@ -179,9 +179,14 @@ public class DashboardService {
         dto.setAutoOrderExpectedCount(autoOrderExpectedCount);
 
         // 4. 주요 재고
-        List<MainStockSummaryDto> mainStocks = inventoryService.getMainStocksByMonth(storeId);
+        List<MainStockSummaryDto> mainStocks = inventoryService.getMainStocksByPeriod(storeId, start, end);
+
         dto.setMainStocks(mainStocks);
 
+        // 5. 재고부족 개수
+        int lowStockCount = inventoryService.getStoreLowStockCount(storeId);
+        dto.setLowStockCount(lowStockCount);  // StoreDashboardSummaryDto에 프로퍼티 추가 필요
+        
         // 5. 최근 공지사항 (최신 5개)
         List<NoticeDto> notices = noticeService.getRecentNotices(5);
         dto.setNotices(notices);

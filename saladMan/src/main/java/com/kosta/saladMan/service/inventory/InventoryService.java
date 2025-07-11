@@ -13,6 +13,7 @@ import com.kosta.saladMan.dto.inventory.StoreIngredientSettingDto;
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.util.PageInfo;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface InventoryService {
@@ -138,7 +139,8 @@ public interface InventoryService {
     
     InventoryExpireSummaryDto getStoreExpireSummary(Integer storeId, String startDate, String endDate);
     
-    List<MainStockSummaryDto> getMainStocksByMonth(Integer storeId);
+    List<MainStockSummaryDto> getMainStocksByPeriod(Integer storeId, LocalDate start, LocalDate end);
+
     
     int getAutoOrderExpectedCount(Integer storeId);
 

@@ -15,6 +15,8 @@ import com.kosta.saladMan.entity.inventory.QIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredientCategory;
 import com.kosta.saladMan.entity.inventory.QStoreIngredient;
 import com.kosta.saladMan.entity.inventory.QStoreIngredientSetting;
+import com.kosta.saladMan.entity.purchaseOrder.QFixedOrderItem;
+import com.kosta.saladMan.entity.purchaseOrder.QFixedOrderTemplate;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrderItem;
 import com.querydsl.core.BooleanBuilder;
@@ -211,41 +213,21 @@ public class StoreIngredientDslRepository {
     
     // 자동 발주 예정 품목 수 카운트
     public int countAutoOrderExpectedByStore(Integer storeId) {
-        QStoreIngredientSetting setting = QStoreIngredientSetting.storeIngredientSetting;
-        QStoreIngredient stock = QStoreIngredient.storeIngredient;
-        QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
-        QPurchaseOrderItem orderItem = QPurchaseOrderItem.purchaseOrderItem;
+        QFixedOrderTemplate template = QFixedOrderTemplate.fixedOrderTemplate;
+        QFixedOrderItem item = QFixedOrderItem.fixedOrderItem;
 
-        // 최소수량 > (재고 + 입고대기)
         Long count = jpaQueryFactory
-                .select(setting.count())
-                .from(setting)
-                .leftJoin(stock).on(
-                        setting.store.id.eq(stock.store.id)
-                        .and(setting.ingredient.id.eq(stock.ingredient.id))
-                )
+                .select(item.count())
+                .from(item)
+                .join(item.fixedOrderTemplate, template)
                 .where(
-                        setting.store.id.eq(storeId),
-                        // 최소수량 > (재고 + 입고대기)
-                        setting.minQuantity.gt(
-                                stock.quantity.coalesce(0)
-                                        .add(
-                                                JPAExpressions
-                                                        .select(orderItem.orderedQuantity.subtract(orderItem.receivedQuantity).sum().coalesce(0))
-                                                        .from(orderItem)
-                                                        .join(orderItem.purchaseOrder, order)
-                                                        .where(
-                                                                order.store.id.eq(storeId),
-                                                                orderItem.ingredient.id.eq(setting.ingredient.id),
-                                                                order.status.in("대기중")
-                                                        )
-                                        )
-                        )
+                    template.store.id.eq(storeId),
+                    item.autoOrderEnabled.isTrue()
                 )
                 .fetchOne();
 
         return count != null ? count.intValue() : 0;
     }
-    
+
 
 }

@@ -10,9 +10,9 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class MainStockSummaryDto {
-    private Integer ingredientId;      
-    private String ingredientName;     
-    private String categoryName;       
-    private Integer totalUsedQuantity; 
-    private String unit;               
+    private Integer ingredientId;
+    private String ingredientName;
+    private String categoryName;
+    private Integer totalUsedQuantity;
+    private String unit;          
 }
