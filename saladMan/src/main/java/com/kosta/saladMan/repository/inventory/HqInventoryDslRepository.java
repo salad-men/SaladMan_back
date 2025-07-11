@@ -400,27 +400,30 @@ public class HqInventoryDslRepository {
     }
 
 
-    // 폐기 Top3+전체건수 (단일 DTO)
+ // 폐기 Top3+전체건수 (단일 DTO)
     public DisposalSummaryDto findDisposalSummaryTop3WithCountMerged(String startDate, String endDate) {
         QDisposal d = QDisposal.disposal;
 
         LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
 
+        // 필수 추가: "대기" 상태만 필터링
         List<DisposalSummaryDto.Item> top3 = queryFactory
             .select(Projections.bean(
                 DisposalSummaryDto.Item.class,
                 d.ingredient.name.as("ingredientName"),
                 d.ingredient.category.name.as("categoryName"),
-                d.quantity,
-                d.requestedAt.stringValue().as("requestedAt")
+                d.quantity.sum().intValue().as("quantity"),  // 전체 수량 합산
+                d.requestedAt.max().stringValue().as("requestedAt")  // 가장 최근 요청일자
             ))
             .from(d)
             .where(
                 sDate != null ? d.requestedAt.goe(sDate) : null,
-                eDate != null ? d.requestedAt.loe(eDate) : null
+                eDate != null ? d.requestedAt.loe(eDate) : null,
+                d.status.eq("대기")  // 필수 추가!
             )
-            .orderBy(d.requestedAt.desc())
+            .groupBy(d.ingredient.name, d.ingredient.category.name)
+            .orderBy(d.quantity.sum().desc())
             .limit(3)
             .fetch();
 
@@ -429,7 +432,8 @@ public class HqInventoryDslRepository {
             .from(d)
             .where(
                 sDate != null ? d.requestedAt.goe(sDate) : null,
-                eDate != null ? d.requestedAt.loe(eDate) : null
+                eDate != null ? d.requestedAt.loe(eDate) : null,
+                d.status.eq("대기")  // 필수 추가!
             )
             .fetchOne();
 
@@ -439,5 +443,6 @@ public class HqInventoryDslRepository {
 
         return dto;
     }
+
 
 }

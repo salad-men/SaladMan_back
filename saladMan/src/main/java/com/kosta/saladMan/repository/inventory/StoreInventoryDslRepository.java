@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import javax.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -591,116 +592,159 @@ public class StoreInventoryDslRepository {
         QPurchaseOrderItem orderItem = QPurchaseOrderItem.purchaseOrderItem;
 
         Long count = queryFactory
-                .select(setting.count())
-                .from(setting)
-                .leftJoin(stock).on(
-                        setting.store.id.eq(stock.store.id)
-                        .and(setting.ingredient.id.eq(stock.ingredient.id))
+            .select(setting.count())
+            .from(setting)
+            .leftJoin(stock).on(
+                setting.store.id.eq(stock.store.id)
+                .and(setting.ingredient.id.eq(stock.ingredient.id))
+            )
+            .where(
+                setting.store.id.eq(storeId),
+                // 만약 autoOrderEnabled 필드가 없으면 생략, 있으면 조건 추가
+                // setting.autoOrderEnabled.isTrue(),
+                setting.minQuantity.gt(
+                    stock.quantity.coalesce(0)
+                    .add(
+                        JPAExpressions
+                            .select(orderItem.orderedQuantity.subtract(orderItem.receivedQuantity).sum().coalesce(0))
+                            .from(orderItem)
+                            .join(orderItem.purchaseOrder, order)
+                            .where(
+                                order.store.id.eq(storeId),
+                                orderItem.ingredient.id.eq(setting.ingredient.id),
+                                order.status.in("대기중")
+                            )
+                    )
                 )
-                .where(
-                        setting.store.id.eq(storeId),
-                        setting.minQuantity.gt(
-                                stock.quantity.coalesce(0)
-                                        .add(
-                                                JPAExpressions
-                                                        .select(orderItem.orderedQuantity.subtract(orderItem.receivedQuantity).sum().coalesce(0))
-                                                        .from(orderItem)
-                                                        .join(orderItem.purchaseOrder, order)
-                                                        .where(
-                                                                order.store.id.eq(storeId),
-                                                                orderItem.ingredient.id.eq(setting.ingredient.id),
-                                                                order.status.in("대기중")
-                                                        )
-                                        )
-                        )
-                )
-                .fetchOne();
-
+            )
+            .fetchOne();
         return count != null ? count.intValue() : 0;
     }
+
     
  // 2. 매장 임박재고 Top3 + 전체건수 + D-1, D-day 개수 (DTO로 반환)
-    public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMergedByStore(
-            Integer storeId, String startDate, String endDate) {
-
-        QStoreIngredient q = QStoreIngredient.storeIngredient;
+ // StoreInventoryDslRepository.java
+    public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMergedByStore(Integer storeId, String startDate, String endDate) {
+        QStoreIngredient si = QStoreIngredient.storeIngredient;
         LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+        LocalDate today = LocalDate.now();
 
-        // Top3
+        // 임박재고 Top3
         List<InventoryExpireSummaryDto.Item> top3 = queryFactory
-                .select(Projections.bean(
-                        InventoryExpireSummaryDto.Item.class,
-                        q.ingredient.name.as("ingredientName"),
-                        q.category.name.as("categoryName"),
-                        q.quantity.as("remainQuantity"),
-                        q.expiredDate.stringValue().as("expiredDate")
-                ))
-                .from(q)
-                .where(
-                        q.store.id.eq(storeId),
-                        q.quantity.gt(0),
-                        sDate != null ? q.expiredDate.goe(sDate) : null,
-                        eDate != null ? q.expiredDate.loe(eDate) : null
-                )
-                .orderBy(q.expiredDate.asc(), q.quantity.desc())
-                .limit(3)
-                .fetch();
+            .select(Projections.bean(
+                InventoryExpireSummaryDto.Item.class,
+                si.ingredient.name.as("ingredientName"),
+                si.category.name.as("categoryName"),
+                si.quantity.as("remainQuantity"),
+                si.expiredDate.stringValue().as("expiredDate")
+            ))
+            .from(si)
+            .where(
+                si.store.id.eq(storeId),
+                si.quantity.gt(0),
+                sDate != null ? si.expiredDate.goe(sDate) : null,
+                eDate != null ? si.expiredDate.loe(eDate) : null
+            )
+            .orderBy(si.expiredDate.asc(), si.quantity.desc())
+            .limit(3)
+            .fetch();
 
         // 전체 임박재고 건수
         Long totalCount = queryFactory
-                .select(q.count())
-                .from(q)
-                .where(
-                        q.store.id.eq(storeId),
-                        q.quantity.gt(0),
-                        sDate != null ? q.expiredDate.goe(sDate) : null,
-                        eDate != null ? q.expiredDate.loe(eDate) : null
-                )
-                .fetchOne();
+            .select(si.count())
+            .from(si)
+            .where(
+                si.store.id.eq(storeId),
+                si.quantity.gt(0),
+                sDate != null ? si.expiredDate.goe(sDate) : null,
+                eDate != null ? si.expiredDate.loe(eDate) : null
+            )
+            .fetchOne();
 
-        LocalDate today = LocalDate.now();
-        Long d1Count = queryFactory.select(q.count()).from(q)
-                .where(q.store.id.eq(storeId), q.quantity.gt(0), q.expiredDate.eq(today.plusDays(1))).fetchOne();
-        Long todayCount = queryFactory.select(q.count()).from(q)
-                .where(q.store.id.eq(storeId), q.quantity.gt(0), q.expiredDate.eq(today)).fetchOne();
+        // D-1, D-day 임박 카운트
+        Long d1Count = queryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.store.id.eq(storeId),
+                si.quantity.gt(0),
+                si.expiredDate.eq(today.plusDays(1))
+            )
+            .fetchOne();
+
+        Long todayCount = queryFactory
+            .select(si.count())
+            .from(si)
+            .where(
+                si.store.id.eq(storeId),
+                si.quantity.gt(0),
+                si.expiredDate.eq(today)
+            )
+            .fetchOne();
 
         InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
         dto.setTop3(top3);
         dto.setTotalCount(totalCount != null ? totalCount.intValue() : 0);
         dto.setD1Count(d1Count != null ? d1Count.intValue() : 0);
         dto.setTodayCount(todayCount != null ? todayCount.intValue() : 0);
-
         return dto;
     }
 
-    // 3. 최근 한달간 가장 많이 사용한 재고 Top5 (매장별)
-    public List<MainStockSummaryDto> findMainStocksByStoreForMonth(Integer storeId) {
-        QInventoryRecord ir = QInventoryRecord.inventoryRecord;
-        QIngredient i = QIngredient.ingredient;
-        QIngredientCategory c = QIngredientCategory.ingredientCategory;
 
-        LocalDate monthAgo = LocalDate.now().minusDays(30);
+    // 3. 최근 한달간 가장 많이 사용한 재고 Top5 (매장별)
+    public List<MainStockSummaryDto> findMainStocksByStoreForPeriod(Integer storeId, LocalDate start, LocalDate end) {
+        QInventoryRecord record = QInventoryRecord.inventoryRecord;
+        QIngredient ingredient = QIngredient.ingredient;
+        QIngredientCategory category = QIngredientCategory.ingredientCategory;
 
         return queryFactory
-                .select(Projections.constructor(MainStockSummaryDto.class,
-                        ir.ingredient.id,
-                        i.name,
-                        c.name,
-                        ir.quantity.sum(),
-                        i.unit
-                ))
-                .from(ir)
-                .join(ir.ingredient, i)
-                .join(i.category, c)
-                .where(
-                        ir.store.id.eq(storeId),
-                        ir.changeType.eq("사용"),
-                        ir.date.goe(monthAgo.atStartOfDay())
-                )
-                .groupBy(ir.ingredient.id, i.name, c.name, i.unit)
-                .orderBy(ir.quantity.sum().abs().desc())
-                .limit(5)
-                .fetch();
+            .select(Projections.constructor(
+                MainStockSummaryDto.class,
+                ingredient.id,                 // 1. ingredientId
+                ingredient.name,               // 2. ingredientName
+                category.name,                 // 3. categoryName
+                record.quantity.sum(),         // 4. totalUsedQuantity
+                ingredient.unit                // 5. unit
+            ))
+            .from(record)
+            .join(record.ingredient, ingredient)
+            .join(ingredient.category, category)
+            .where(
+                record.store.id.eq(storeId),
+                record.date.goe(start.atStartOfDay()),
+                record.date.loe(end.atTime(LocalTime.MAX)),
+                record.changeType.eq("사용")
+            )
+            .groupBy(ingredient.id, ingredient.name, category.name, ingredient.unit)
+            .orderBy(record.quantity.sum().desc())
+            .limit(5)
+            .fetch();
     }
+
+
+
+    
+    public int countLowStockByStore(Integer storeId) {
+        QStoreIngredientSetting setting = QStoreIngredientSetting.storeIngredientSetting;
+        QStoreIngredient stock = QStoreIngredient.storeIngredient;
+
+        Long cnt = queryFactory
+            .select(setting.count())
+            .from(setting)
+            .leftJoin(stock).on(
+                setting.store.id.eq(stock.store.id)
+                .and(setting.ingredient.id.eq(stock.ingredient.id))
+            )
+            .where(
+                setting.store.id.eq(storeId),
+                setting.minQuantity.gt(stock.quantity.coalesce(0))
+            )
+            .fetchOne();
+
+        return cnt != null ? cnt.intValue() : 0;
+    }
+
+
+
 }

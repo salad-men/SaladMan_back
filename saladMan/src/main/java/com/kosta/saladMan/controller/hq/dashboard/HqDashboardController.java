@@ -33,10 +33,12 @@ public class HqDashboardController {
     @GetMapping("/summary")
     public DashboardSummaryDto getDashboardSummary(
         @RequestParam(required = false) String startDate,
-        @RequestParam(required = false) String endDate
+        @RequestParam(required = false) String endDate,
+        @RequestParam(required = false, defaultValue = "day") String groupType 
+
     ) {
         // 서비스에서 집계 데이터 리턴
-        return dashboardService.getSummary(startDate, endDate);
+        return dashboardService.getSummary(startDate, endDate, groupType);
     }
 
     /** 
@@ -84,37 +86,26 @@ public class HqDashboardController {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 발주 집계 (지점 수, 전체 건수 등)
-     */
-    @GetMapping("/order-summary")
-    public OrderSummaryDto getOrderSummary(
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
-    ) {
-        return salesService.getOrderSummaryTop3WithCountMerged(startDate, endDate);
-    }
+//    /**
+//     * 발주 집계 (지점 수, 전체 건수 등)
+//     */
+//    @GetMapping("/order-summary")
+//    public OrderSummaryDto getOrderSummary(
+//            @RequestParam(required = false) String startDate,
+//            @RequestParam(required = false) String endDate
+//    ) {
+//        return salesService.getOrderSummaryTop3WithCountMerged(startDate, endDate);
+//    }
+//
+//    /**
+//     * 폐기 집계 (지점 수, 전체 건수 등)
+//     */
+//    @GetMapping("/disposal-summary")
+//    public DisposalSummaryDto getDisposalSummary(
+//            @RequestParam(required = false) String startDate,
+//            @RequestParam(required = false) String endDate
+//    ) {
+//        return inventoryService.getDisposalSummaryTop3WithCountMerged(startDate, endDate);
+//    }
 
-    /**
-     * 폐기 집계 (지점 수, 전체 건수 등)
-     */
-    @GetMapping("/disposal-summary")
-    public DisposalSummaryDto getDisposalSummary(
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
-    ) {
-        return inventoryService.getDisposalSummaryTop3WithCountMerged(startDate, endDate);
-    }
-
-    /**
-     * 주간 근무표 조회
-     */
-    @GetMapping("/week-schedule")
-    public ResponseEntity<List<ScheduleDto>> getWeekSchedule(
-        @RequestParam Integer storeId,
-        @RequestParam Integer weekNo
-    ) {
-        List<ScheduleDto> weekSchedules = employeeDslRepository.findWeekSchedulesByStore(storeId, weekNo);
-        return ResponseEntity.ok(weekSchedules);
-    }
 }

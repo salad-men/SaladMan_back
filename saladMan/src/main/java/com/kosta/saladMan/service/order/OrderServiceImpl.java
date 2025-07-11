@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.kosta.saladMan.controller.common.S3Uploader;
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
@@ -606,8 +607,13 @@ public class OrderServiceImpl implements OrderService {
 	
 	
 	//대시보드
+    @Override
 	public int getAutoOrderExpectedCount(Integer storeId) {
 	    return storeIngredientDslRepository.countAutoOrderExpectedByStore(storeId);
 	}
-
+	
+    @Override
+    public OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
+        return purchaseOrderDslRepository.findPurchaseOrderSummaryTop3WithCountMerged(startDate, endDate);
+    }
 }

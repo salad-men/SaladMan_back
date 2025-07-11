@@ -789,14 +789,22 @@ public class InventoryServiceImpl implements InventoryService {
     }
     
     @Override
-    public List<MainStockSummaryDto> getMainStocksByMonth(Integer storeId) {
-        // 최근 1달간 가장 많이 사용한 재고 Top5 반환
-        return storeInventoryDslRepository.findMainStocksByStoreForMonth(storeId);
+    public List<MainStockSummaryDto> getMainStocksByPeriod(Integer storeId, LocalDate start, LocalDate end) {
+        return storeInventoryDslRepository.findMainStocksByStoreForPeriod(storeId, start, end);
     }
     
     @Override
     public int getAutoOrderExpectedCount(Integer storeId) {
         return storeInventoryDslRepository.countAutoOrderExpectedByStore(storeId);
     }
+    
+    public int getStoreLowStockCount(Integer storeId) {
+        // 해당 매장의 전체 재고 중, minQuantity 이하(또는 자체 로직 적용) 품목 수 반환
+        return storeInventoryDslRepository.countLowStockByStore(storeId);
+    }
+
+    
+    
+    
     
 }

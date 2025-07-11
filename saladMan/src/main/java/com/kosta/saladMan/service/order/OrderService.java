@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
@@ -73,6 +74,7 @@ public interface OrderService {
     
     //-----------------------대시보드---------------------------
 	int getAutoOrderExpectedCount(Integer storeId);
+    OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate);
 
 } 
 
