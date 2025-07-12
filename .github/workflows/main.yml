@@ -19,7 +19,7 @@ jobs:
       - name: Firebase Admin Secret 파일 생성
         run: |
           mkdir -p saladMan/src/main/resources/firebase
-          echo "${{ secrets.FIREBASE_ADMIN_JSON }}" > saladMan/src/main/resources/firebase/test-e93e5-firebase-adminsdk-fbsvc-e966fa8ac8.json  
+          echo "${{ secrets.FIREBASE_ADMIN_JSON_BASE64 }}" | base64 --decode > saladMan/src/main/resources/firebase/test-e93e5-firebase-adminsdk-fbsvc-e966fa8ac8.json
 
       # 3) JDK 설치 & 빌드
       - name: JDK 17 설치
