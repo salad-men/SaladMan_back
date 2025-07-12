@@ -38,8 +38,9 @@ public class CorsConfig implements WebMvcConfigurer {
 		config.addAllowedOrigin("http://saladman-web.s3-website.ap-northeast-2.amazonaws.com");
         config.addAllowedOrigin("https://api.saladman.com");
         config.addAllowedOrigin("http://api.saladman.com");
-        config.addAllowedOrigin("http://localhost:8081");
-        config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("http://localhost:8091");
+        config.addAllowedOrigin("http://localhost:8090");
+        config.addAllowedOrigin("http://localhost:8092");
         config.addAllowedOrigin("http://192.168.0.15:8080");
         config.addAllowedOrigin("http://192.168.0.15:5173");
         config.addAllowedOrigin("http://192.168.0.15:8090");
@@ -63,7 +64,8 @@ public class CorsConfig implements WebMvcConfigurer {
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
             "http://192.168.0.23:5173",
-            "http://localhost:8081",
+            "http://localhost:8091",
+            "http://localhost:8092",
             "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
             "https://api.saladman.com",
             "http://192.168.0.15:8080",
