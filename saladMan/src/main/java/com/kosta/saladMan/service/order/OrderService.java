@@ -7,12 +7,16 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
+import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDetailDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.Store;
 
 public interface OrderService {
@@ -27,8 +31,11 @@ public interface OrderService {
     List<PurchaseOrderItemDto> getOrderDetailByHq(Integer purchaseOrderId) throws Exception;
     //본사 발주 신청 수락
     void updateOrderItems(List<PurchaseOrderItemDto> items) throws Exception;
+    //본사 발주서 출력 상세
+    PurchaseOrderDetailDto getPurchaseOrderDetail(Integer purchaseOrderId) throws Exception;
+
     
-    
+
     //----------------------매장---------------------------- 
    
     //발주 수량 미달 확인
@@ -36,9 +43,9 @@ public interface OrderService {
     List<StoreOrderItemDto>getOrderItems(Integer id, String category, String keyword)throws Exception;
     
     //발주 신청
-    void createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception;
+    Integer createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception;
     //발주 목록
-    Page<PurchaseOrderDto> getPagedOrderList(Integer storeId, String orderType, String productName,
+    Page<PurchaseOrderDto> getPagedOrderList(Integer storeId, String orderType, String productName, String status,
             LocalDate startDate, LocalDate endDate, int page, int size) throws Exception;
     
     //입고검수 페이지 조회
@@ -53,6 +60,21 @@ public interface OrderService {
 
     Boolean getAutoOrderEnabled(Integer id) throws Exception;
     void updateAutoOrderEnabled(Integer id, Boolean enable) throws Exception;
+
+    
+    //-----------------------공통---------------------------
+    
+    //재료 카테고리
+    List<IngredientCategoryDto> getAllIngredientCategory() throws Exception;
+    
+    //매장 이름만
+    List<StoreDto> getStoreName() throws Exception;
+    
+    
+    
+    //-----------------------대시보드---------------------------
+	int getAutoOrderExpectedCount(Integer storeId);
+    OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate);
 
 } 
 

@@ -34,6 +34,7 @@ import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.menu.MenuCategory;
 import com.kosta.saladMan.entity.menu.MenuIngredient;
+import com.kosta.saladMan.entity.menu.StoreMenu;
 import com.kosta.saladMan.entity.payment.Payment;
 import com.kosta.saladMan.entity.saleOrder.SaleOrder;
 import com.kosta.saladMan.entity.saleOrder.SaleOrderItem;
@@ -44,9 +45,11 @@ import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.repository.kiosk.PaymentRepository;
 import com.kosta.saladMan.repository.menu.MenuCategoryRepository;
 import com.kosta.saladMan.repository.menu.SMenuDslRepository;
+import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.repository.saleOrder.SaleOrderItemRepository;
 import com.kosta.saladMan.repository.saleOrder.SaleOrderRepository;
 import com.kosta.saladMan.repository.user.MenuIngredientRepository;
+import com.kosta.saladMan.service.menu.StoreMenuService;
 import com.kosta.saladMan.util.OutOfStockException;
 
 @Service
@@ -69,6 +72,9 @@ public class KioskServiceImpl implements KioskService {
 	private StoreRepository storeRepository;
 
 	@Autowired
+	private StoreMenuRepository storeMenuRepository;
+
+	@Autowired
 	private StoreIngredientRepository storeIngredientRepository;
 
 	@Autowired
@@ -76,9 +82,12 @@ public class KioskServiceImpl implements KioskService {
 
 	@Autowired
 	private InventoryRecordRepository inventoryRecordRepository;
-	
+
 	@Autowired
 	private OrderCancellationService orderCancellationService;
+
+	@Autowired
+	private StoreMenuService storeMenuService;
 
 	@Value("${toss.test-secret-key}")
 	private String tossSecretKey;
@@ -99,7 +108,7 @@ public class KioskServiceImpl implements KioskService {
 	}
 
 	@Override
-	public List<MenuCategoryDto> getAllCategory() {
+	public List<MenuCategoryDto> getAllMenuCategory() {
 		List<MenuCategoryDto> categoryDto = menuCategoryRepository.findAll().stream().map(MenuCategory::toDto)
 				.collect(Collectors.toList());
 
@@ -173,7 +182,6 @@ public class KioskServiceImpl implements KioskService {
 		String approvedAtStr = (String) body.get("approvedAt");
 
 		OffsetDateTime approvedAt = OffsetDateTime.parse(approvedAtStr);
-		System.out.println("SaleOrder조회<<<<<<<<<<<<<<<<<<<<<<<<<");
 		// --- [2] SaleOrder 조회
 		Integer orderPk = Integer.parseInt(dto.getOrderId().replace("ORDER-", ""));
 		SaleOrder saleOrder = saleOrderRepository.findById(orderPk)
@@ -189,52 +197,74 @@ public class KioskServiceImpl implements KioskService {
 		payment.setStatus("PAID");
 		payment.setApprovedAt(approvedAt.toLocalDateTime());
 
-		saleOrder.setStatus("PAID");
+		saleOrder.setStatus("결제완료");
 
 		// --- [5] 재고 차감
 		List<SaleOrderItem> saleItems = saleOrderItemRepository.findBySaleOrder(saleOrder);
 		try {
 			for (SaleOrderItem item : saleItems) {
-				// 해당 메뉴의 재료 리스트 가져오기
+				// 해당 메뉴 재료
 				List<MenuIngredient> ingredients = menuIngredientRepository.findByMenuId(item.getMenuId());
-				System.out.println(ingredients);
 				for (MenuIngredient mi : ingredients) {
+
 					List<StoreIngredient> siList = storeIngredientRepository
 							.findByStoreAndIngredientId(saleOrder.getStore(), mi.getIngredient().getId());
-					System.out.println(mi + "," + siList);
-					if (siList.isEmpty()) {
-						throw new OutOfStockException("재고 정보가 없습니다.");
-					}
-
-					StoreIngredient si = siList.get(0);
 
 					int deduction = mi.getQuantity() * item.getQuantity();
-					if (si.getQuantity() < deduction) {
-						throw new OutOfStockException("재고 부족: " + mi.getIngredient().getName());
+					boolean isOutOfStock = false;
+
+					if (siList.isEmpty()) {
+						// ❗ 재고 정보 자체가 없을 경우 품절 처리 대상으로 판단
+						isOutOfStock = true;
+					} else {
+						StoreIngredient si = siList.get(0);
+
+						if (si.getQuantity() < deduction) {
+							isOutOfStock = true;
+						} else {
+							// 정상 차감
+							si.setQuantity(si.getQuantity() - deduction);
+
+							// 출고 기록 저장
+							InventoryRecord record = new InventoryRecord();
+							record.setChangeType("출고");
+							record.setDate(LocalDateTime.now());
+							record.setMemo("매장 판매");
+							record.setQuantity(deduction);
+							record.setIngredient(mi.getIngredient());
+							record.setStore(saleOrder.getStore());
+							inventoryRecordRepository.save(record);
+						}
 					}
+					if (isOutOfStock) {
+						// ❗ ingredient 이름 미리 꺼내두기
+						String ingredientName = mi.getIngredient().getName();
 
-					si.setQuantity(si.getQuantity() - deduction);
+						// ❗ 해당 재료로 품절처리 대상 메뉴 식별
 
-					System.out.println("출고 저장<<<<<<<<<<<<<<<<<<<<<<<<");
-					// ★ 출고 기록 저장
-					InventoryRecord record = new InventoryRecord();
-					record.setChangeType("출고");
-					record.setDate(LocalDateTime.now());
-					record.setMemo("매장 판매");
-					record.setQuantity(deduction);
-					record.setIngredient(mi.getIngredient());
-					record.setStore(saleOrder.getStore());
+						List<Integer> menuIds = menuIngredientRepository
+								.findMenuIdsByIngredientId(mi.getIngredient().getId());
+						System.out.println("❗ 품절 처리 대상 메뉴 IDs: " + menuIds);
 
-					inventoryRecordRepository.save(record);
+						try {
+							storeMenuService.markSoldOut(saleOrder.getStore().getId(), menuIds);
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						// ❗ 주문 전체 취소 로직도 호출
+						orderCancellationService.markOrderCanceled(saleOrder.getId());
+						// ❗ 이제 예외 던지기
+						throw new OutOfStockException("재고 없음 또는 부족: " + ingredientName);
+					}
 				}
 			}
 		} catch (OutOfStockException ex) {
 			ex.printStackTrace();
-			orderCancellationService.markOrderCanceled(saleOrder.getId());
-		    throw ex; // 이거 다시 살리기
-
+			throw ex;
 		}
 
 	}
-	
+
 }

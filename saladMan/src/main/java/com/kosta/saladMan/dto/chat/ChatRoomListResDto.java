@@ -14,4 +14,6 @@ import lombok.NoArgsConstructor;
 public class ChatRoomListResDto {
     private Integer roomId;
     private String roomName;
+    private Integer storeId;
+
 }

@@ -16,6 +16,7 @@ public class KioskMenuDto {
     private String name;
     private Integer salePrice;
     private Boolean status;
+    private Boolean isSoldOut;
     
     private String categoryName;
     private Integer categoryId;

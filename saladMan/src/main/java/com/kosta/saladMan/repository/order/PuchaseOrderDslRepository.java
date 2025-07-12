@@ -11,12 +11,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.entity.inventory.QHqIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredient;
 import com.kosta.saladMan.entity.inventory.QIngredientCategory;
+import com.kosta.saladMan.entity.inventory.QStoreIngredientStock;
+import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.QPurchaseOrderItem;
 import com.kosta.saladMan.entity.store.QStore;
@@ -152,11 +155,22 @@ public class PuchaseOrderDslRepository {
 		        .fetch();
 		
 	}
+	//본사 발주서 상세
+    public List<StoreIngredientStock> findByPurchaseOrderIdAndIngredientId(Integer purchaseOrderId, Integer ingredientId) {
+        QStoreIngredientStock stock = QStoreIngredientStock.storeIngredientStock;
 
+        return jpaQueryFactory
+                .selectFrom(stock)
+                .where(
+                        stock.purchaseOrder.id.eq(purchaseOrderId)
+                                .and(stock.ingredient.id.eq(ingredientId))
+                )
+                .fetch();
+    }
 	
 	// 매장--------------------------
 	// 매장 발주 목록 조회
-	public Page<PurchaseOrderDto> findPagedOrders(Integer id, String orderType, String productName, LocalDate startDate,
+	public Page<PurchaseOrderDto> findPagedOrders(Integer id, String orderType, String productName ,String status, LocalDate startDate,
 			LocalDate endDate, Pageable pageable) {
 		QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
 		QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
@@ -181,6 +195,9 @@ public class PuchaseOrderDslRepository {
 		if (productName != null && !productName.isBlank()) {
 			builder.and(po.id.in(JPAExpressions.select(poi.purchaseOrder.id).from(poi).join(poi.ingredient, i)
 					.where(i.name.containsIgnoreCase(productName))));
+		}
+		if(status != null && !status.isBlank()) {
+		    builder.and(po.status.eq(status));
 		}
 
 		JPQLQuery<Long> receivedCount = JPAExpressions.select(poi.count()).from(poi)
@@ -255,5 +272,58 @@ public class PuchaseOrderDslRepository {
 	            .groupBy(poi.id) //item 기준 group by
 	            .fetch();
 	}
+	
+	
+	
+	//-------------대시보드용
+	public OrderSummaryDto findPurchaseOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
+	    QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
+	    QPurchaseOrderItem poi = QPurchaseOrderItem.purchaseOrderItem;
+	    QIngredient ing = QIngredient.ingredient;
+	    QIngredientCategory cat = QIngredientCategory.ingredientCategory;
+
+	    LocalDate sDate = startDate != null && !startDate.isBlank() ? LocalDate.parse(startDate) : null;
+	    LocalDate eDate = endDate != null && !endDate.isBlank() ? LocalDate.parse(endDate) : null;
+
+	    // TOP3 품목 (상태 "대기중")
+	    List<OrderSummaryDto.OrderItemDto> top3 = jpaQueryFactory
+	        .select(Projections.bean(
+	            OrderSummaryDto.OrderItemDto.class,
+	            ing.name.as("ingredientName"),
+	            cat.name.as("categoryName"),
+	            poi.orderedQuantity.sum().intValue().as("orderCount"),
+	            po.orderDateTime.max().stringValue().as("lastOrderDate")
+	        ))
+	        .from(poi)
+	        .join(poi.ingredient, ing)
+	        .join(ing.category, cat)
+	        .join(poi.purchaseOrder, po)
+	        .where(
+	            sDate != null ? po.orderDateTime.goe(sDate.atStartOfDay()) : null,
+	            eDate != null ? po.orderDateTime.loe(eDate.atTime(23,59,59)) : null,
+	            po.status.eq("대기중") // 상태 대기중만!
+	        )
+	        .groupBy(ing.name, cat.name)
+	        .orderBy(poi.orderedQuantity.sum().desc())
+	        .limit(3)
+	        .fetch();
+
+	    // 전체 건수 (상태 대기중만)
+	    Integer totalCount = jpaQueryFactory
+	        .select(po.count().intValue())
+	        .from(po)
+	        .where(
+	            sDate != null ? po.orderDateTime.goe(sDate.atStartOfDay()) : null,
+	            eDate != null ? po.orderDateTime.loe(eDate.atTime(23,59,59)) : null,
+	            po.status.eq("대기중")
+	        )
+	        .fetchOne();
+
+	    OrderSummaryDto dto = new OrderSummaryDto();
+	    dto.setTop3(top3);
+	    dto.setTotalCount(totalCount != null ? totalCount : 0);
+	    return dto;
+	}
+
 
 }

@@ -38,9 +38,13 @@ public class StoreInventoryController {
             String keyword = (String) param.getOrDefault("name", "");
             int page = param.get("page") == null ? 1 : (int) param.get("page");
 
+            String startDate = (String) param.getOrDefault("startDate", null);
+            String endDate = (String) param.getOrDefault("endDate", null);
+            String sortOption = (String) param.getOrDefault("sortOption", "default");
+
             PageInfo pageInfo = new PageInfo(page);
 
-            List<StoreIngredientDto> storeInventory = inventoryService.getStoreInventory(storeId, categoryId, keyword, null, null, pageInfo);
+            List<StoreIngredientDto> storeInventory = inventoryService.getStoreInventory(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
 
             Map<String, Object> res = new HashMap<>();
             res.put("storeInventory", storeInventory);
@@ -52,6 +56,7 @@ public class StoreInventoryController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
 
     // 2. 재고 수정
     @PostMapping("/update")
@@ -140,5 +145,17 @@ public class StoreInventoryController {
         StoreIngredientSettingDto saved = inventoryService.addSetting(dto);
         return ResponseEntity.ok(saved);
     }
+    
+    @PostMapping("/add")
+    public ResponseEntity<Void> add(@RequestBody StoreIngredientDto dto) {
+        try {
+            inventoryService.addStoreIngredient(dto); 
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
 }

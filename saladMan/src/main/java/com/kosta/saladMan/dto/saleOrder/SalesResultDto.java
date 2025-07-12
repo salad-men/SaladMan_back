@@ -20,6 +20,8 @@ import lombok.Setter;
 public class SalesResultDto {
 	private SummaryDto summary;
     private List<DailySalesDto> daily;
+    private List<DailySalesDto> weekly;   
+    private List<DailySalesDto> monthly;
     private List<MenuSalesDto> popularMenus;
     	
 	@Getter
@@ -34,8 +36,10 @@ public class SalesResultDto {
     @Setter
     public static class DailySalesDto {
         private String date;
-        private int quantity;
-        private int revenue;
+        private Integer quantity;
+        private Integer revenue;
+        private Integer cost;
+        private Integer profit;
     }
     
     @Getter

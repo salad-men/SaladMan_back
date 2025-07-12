@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.store.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,4 +36,12 @@ public interface StoreRepository extends JpaRepository<Store, Integer> {
 	Optional<Store> findById(Long id);
 	
 	List<Store> findByAutoOrderEnabledTrue();
+	
+	@Query("select new com.kosta.saladMan.dto.store.StoreDto(s.id, s.name) from Store s where s.name != '본사'")
+	List<StoreDto> findAllStoreNamesId();
+	
+	@Query("SELECT s.id FROM Store s")
+	List<Integer> findAllStoreIds();
+	
+	
 }

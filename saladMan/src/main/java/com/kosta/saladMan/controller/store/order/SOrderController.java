@@ -38,13 +38,13 @@ public class SOrderController {
 
 	// 매장 발주 신청
 	@PostMapping("/orderApply")
-	public ResponseEntity<List<StoreOrderItemDto>> orderApply(@RequestBody List<StoreOrderItemDto> items,
+	public ResponseEntity<Map<String, Integer>> orderApply(@RequestBody List<StoreOrderItemDto> items,
 			@AuthenticationPrincipal PrincipalDetails principal) {
 		Store storeInfo = principal.getStore(); // JWT에서 store 정보 추출
 		System.out.println(storeInfo.getId());
 		try {
-			orderService.createOrder(storeInfo, items,"수기발주");
-			return new ResponseEntity<>(HttpStatus.OK);
+			Integer orderId= orderService.createOrder(storeInfo, items,"수기발주");
+			return new ResponseEntity<>(Map.of("orderId",orderId),HttpStatus.OK);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -93,14 +93,14 @@ public class SOrderController {
 	@GetMapping("/orderList")
 	public ResponseEntity<Page<PurchaseOrderDto>> getOrderList(
 			@AuthenticationPrincipal PrincipalDetails principalDetails,
-			@RequestParam(required = false) String orderType, @RequestParam(required = false) String productName,
+			@RequestParam(required = false) String orderType, @RequestParam(required = false) String productName,@RequestParam(required = false) String status,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		Integer id = principalDetails.getStore().getId();
 
 		try {
-			Page<PurchaseOrderDto> result = orderService.getPagedOrderList(id, orderType, productName, startDate,
+			Page<PurchaseOrderDto> result = orderService.getPagedOrderList(id, orderType, productName, status, startDate,
 					endDate, page, size);
 			return new ResponseEntity<>(result, HttpStatus.OK);
 

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.menu.TotalMenuDto;
 import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
@@ -31,11 +32,13 @@ public class SalesServiceImpl implements SalesService {
     private final StoreRepository storeRepository;
 
     @Override
-    public StoreSalesResultDto getStoreSales(Integer storeId, LocalDate start, LocalDate end, GroupType groupType) {
+    public StoreSalesResultDto getStoreSales(
+            Integer storeId,
+            LocalDate start,
+            LocalDate end,
+            GroupType groupType) {
         LocalDateTime startDateTime = start.atStartOfDay();
         LocalDateTime endDateTime = end.atTime(LocalTime.MAX);
-        System.out.println("startDate: " + start);
-        System.out.println("endDate: " + end);
 
         List<SalesResultDto.DailySalesDto> daily = salesDslRepository.getStoreSales(storeId, startDateTime, endDateTime, groupType);
         List<SalesResultDto.MenuSalesDto> popular = salesDslRepository.getStoreMenuSales(storeId, startDateTime, endDateTime);
@@ -57,31 +60,38 @@ public class SalesServiceImpl implements SalesService {
         return response;
     }
 
-	@Override
-	public SalesResultDto getTotalSales(LocalDate start, LocalDate end, GroupType groupType) throws Exception {
-		LocalDateTime startDateTime = start.atStartOfDay();
+    @Override
+    public SalesResultDto getTotalSales(LocalDate start, LocalDate end, GroupType groupType) throws Exception {
+        // 1. 기간 범위 설정
+        LocalDateTime startDateTime = start.atStartOfDay();
         LocalDateTime endDateTime = end.atTime(LocalTime.MAX);
-        System.out.println("startDate: " + start);
-        System.out.println("endDate: " + end);
 
-        List<SalesResultDto.DailySalesDto> daily = salesDslRepository.getTotalSales(startDateTime, endDateTime, groupType);
-        List<SalesResultDto.MenuSalesDto> popular = salesDslRepository.getTotalMenuSales(startDateTime, endDateTime);
+        // 2. 일/주/월 그룹별로, dslRepository에서 데이터 조회
+        List<SalesResultDto.DailySalesDto> salesList = salesDslRepository.getTotalSales(startDateTime, endDateTime, groupType);
+        List<SalesResultDto.MenuSalesDto> popularMenus = salesDslRepository.getTotalMenuSales(startDateTime, endDateTime);
 
-        int totalQuantity = daily.stream().mapToInt(SalesResultDto.DailySalesDto::getQuantity).sum();
-        int totalRevenue = daily.stream().mapToInt(SalesResultDto.DailySalesDto::getRevenue).sum();
+        // 3. 집계
+        int totalQuantity = salesList.stream()
+                .mapToInt(d -> d.getQuantity() == null ? 0 : d.getQuantity())
+                .sum();
+        int totalRevenue = salesList.stream()
+                .mapToInt(d -> d.getRevenue() == null ? 0 : d.getRevenue())
+                .sum();
 
-        var summary = new SalesResultDto.SummaryDto();
+        SalesResultDto.SummaryDto summary = new SalesResultDto.SummaryDto();
         summary.setPeriod(start + " ~ " + end);
         summary.setTotalQuantity(totalQuantity);
         summary.setTotalRevenue(totalRevenue);
 
-        var response = new SalesResultDto();
-        response.setSummary(summary);
-        response.setDaily(daily);
-        response.setPopularMenus(popular);
+        // 4. DTO 구성
+        SalesResultDto result = new SalesResultDto();
+        result.setSummary(summary);
+        result.setDaily(salesList); // groupType이 DAY면 일별, WEEK면 주별, MONTH면 월별
+        result.setPopularMenus(popularMenus);
 
-        return response;
-	}
+        return result;
+    }
+
 
 	@Override
 	public List<PaymentListDto> getPaymentList(Integer storeId, String status, String start, String end,
@@ -105,4 +115,12 @@ public class SalesServiceImpl implements SalesService {
                 .map(s -> new StoreFilterDto(s.getId(), s.getName(), s.getLocation()))
                 .collect(Collectors.toList());
 	}
+	
+	
+	@Override
+	public OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
+	    return salesDslRepository.findOrderSummaryTop3WithCountMerged(startDate, endDate);
+	}
+
+	
 }

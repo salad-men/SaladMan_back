@@ -18,6 +18,7 @@ public class StoreMenuDto {
     private Integer storeId;
     private Integer menuId;
     private Boolean status;
+    private Boolean isSoldOut;
 
     public StoreMenu toEntity() {
         return StoreMenu.builder()
@@ -25,6 +26,7 @@ public class StoreMenuDto {
                 .store(Store.builder().id(storeId).build())
                 .menu(TotalMenu.builder().id(menuId).build())
                 .status(status)
+                .isSoldOut(isSoldOut)
                 .build();
     }
 }

@@ -2,6 +2,7 @@ package com.kosta.saladMan.service.order;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -11,18 +12,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.alarm.AlarmDto;
+import com.kosta.saladMan.dto.alarm.SendAlarmDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.entity.alarm.AlarmMsg;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
+import com.kosta.saladMan.entity.inventory.StoreIngredient;
+import com.kosta.saladMan.entity.inventory.StoreIngredientSetting;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderItem;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderTemplate;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
+import com.kosta.saladMan.repository.alarm.AlarmMsgRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
+import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
+import com.kosta.saladMan.repository.inventory.StoreIngredientSettingRepository;
+import com.kosta.saladMan.repository.inventory.StoreIngredientStockRepository;
 import com.kosta.saladMan.repository.order.FixedOrderItemRepository;
 import com.kosta.saladMan.repository.order.FixedOrderTemplateRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
+import com.kosta.saladMan.service.alarm.FcmMessageService;
 
 @Service
 public class AutoOrderScheduler {
@@ -36,9 +47,21 @@ public class AutoOrderScheduler {
 	private PurchaseOrderRepository purchaseOrderRepository;
 	@Autowired
 	private HqIngredientRepository hqIngredientRepository;
+	@Autowired
+	private StoreIngredientSettingRepository storeIngredientSettingRepository;
+	@Autowired
+	private StoreIngredientRepository storeIngredientRepository;
+	@Autowired
+	private StoreIngredientStockRepository storeIngredientStockRepository;
 
 	@Autowired
 	private OrderService orderService;
+
+	// fcm알람
+	@Autowired
+	private AlarmMsgRepository alarmMsgRepository;
+	@Autowired
+	private FcmMessageService fcmMessageService;
 
 	// 매일 오후 5시
 	@Scheduled(cron = "0 0 17 * * *")
@@ -68,34 +91,90 @@ public class AutoOrderScheduler {
 			}
 
 			List<StoreOrderItemDto> orderItemList = itemList.stream().map(fixedItem -> {
-				Integer ingredientId = fixedItem.getIngredient().getId();
-				Integer quantity = fixedItem.getAutoOrderQty();
+				try {
+					Integer ingredientId = fixedItem.getIngredient().getId();
+					Integer quantity = fixedItem.getAutoOrderQty();
+					Integer storeId = store.getId();
 
-				// 최신 단가 조회
-				HqIngredient hq = hqIngredientRepository
-						.findTopByIngredientIdOrderByReceivedDateDescIdDesc(ingredientId)
-						.orElseThrow(() -> new RuntimeException("HQ 재료 정보 없음: " + ingredientId));
+					StoreIngredientSetting setting = storeIngredientSettingRepository
+							.findByStoreIdAndIngredientId(storeId, ingredientId).orElse(null);
 
-				Integer unitCost = hq.getUnitCost();
-				Integer minimunUnit = hq.getMinimumOrderUnit();
-				Integer totalPrice = quantity / minimunUnit * unitCost;
+					if (setting == null) {
+						return null;
+					}
 
-				// 여기서 리턴 타입을 명시적으로 생성
-				return StoreOrderItemDto.builder().ingredientId(ingredientId).quantity(quantity).unitCost(unitCost)
-						.totalPrice(totalPrice).build();
-			}).collect(Collectors.toList());
+					Integer minQty = setting.getMinQuantity();
+
+					if (minQty == null || minQty == 0) {
+						return null;
+					}
+
+					// 2. 현재 보유 재고
+					StoreIngredient storeIngredient = storeIngredientRepository.findByStoreIdAndIngredientId(storeId,
+							ingredientId);
+
+					int stockQty = (storeIngredient != null && storeIngredient.getQuantity() != null)
+							? storeIngredient.getQuantity()
+							: 0;
+
+					// 3. 입고중 재고
+					Integer incomingQty = storeIngredientStockRepository
+							.findIncomingQuantityByStoreAndIngredient(storeId, ingredientId).orElse(0);
+
+					// 4. 총 재고
+					int totalQty = stockQty + incomingQty;
+
+					// 5. 자동발주 조건
+					if (totalQty >= minQty) {
+						return null;
+					}
+
+					HqIngredient hq = hqIngredientRepository
+							.findTopByIngredientIdOrderByReceivedDateDescIdDesc(ingredientId)
+							.orElseThrow(() -> new RuntimeException("HQ 재료 정보 없음: " + ingredientId));
+
+					Integer unitCost = hq.getUnitCost();
+					Integer minimumUnit = hq.getMinimumOrderUnit();
+					Integer totalPrice = quantity / minimumUnit * unitCost;
+
+					return StoreOrderItemDto.builder().ingredientId(ingredientId).quantity(quantity).unitCost(unitCost)
+							.totalPrice(totalPrice).build();
+
+				} catch (Exception e) {
+					System.err.println("[" + store.getName() + "] 품목 처리 실패 - 재료 ID: "
+							+ fixedItem.getIngredient().getId() + ", 사유: " + e.getMessage());
+
+			        SendAlarmDto alarmDto = SendAlarmDto.builder()
+			                .storeId(store.getId())
+			                .alarmMsgId(3) // 템플릿 ID만 넘김
+			                .build();
+
+			        fcmMessageService.sendAlarm(alarmDto);
+			        
+			        return null;
+				}
+			}).filter(Objects::nonNull).collect(Collectors.toList());
+
+			if (orderItemList.isEmpty()) {
+				System.err.println("[" + store.getName() + "] 유효한 발주 품목이 없어 자동발주 생략");
+				continue;
+			}
 
 			try {
 				orderService.createOrder(store, orderItemList, "자동발주");
 				System.out.println(store.getName() + " 자동발주 생성 완료");
+
+				SendAlarmDto alarmDto = SendAlarmDto.builder()
+		                .storeId(store.getId())
+		                .alarmMsgId(2) // 템플릿 ID만 넘김
+		                .build();
+
+		        fcmMessageService.sendAlarm(alarmDto);
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.err.println(store.getName() + " 자동발주 실패: " + e.getMessage());
 			}
-
-			// 여기선 repository.save()는 필요없이 order.getItems().add()로 해도 됨
-			// cascade = CascadeType.ALL 걸려있다면 order 저장 시 함께 저장
-
 		}
 	}
 

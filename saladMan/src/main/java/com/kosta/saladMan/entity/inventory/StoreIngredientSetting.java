@@ -49,6 +49,8 @@ public class StoreIngredientSetting {
             .minQuantity(minQuantity)
             .maxQuantity(maxQuantity)
             .categoryName(ingredient.getCategory() != null ? ingredient.getCategory().getName() : null)
+            .categoryId(ingredient.getCategory() != null ? ingredient.getCategory().getId() : null)
+            .categoryName(ingredient.getCategory() != null ? ingredient.getCategory().getName() : null)
             .build();
     }
 

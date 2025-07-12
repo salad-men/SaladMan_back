@@ -33,6 +33,11 @@ public class StoreDto {
     private Integer deliveryDay;
     private String fcmToken;
     private String role;
+    
+    public StoreDto(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     public Store toEntity() {
         return Store.builder()

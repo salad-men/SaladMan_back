@@ -21,9 +21,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class StoreSalesResultDto {
-	private Integer storeId;
+    private Integer storeId;
+
     private SummaryDto summary;
     private List<DailySalesDto> daily;
+    private List<DailySalesDto> weekly;
+    private List<DailySalesDto> monthly;
     private List<MenuSalesDto> popularMenus;
     
 }

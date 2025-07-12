@@ -24,7 +24,8 @@ public class ComplaintDto {
     private LocalDate writerDate;
     private String writerEmail;
     private String writerNickname;
-    private Boolean isRead;
+    private Boolean isHqRead;
+    private Boolean isStoreRead;
     private Boolean isRelay;
 
     public Complaint toEntity() {
@@ -36,7 +37,8 @@ public class ComplaintDto {
                 .writerDate(writerDate)
                 .writerEmail(writerEmail)
                 .writerNickname(writerNickname)
-                .isRead(isRead)
+                .isHqRead(isHqRead)
+                .isStoreRead(isStoreRead)
                 .isRelay(isRelay)
                 .build();
     }

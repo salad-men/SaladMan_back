@@ -1,13 +1,18 @@
 package com.kosta.saladMan.service.store;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.dto.store.CloseStoreDto;
+import com.kosta.saladMan.dto.store.ResetStorePasswordDto;
 import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.dto.store.StoreUpdateDto;
 import com.kosta.saladMan.entity.store.Store;
@@ -23,19 +28,22 @@ public class StoreManagementServiceImpl implements StoreManagementService {
 	@Autowired
 	private StoreDslRepository storeDslRepository;
 
+
+	
 	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	private PasswordEncoder passwordEncoder;
+
 
 	@Override
-	public void storeRegister(StoreDto storeDto) throws Exception {
+	public Integer storeRegister(StoreDto storeDto) throws Exception {
 		Optional<Store> oStore = storeRepository.findByUsername(storeDto.getUsername());
-
-		if (oStore.isPresent()) {
-			throw new Exception("이미 존재하는 아이디");
-		}
-		storeDto.setPassword(bCryptPasswordEncoder.encode(storeDto.getPassword()));
-		storeDto.setRole("ROLE_STORE");
-		storeRepository.save(storeDto.toEntity());
+	    if (oStore.isPresent()) {
+	        throw new Exception("이미 존재하는 아이디");
+	    }
+	    storeDto.setPassword(passwordEncoder.encode(storeDto.getPassword()));
+	    storeDto.setRole("ROLE_STORE");
+	    Store savedStore = storeRepository.save(storeDto.toEntity());
+	    return savedStore.getId(); 
 	}
 
 	@Override
@@ -72,27 +80,61 @@ public class StoreManagementServiceImpl implements StoreManagementService {
 
 	@Override
 	public Boolean updateStore(StoreUpdateDto storeUpdateDto) throws Exception {
-        Optional<Store> optional = storeRepository.findById(storeUpdateDto.getId());
-        if (optional.isEmpty()) return false;
+		Optional<Store> optional = storeRepository.findById(storeUpdateDto.getId());
+		if (optional.isEmpty())
+			return false;
 
-        Store store = optional.get();
-       
-        store.setName(storeUpdateDto.getName());
-        store.setAddress(storeUpdateDto.getAddress());
-        store.setPhoneNumber(storeUpdateDto.getPhoneNumber());
-        store.setUsername(storeUpdateDto.getUsername());
-        store.setLocation(storeUpdateDto.getLocation());
-        store.setLatitude(storeUpdateDto.getLatitude());
-        store.setLongitude(storeUpdateDto.getLongitude());
-        store.setOpenTime(storeUpdateDto.getOpenTime());
-        store.setCloseTime(storeUpdateDto.getCloseTime());
-        store.setBreakDay(storeUpdateDto.getBreakDay());
-        store.setUsername(storeUpdateDto.getUsername());
-        store.setDeliveryDay(storeUpdateDto.getDeliveryDay());
-        
-        storeRepository.save(store);
-        
-        return true;
+		Store store = optional.get();
+
+		store.setName(storeUpdateDto.getName());
+		store.setAddress(storeUpdateDto.getAddress());
+		store.setPhoneNumber(storeUpdateDto.getPhoneNumber());
+		store.setUsername(storeUpdateDto.getUsername());
+		store.setLocation(storeUpdateDto.getLocation());
+		store.setLatitude(storeUpdateDto.getLatitude());
+		store.setLongitude(storeUpdateDto.getLongitude());
+		store.setOpenTime(storeUpdateDto.getOpenTime());
+		store.setCloseTime(storeUpdateDto.getCloseTime());
+		store.setBreakDay(storeUpdateDto.getBreakDay());
+		store.setUsername(storeUpdateDto.getUsername());
+		store.setDeliveryDay(storeUpdateDto.getDeliveryDay());
+
+		storeRepository.save(store);
+
+		return true;
+	}
+
+	@Override
+	public void resetStorePassword(Store admin, ResetStorePasswordDto dto) throws Exception {
+		System.out.println(admin.getRole());
+		if (!"ROLE_HQ".equals(admin.getRole())) {
+			throw new AccessDeniedException("관리자 권한이 필요합니다.");
+		}
+
+		if (!passwordEncoder.matches(dto.getAdminPassword(), admin.getPassword())) {
+			throw new IllegalArgumentException("관리자 비밀번호가 일치하지 않습니다.");
+		}
+
+		Store targetStore = storeRepository.findById(dto.getId())
+				.orElseThrow(() -> new RuntimeException("매장을 찾을 수 없습니다."));
+
+		String encodedPassword = passwordEncoder.encode(dto.getNewPassword());
+		targetStore.setPassword(encodedPassword);
+		storeRepository.save(targetStore);
+	}
+	
+	@Override
+	public void closeStore(CloseStoreDto dto) {
+	    Store store = storeRepository.findById(dto.getId())
+	        .orElseThrow(() -> new RuntimeException("매장을 찾을 수 없습니다."));
+	    store.setClosedAt(dto.getClosedAt()); //
+	    storeRepository.save(store);
+	}
+
+	@Override
+	public List<String> getStoreNamesByLocation(String location) {
+		List<String> storeList = storeDslRepository.findStoreNamesByLocation(location);
+		return storeList;
 	}
 
 }

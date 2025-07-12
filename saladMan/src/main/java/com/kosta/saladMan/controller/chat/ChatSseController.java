@@ -39,6 +39,7 @@ public class ChatSseController {
             if(username == null || username.isEmpty()) {
                 throw new RuntimeException("토큰이 유효하지 않음");
             }
+            System.out.println("[SSE] subscribe: " + username); // 여기에!
             return chatSseService.subscribe(username);
         } catch(Exception ex) {
             System.out.println("[SSE] JWT 파싱 실패: " + ex);
@@ -47,8 +48,6 @@ public class ChatSseController {
     }
 
 
-    
-    // DTO 예시
     public static class ReadMessageDto {
         public Integer roomId;
         public String username;

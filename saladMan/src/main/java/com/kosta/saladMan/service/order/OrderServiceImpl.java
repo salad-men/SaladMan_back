@@ -1,11 +1,13 @@
 package com.kosta.saladMan.service.order;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -17,18 +19,29 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.kosta.saladMan.controller.common.S3Uploader;
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
+import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
+import com.kosta.saladMan.dto.inventory.StoreIngredientStockDto;
 import com.kosta.saladMan.dto.purchaseOrder.FixedOrderItemDto;
 import com.kosta.saladMan.dto.purchaseOrder.LowStockItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDetailDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
+import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemHistoryDto;
 import com.kosta.saladMan.dto.purchaseOrder.StoreOrderItemDto;
+import com.kosta.saladMan.dto.store.StoreDto;
 import com.kosta.saladMan.entity.inventory.HqIngredient;
 import com.kosta.saladMan.entity.inventory.Ingredient;
+import com.kosta.saladMan.entity.inventory.IngredientCategory;
 import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.inventory.StoreIngredientStock;
+import com.kosta.saladMan.entity.menu.MenuIngredient;
+import com.kosta.saladMan.entity.menu.StoreMenu;
+import com.kosta.saladMan.entity.menu.TotalMenu;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderItem;
 import com.kosta.saladMan.entity.purchaseOrder.FixedOrderTemplate;
 import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrder;
@@ -36,10 +49,12 @@ import com.kosta.saladMan.entity.purchaseOrder.PurchaseOrderItem;
 import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.repository.StoreRepository;
 import com.kosta.saladMan.repository.inventory.HqIngredientRepository;
+import com.kosta.saladMan.repository.inventory.IngredientCategoryRepository;
 import com.kosta.saladMan.repository.inventory.IngredientRepository;
 import com.kosta.saladMan.repository.inventory.InventoryRecordRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientRepository;
 import com.kosta.saladMan.repository.inventory.StoreIngredientStockRepository;
+import com.kosta.saladMan.repository.menu.StoreMenuRepository;
 import com.kosta.saladMan.repository.order.FixedOrderDslRepository;
 import com.kosta.saladMan.repository.order.FixedOrderItemRepository;
 import com.kosta.saladMan.repository.order.FixedOrderTemplateRepository;
@@ -48,6 +63,8 @@ import com.kosta.saladMan.repository.order.PuchaseOrderDslRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderItemRepository;
 import com.kosta.saladMan.repository.order.PurchaseOrderRepository;
 import com.kosta.saladMan.repository.order.StoreIngredientDslRepository;
+import com.kosta.saladMan.repository.user.MenuIngredientRepository;
+import com.kosta.saladMan.util.QrCodeUtil;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -93,7 +110,20 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private FixedOrderItemRepository fixedOrderItemRepository;
+	
+	@Autowired
+	private IngredientCategoryRepository ingredientCategoryRepository;
+	
+	@Autowired
+    private S3Uploader s3Uploader;
+	
+	@Autowired
+	private StoreMenuRepository storeMenuRepository;
+	
+	@Autowired
+	private MenuIngredientRepository menuIngredientRepository;
 
+	
 	// 재료 리스트
 	@Override
 	public Page<IngredientItemDto> getIngredientList(Boolean available, String category, String keyword, int page,
@@ -161,6 +191,56 @@ public class OrderServiceImpl implements OrderService {
 		
 		return itemList;
 	}
+	
+	//발주서 상세
+	@Override
+	public PurchaseOrderDetailDto getPurchaseOrderDetail(Integer purchaseOrderId) throws Exception {
+		// TODO Auto-generated method stub
+        PurchaseOrder order = purchaseOrderRepository.findById(purchaseOrderId)
+                .orElseThrow(() -> new RuntimeException("발주서가 존재하지 않습니다."));
+
+        List<PurchaseOrderItem> items = purchaseOrderItemRepository.findByPurchaseOrderId(purchaseOrderId);
+
+        List<PurchaseOrderItemHistoryDto> itemDtos = items.stream()
+        	    .map(new Function<PurchaseOrderItem, PurchaseOrderItemHistoryDto>() {
+        	        @Override
+        	        public PurchaseOrderItemHistoryDto apply(PurchaseOrderItem item) {
+        	            List<StoreIngredientStockDto> receivedStock = storeIngredientStockRepository
+        	                .findFirstByPurchaseOrderIdAndIngredientId(purchaseOrderId, item.getIngredient().getId())
+        	                .stream()
+        	                .map(stock -> stock.toDto())
+        	                .collect(Collectors.toList());
+
+        	            return PurchaseOrderItemHistoryDto.builder()
+        	                .id(item.getId())
+        	                .ingredientId(item.getIngredient().getId())
+        	                .ingredientName(item.getIngredient().getName())
+        	                .categoryName(item.getIngredient().getCategory().getName())
+        	                .orderedQuantity(item.getOrderedQuantity())
+        	                .receivedQuantity(item.getReceivedQuantity())
+        	                .totalPrice(item.getTotalPrice())
+        	                .approvalStatus(item.getApprovalStatus())
+        	                .rejectionReason(item.getRejectionReason())
+        	                .unit(item.getIngredient().getUnit())
+        	                .receivedStockList(receivedStock)
+        	                .build();
+        	        }
+        	    })
+        	    .collect(Collectors.toList());
+
+        return PurchaseOrderDetailDto.builder()
+                .purchaseOrderId(order.getId())
+                .storeName(order.getStore().getName())
+                .status(order.getStatus())
+                .orderStatus(order.getOrderStatus())
+                .orderDateTime(order.getOrderDateTime())
+                .purType(order.getPurType())
+                .totalPrice(order.getTotalPrice())
+                .requestedBy(order.getRequestedBy())
+                .qrImg(order.getQrImg())
+                .items(itemDtos)
+                .build();
+    }	
 	
 	// 발주 신청 수락
 	@Transactional
@@ -245,6 +325,26 @@ public class OrderServiceImpl implements OrderService {
 	    } else {
 	        order.setStatus("주문취소");
 	    }
+	    
+	 // 1. QR코드 생성
+	    String link = "http://192.168.0.15:8080/store/stockInspection?id=" + order.getId();
+	    String filePath = "./qrcode-" + order.getId() + ".png";
+	    QrCodeUtil.generateQrCodeImage(link, 300, 300, filePath);
+
+	    // 2. File 객체 생성
+	    File qrFile = new File(filePath);
+
+	    // 3. S3 업로드
+	    String qrUrl = s3Uploader.uploadInputStream(qrFile, "qr-codes");
+
+	    // 4. DB에 URL 저장
+	    order.setQrImg(qrUrl);
+
+	    // 5. 필요 시 임시 파일 삭제
+	    qrFile.delete();
+	    
+	    System.out.println(qrUrl+"qrCode 업로드 완");
+	    
 	}
 
 	// -----------------매장-------------------------
@@ -265,7 +365,8 @@ public class OrderServiceImpl implements OrderService {
 	// 발주 신청
 	@Transactional
 	@Override
-	public void createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception {
+	public Integer createOrder(Store storeInfo, List<StoreOrderItemDto> items,String purchaseType) throws Exception {
+		
 		int total = items.stream().mapToInt(item -> {
 			Integer qty = item.getQuantity();
 			Integer cost = item.getUnitCost();
@@ -291,17 +392,19 @@ public class OrderServiceImpl implements OrderService {
 			purchaseOrderItemRepository.save(orderItem);
 
 		}
+	    return order.getId();
+
 
 	}
 
 	// 발주 목록
 	@Override
-	public Page<PurchaseOrderDto> getPagedOrderList(Integer id, String orderType, String productName,
+	public Page<PurchaseOrderDto> getPagedOrderList(Integer id, String orderType, String productName, String status,
 			LocalDate startDate, LocalDate endDate, int page, int size) throws Exception {
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("orderDateTime").descending());
 
-		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, startDate, endDate, pageable);
+		return purchaseOrderDslRepository.findPagedOrders(id, orderType, productName, status, startDate, endDate, pageable);
 	}
 	
 	
@@ -321,6 +424,9 @@ public class OrderServiceImpl implements OrderService {
 	    Integer orderId = items.get(0).getPurchaseOrderId();
 	    PurchaseOrder order = purchaseOrderRepository.findById(orderId)
 	            .orElseThrow(() -> new Exception("해당 발주가 존재하지 않습니다. id: " + orderId));
+	    
+	    Store storeWithId = order.getStore();
+
 
 		for (PurchaseOrderItemDto dto : items) {
 	        // 1. 발주 품목 조회
@@ -337,45 +443,34 @@ public class OrderServiceImpl implements OrderService {
 	        item.setInspection(dto.getInspection());
 	        item.setInspectionNote(dto.getInspectionNote());
 	        item.setReceivedQuantity(dto.getOrderedQuantity()); // 실제 입고 수량 반영
+	        System.out.println("실제 입고 수량 반영"+dto.getOrderedQuantity());
 	        purchaseOrderItemRepository.save(item);
 	        
 	        
 
-	        // 3. StoreIngredient 업데이트 or 생성
+	        // 3. StoreIngredient 생성
 	        Store store = item.getPurchaseOrder().getStore();
 	        Ingredient ingredient = item.getIngredient();
 	        int quantity = dto.getOrderedQuantity();
 
 	        //유통기한 조회
-	        Optional<StoreIngredientStock> stockOptional = storeIngredientStockRepository
-	            .findFirstByPurchaseOrderIdAndIngredientId(orderId, ingredient.getId());
+	        List<StoreIngredientStock> stockList = storeIngredientStockRepository
+	        	    .findByPurchaseOrderIdAndIngredientId(orderId, ingredient.getId());
 
-	        LocalDate expiredDate = stockOptional
-	            .map(StoreIngredientStock::getExpiredDate)
-	            .orElse(LocalDate.now().plusDays(5));
-	        
-	        LocalDate receivedDate = LocalDate.now(); // 오늘 날짜
-	        
-	        Integer minimumOrderUnit = stockOptional
-	        	    .map(StoreIngredientStock::getMinimumOrderUnit)
-	        	    .orElse(null);
-	        
-	        Integer stockQuantity = stockOptional
-	        	    .map(StoreIngredientStock::getQuantity)
-	        	    .orElse(0);
-	        
-	        StoreIngredient storeIngredient = StoreIngredient.builder()
-	                        .store(store)
-	                        .ingredient(ingredient)
-	                        .category(ingredient.getCategory())
-	                        .unitCost(dto.getUnitCost())
-	                        .quantity(stockQuantity) // 검수된 수량만
-	                        .expiredDate(expiredDate)
-	                        .receivedDate(receivedDate)
-	                        .minimumOrderUnit(minimumOrderUnit)
-	                        .build();
+	        for (StoreIngredientStock stock : stockList) {
+	            StoreIngredient storeIngredient = StoreIngredient.builder()
+	                .store(store)
+	                .ingredient(ingredient)
+	                .category(ingredient.getCategory())
+	                .unitCost(dto.getUnitCost())
+	                .quantity(stock.getQuantity()) // 각각 개별 수량
+	                .expiredDate(stock.getExpiredDate())
+	                .receivedDate(LocalDate.now())
+	                .minimumOrderUnit(stock.getMinimumOrderUnit())
+	                .build();
 
-	        storeIngredientRepository.save(storeIngredient);
+	            storeIngredientRepository.save(storeIngredient);
+	        }
 
 	        // 4. InventoryRecord 기록 추가 (입고)
 	        InventoryRecord record = InventoryRecord.builder()
@@ -393,7 +488,48 @@ public class OrderServiceImpl implements OrderService {
 	    // 5. 주문 상태 '검수 완료'로 변경
 	    order.setStatus("검수완료");
 	    purchaseOrderRepository.save(order);
+	    
+	 // 6. 입고 후 품절 메뉴 자동 해제
+	    List<StoreMenu> menus = storeMenuRepository.findByStoreId(storeWithId.getId());
+
+	    for (StoreMenu storeMenu : menus) {
+	        if (Boolean.FALSE.equals(storeMenu.getIsSoldOut())) continue; // 이미 품절 아님
+
+	        TotalMenu menu = storeMenu.getMenu();
+	        List<MenuIngredient> ingredients = menuIngredientRepository.findByMenuId(menu.getId());
+
+	        boolean allAvailable = true;
+
+	        for (MenuIngredient mi : ingredients) {
+	            Integer ingredientId = mi.getIngredient().getId();
+
+	            // ✅ 유통기한 안 지난 + 수량 > 0 인 모든 재고 조회
+	            List<StoreIngredient> ingredientStocks = storeIngredientRepository
+	                    .findByStoreIdAndIngredientIdAndExpiredDateAfterAndQuantityGreaterThan(
+	                            storeWithId.getId(),
+	                            ingredientId,
+	                            LocalDate.now(),
+	                            0
+	                    );
+
+	            // ✅ 총 수량 계산
+	            int totalAvailable = ingredientStocks.stream()
+	                    .mapToInt(si -> Optional.ofNullable(si.getQuantity()).orElse(0))
+	                    .sum();
+
+	            if (totalAvailable < mi.getQuantity()) {
+	                allAvailable = false;
+	                break;
+	            }
+	        }
+
+	        if (allAvailable) {
+	            storeMenu.setIsSoldOut(false); // 품절 해제
+	            storeMenuRepository.save(storeMenu);
+	        }
+	    }
 	}
+	
 	
 	//발주 설정 조회
 	@Override
@@ -450,7 +586,34 @@ public class OrderServiceImpl implements OrderService {
         store.setAutoOrderEnabled(enable);		
 	}
 
+	//공통---------------------------------
+	
+	//재료 카테고리 호출
+	@Override
+	public List<IngredientCategoryDto> getAllIngredientCategory() throws Exception {
+		
+		List<IngredientCategoryDto> categoryDto = ingredientCategoryRepository.findAll().stream().map(IngredientCategory::toDto)
+				.collect(Collectors.toList());
+		return categoryDto;
+	}
+	
+	//매장 목록 오직 이름만
+	@Override
+	public List<StoreDto> getStoreName() throws Exception {
+		// TODO Auto-generated method stub
+		return storeRepository.findAllStoreNamesId();
+	}
 
-
-
+	
+	
+	//대시보드
+    @Override
+	public int getAutoOrderExpectedCount(Integer storeId) {
+	    return storeIngredientDslRepository.countAutoOrderExpectedByStore(storeId);
+	}
+	
+    @Override
+    public OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
+        return purchaseOrderDslRepository.findPurchaseOrderSummaryTop3WithCountMerged(startDate, endDate);
+    }
 }

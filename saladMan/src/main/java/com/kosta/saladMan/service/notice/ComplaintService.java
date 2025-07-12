@@ -8,7 +8,14 @@ import com.kosta.saladMan.util.PageInfo;
 
 public interface ComplaintService {
     ComplaintDto save(ComplaintDto dto);
-    List<ComplaintDto> searchComplaintList(PageInfo pageInfo, Integer storeId, String status, String keyword);
-    ComplaintDto detailComplaint(Integer id) throws Exception;
+    List<ComplaintDto> searchHqComplaintList(PageInfo pageInfo, String keyword);
+    List<ComplaintDto> searchStoreComplaintList(PageInfo pageInfo, Integer storeId, String keyword);
+    ComplaintDto detailComplaintHq(Integer id) throws Exception;
+    ComplaintDto detailComplaintStore(Integer id) throws Exception;
     void forwardComplaint(Integer id) throws Exception;
+    
+	int countUnreadComplaintsByStore(Integer storeId);
+	int countUnreadComplaintsByHq();
+
+    
 }

@@ -3,6 +3,7 @@ package com.kosta.saladMan.service.saleOrder;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
 import com.kosta.saladMan.dto.saleOrder.PaymentListDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto.GroupType;
@@ -15,4 +16,7 @@ public interface SalesService {
 	SalesResultDto getTotalSales(LocalDate start, LocalDate end, GroupType groupType) throws Exception;
 	List<PaymentListDto> getPaymentList(Integer storeId, String status, String start, String end, PageInfo pageInfo) throws Exception;
 	List<StoreFilterDto> getStoreFilter() throws Exception;
+	
+	OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate);
+
 }
