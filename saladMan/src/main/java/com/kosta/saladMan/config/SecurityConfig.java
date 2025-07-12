@@ -93,6 +93,7 @@ public class SecurityConfig {
 				.antMatchers("/store/**").access("hasRole('ROLE_STORE')")
 				.antMatchers("/actuator/health").permitAll()
 				.antMatchers("/user/**").permitAll()
+				.antMatchers("/login").permitAll()
 				.antMatchers("/chat/sse").permitAll()
 				.antMatchers("/chat/**").authenticated()
 				.anyRequest().permitAll();

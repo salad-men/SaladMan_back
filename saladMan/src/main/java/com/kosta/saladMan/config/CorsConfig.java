@@ -44,7 +44,7 @@ public class CorsConfig implements WebMvcConfigurer {
         config.addAllowedOrigin("http://192.168.0.15:5173");
         config.addAllowedOrigin("http://192.168.0.15:8090");
 
-//		config.addAllowedOriginPattern("*");
+		config.addAllowedOriginPattern("*");
 
 		config.addAllowedHeader("*"); //프론트의 Access-Control-Allow-Headers 요청에 대한 허용
 		config.addAllowedMethod("*"); //프론트의 Access-Control-Allow-Method 요청에 대한 허용
