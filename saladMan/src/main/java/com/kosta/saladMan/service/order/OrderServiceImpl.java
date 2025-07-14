@@ -304,6 +304,15 @@ public class OrderServiceImpl implements OrderService {
 	                        .purchaseOrder(order)
 	                        .build();
 	                    storeIngredientStockRepository.save(storeStock);
+	                    
+	                    InventoryRecord record = InventoryRecord.builder()
+	                    	    .ingredient(stock.getIngredient())
+	                    	    .store(order.getStore())
+	                    	    .quantity(deduct)
+	                    	    .changeType("출고")
+	                    	    .memo("출고")
+	                    	    .build();
+	                    	inventoryRecordRepository.save(record);
 
 	                    if (remain <= 0) break;
 	                }
@@ -329,7 +338,7 @@ public class OrderServiceImpl implements OrderService {
 	    }
 	    
 	 // 1. QR코드 생성
-	    String link = "http://192.168.0.15:8080/store/stockInspection?id=" + order.getId();
+	    String link = "https://www.saladman.net/store/stockInspection?id=" + order.getId();
 	    String filePath = "./qrcode-" + order.getId() + ".png";
 	    QrCodeUtil.generateQrCodeImage(link, 300, 300, filePath);
 

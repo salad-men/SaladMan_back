@@ -23,6 +23,11 @@ public interface InventoryService {
 	List<HqIngredientDto> getHqInventory(Integer storeId, Integer categoryId, String keyword,
             String startDateStr, String endDateStr,
             PageInfo pageInfo, String sortOption);
+	
+	//본사 유통기한 목록 조회
+	List<HqIngredientDto> getHqInventoryExpiration(Integer storeId, Integer categoryId, String keyword,
+            String startDateStr, String endDateStr,
+            PageInfo pageInfo, String sortOption);
 
     // 매장 재고 조회 (유통기한 필터 선택적 적용)
 	 List<StoreIngredientDto> getStoreInventory(Integer storeId, Integer categoryId, String keyword,
@@ -51,6 +56,11 @@ public interface InventoryService {
 
     // 매장 전체 조회
     List<StoreIngredientDto> getAllStoreInventory(Integer categoryId, String keyword,
+            String startDateStr, String endDateStr,
+            PageInfo pageInfo, String sortOption);
+    
+    // 매장 유통기한목록 전체 조회
+    List<StoreIngredientDto> getAllStoreInventoryExpiration(Integer categoryId, String keyword,
             String startDateStr, String endDateStr,
             PageInfo pageInfo, String sortOption);
 

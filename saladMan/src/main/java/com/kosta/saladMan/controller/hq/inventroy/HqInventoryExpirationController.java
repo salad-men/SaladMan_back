@@ -62,16 +62,16 @@ public class HqInventoryExpirationController {
             Map<String, Object> res = new HashMap<>();
 
             if ("hq".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope) || (storeId != null && storeId == 1)) {
-                List<HqIngredientDto> hqInventory = inventoryService.getHqInventory(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
+                List<HqIngredientDto> hqInventory = inventoryService.getHqInventoryExpiration(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
                 res.put("hqInventory", hqInventory);
             }
 
             if ("store".equalsIgnoreCase(scope) || "all".equalsIgnoreCase(scope)) {
                 List<StoreIngredientDto> storeList;
                 if (storeId == null) {
-                    storeList = inventoryService.getAllStoreInventory(categoryId, keyword, null, null, pageInfo, sortOption);
+                    storeList = inventoryService.getAllStoreInventoryExpiration(categoryId, keyword, startDate, endDate, pageInfo, sortOption);
                 } else if (storeId != 1) {
-                    storeList = inventoryService.getStoreInventory(storeId, categoryId, keyword, null, null, pageInfo, sortOption);
+                    storeList = inventoryService.getStoreInventoryExpiration(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
                 } else {
                     storeList = List.of();
                 }
