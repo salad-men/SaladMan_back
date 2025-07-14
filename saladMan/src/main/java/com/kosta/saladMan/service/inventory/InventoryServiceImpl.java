@@ -73,8 +73,8 @@ public class InventoryServiceImpl implements InventoryService {
         long totalCount = hqInventoryDslRepository.countHqInventoryByFilters(categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
 
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
@@ -106,12 +106,36 @@ public class InventoryServiceImpl implements InventoryService {
 
         long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
         return storeInventoryDslRepository.findStoreInventoryByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate, pageRequest, sortOption);
+    }
+    
+    //매장 유통기한 목록 조회
+    @Override
+    public List<StoreIngredientDto> getStoreInventoryExpiration(Integer storeId, Integer categoryId, String keyword,
+                                                      String startDateStr, String endDateStr,
+                                                      PageInfo pageInfo, String sortOption) {
+        if (storeId == null || storeId == 1) return List.of();
+
+        LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
+        LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
+
+        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+        Store storeEntity = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + storeId));
+
+        long totalCount = storeInventoryDslRepository.countStoreInventoryExpirationByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
+        pageInfo.setStartPage(start);
+        pageInfo.setEndPage(end);
+
+        return storeInventoryDslRepository.findStoreInventoryExpirationByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate, pageRequest, sortOption);
     }
 
     
@@ -123,8 +147,8 @@ public class InventoryServiceImpl implements InventoryService {
 
         long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(null, categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
@@ -518,8 +542,8 @@ public class InventoryServiceImpl implements InventoryService {
         long totalCount = hqInventoryDslRepository.countHqSettingsByFilters(storeId, categoryId, keyword);
 
         int allPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        int startPage = ((pageInfo.getCurPage() - 1) / 10) * 10 + 1;
-        int endPage = Math.min(startPage + 9, allPage);
+        int startPage = ((pageInfo.getCurPage() - 1) / 5) * 5 + 1;
+        int endPage = Math.min(startPage + 4, allPage);
 
         pageInfo.setStartPage(startPage);
         pageInfo.setEndPage(endPage);
@@ -540,8 +564,8 @@ public class InventoryServiceImpl implements InventoryService {
         long totalCount = storeInventoryDslRepository.countStoreSettingsByFilters(storeId, categoryId, keyword);
 
         int allPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        int startPage = ((pageInfo.getCurPage() - 1) / 10) * 10 + 1;
-        int endPage = Math.min(startPage + 9, allPage);
+        int startPage = ((pageInfo.getCurPage() - 1) / 5) * 5 + 1;
+        int endPage = Math.min(startPage + 4, allPage);
 
         pageInfo.setStartPage(startPage);
         pageInfo.setEndPage(endPage);
@@ -803,23 +827,22 @@ public class InventoryServiceImpl implements InventoryService {
         // 해당 매장의 전체 재고 중, minQuantity 이하(또는 자체 로직 적용) 품목 수 반환
         return storeInventoryDslRepository.countLowStockByStore(storeId);
     }
-    
-    //폐기신청 목록
-    public Map<String, Integer> getDisposalStatusCountByStore(
-    	    Integer storeId, String startDate, String endDate
-    	) {
-    	    LocalDate start = LocalDate.parse(startDate);
-    	    LocalDate end = LocalDate.parse(endDate);
 
-    	    Map<String, Integer> result = new HashMap<>();
-    	    result.put("대기", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REQUESTED", start, end));
-    	    result.put("완료", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "APPROVED", start, end));
-    	    result.put("반려", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REJECTED", start, end));
-    	    return result;
-    	}
+    @Override
+    public Map<String, Integer> getDisposalStatusCountByStore(Integer storeId) {
+        // 1년 전부터 현재까지의 범위 설정 (LocalDateTime에서 LocalDate로 변환)
+        LocalDate start = LocalDate.now().minusYears(1);  // 1년 전 날짜 (시각 제외)
+        LocalDate end = LocalDate.now();  // 현재 날짜 (시각 제외)
+
+        // 결과 맵 생성
+        Map<String, Integer> result = new HashMap<>();
+        result.put("대기", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "대기", start, end));
+        result.put("완료", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "완료", start, end));
+        result.put("반려", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "반려", start, end));
+
+        return result;
+    }
 
 
-    
-    
     
 }

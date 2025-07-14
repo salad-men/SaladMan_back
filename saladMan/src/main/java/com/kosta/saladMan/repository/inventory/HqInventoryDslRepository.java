@@ -336,8 +336,9 @@ public class HqInventoryDslRepository {
 
         LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+        LocalDate today = LocalDate.now();
 
-        // Top3 조회
+        // Top3 임박재고
         List<InventoryExpireSummaryDto.Item> top3 = queryFactory
             .select(Projections.bean(
                 InventoryExpireSummaryDto.Item.class,
@@ -367,10 +368,7 @@ public class HqInventoryDslRepository {
             )
             .fetchOne();
 
-        // 오늘 기준 계산 (D-1, D-DAY)
-        LocalDate today = LocalDate.now();
-
-        // D-1 (내일이 유통기한인 건)
+        // D-1 (내일 유통기한)
         Long d1Count = queryFactory
             .select(hq.count())
             .from(hq)
@@ -380,7 +378,7 @@ public class HqInventoryDslRepository {
             )
             .fetchOne();
 
-        // D-DAY (오늘이 유통기한인 건)
+        // D-day (오늘 유통기한)
         Long todayCount = queryFactory
             .select(hq.count())
             .from(hq)
@@ -398,6 +396,7 @@ public class HqInventoryDslRepository {
 
         return dto;
     }
+
 
 
  // 폐기 Top3+전체건수 (단일 DTO)

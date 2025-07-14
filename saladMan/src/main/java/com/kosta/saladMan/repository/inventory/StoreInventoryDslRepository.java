@@ -58,6 +58,119 @@ public class StoreInventoryDslRepository {
         if (storeId != null) builder.and(q.store.id.eq(storeId));
         if (categoryId != null) builder.and(q.category.id.eq(categoryId));
         if (keyword != null && !keyword.isBlank()) builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        if (startDate != null) builder.and(q.receivedDate.goe(startDate));
+        if (endDate != null) builder.and(q.receivedDate.loe(endDate));
+        builder.and(q.quantity.gt(0));
+
+        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+
+        // 정렬 옵션 세팅
+        if ("receivedAsc".equals(sortOption)) {
+            orderSpecifiers.add(q.receivedDate.asc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else if ("receivedDesc".equals(sortOption)) {
+            orderSpecifiers.add(q.receivedDate.desc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else if ("expiryAsc".equals(sortOption)) {
+            orderSpecifiers.add(q.expiredDate.asc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else if ("expiryDesc".equals(sortOption)) {
+            orderSpecifiers.add(q.expiredDate.desc().nullsLast());
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+        } else {
+            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.ingredient.name.asc());
+            orderSpecifiers.add(q.expiredDate.asc().nullsLast());
+        }
+
+        
+        List<StoreIngredientDto> list = queryFactory
+                .select(Projections.bean(
+                        StoreIngredientDto.class,
+                        q.id,
+                        q.quantity,
+                        q.expiredDate,
+                        q.receivedDate,
+                        q.ingredient.name.as("ingredientName"),
+                        q.ingredient.id.as("ingredientId"),
+                        q.ingredient.unit.as("unit"),
+                        q.category.name.as("categoryName"),
+                        q.category.id.as("categoryId"), 
+                        store.name.as("storeName"),
+                        s.minQuantity.as("minQuantity"),
+                        q.unitCost.as("unitCost"),
+                        q.minimumOrderUnit.as("minimumOrderUnit")
+                       
+                ))
+                .from(q)
+                .leftJoin(q.ingredient)
+                .leftJoin(q.category)
+                .leftJoin(q.store, store)
+                .leftJoin(s).on(s.store.id.eq(store.id).and(s.ingredient.eq(q.ingredient)))
+//                .leftJoin(hq).on(hq.ingredient.eq(q.ingredient).and(hq.store.id.eq(1)))
+                .where(builder)
+                .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
+                .offset(pageRequest.getOffset())
+                .limit(pageRequest.getPageSize())
+                .fetch();
+
+            // 중복 id 제거
+//            Map<Integer, StoreIngredientDto> map = new LinkedHashMap<>();
+//            for (StoreIngredientDto dto : list) {
+//                map.put(dto.getId(), dto);
+//            }
+//            return new ArrayList<>(map.values());
+        
+        return list;
+    }
+
+    
+    //매장 재고 개수 조회
+    public long countStoreInventoryByFilters(
+            Integer storeId, Integer categoryId, String keyword,
+            LocalDate startDate, LocalDate endDate) {
+
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (storeId != null) {
+            builder.and(q.store.id.eq(storeId));
+        }
+        if (categoryId != null) {
+            builder.and(q.category.id.eq(categoryId));
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(q.ingredient.name.containsIgnoreCase(keyword));
+        }
+        if (startDate != null) builder.and(q.receivedDate.goe(startDate));
+        if (endDate != null) builder.and(q.receivedDate.loe(endDate));
+        builder.and(q.quantity.gt(0));
+
+        Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
+
+        return count == null ? 0L : count;
+    }
+    
+    
+    
+    // 매장 유통기한 목록 조회
+    public List<StoreIngredientDto> findStoreInventoryExpirationByFilters(
+            Integer storeId, Integer categoryId, String keyword,
+            LocalDate startDate, LocalDate endDate, PageRequest pageRequest, String sortOption) {
+
+        QStoreIngredient q = QStoreIngredient.storeIngredient;
+        QStore store = QStore.store;
+        QStoreIngredientSetting s = QStoreIngredientSetting.storeIngredientSetting;
+        QHqIngredient hq = QHqIngredient.hqIngredient;
+
+        BooleanBuilder builder = new BooleanBuilder();
+        if (storeId != null) builder.and(q.store.id.eq(storeId));
+        if (categoryId != null) builder.and(q.category.id.eq(categoryId));
+        if (keyword != null && !keyword.isBlank()) builder.and(q.ingredient.name.containsIgnoreCase(keyword));
         if (startDate != null) builder.and(q.expiredDate.goe(startDate));
         if (endDate != null) builder.and(q.expiredDate.loe(endDate));
         builder.and(q.quantity.gt(0));
@@ -102,15 +215,16 @@ public class StoreInventoryDslRepository {
                         q.category.id.as("categoryId"), 
                         store.name.as("storeName"),
                         s.minQuantity.as("minQuantity"),
-                        hq.unitCost.as("unitCost"),
-                        hq.minimumOrderUnit.as("minimumOrderUnit")
+                        q.unitCost.as("unitCost"),
+                        q.minimumOrderUnit.as("minimumOrderUnit")
+                       
                 ))
                 .from(q)
                 .leftJoin(q.ingredient)
                 .leftJoin(q.category)
                 .leftJoin(q.store, store)
                 .leftJoin(s).on(s.store.id.eq(store.id).and(s.ingredient.eq(q.ingredient)))
-                .leftJoin(hq).on(hq.ingredient.eq(q.ingredient).and(hq.store.id.eq(1)))
+//                .leftJoin(hq).on(hq.ingredient.eq(q.ingredient).and(hq.store.id.eq(1)))
                 .where(builder)
                 .orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]))
                 .offset(pageRequest.getOffset())
@@ -118,16 +232,18 @@ public class StoreInventoryDslRepository {
                 .fetch();
 
             // 중복 id 제거
-            Map<Integer, StoreIngredientDto> map = new LinkedHashMap<>();
-            for (StoreIngredientDto dto : list) {
-                map.put(dto.getId(), dto);
-            }
-            return new ArrayList<>(map.values());
+//            Map<Integer, StoreIngredientDto> map = new LinkedHashMap<>();
+//            for (StoreIngredientDto dto : list) {
+//                map.put(dto.getId(), dto);
+//            }
+//            return new ArrayList<>(map.values());
+        
+        return list;
     }
 
     
-    //매장 재고 개수 조회
-    public long countStoreInventoryByFilters(
+    //매장 유통기한 목록 개수 조회
+    public long countStoreInventoryExpirationByFilters(
             Integer storeId, Integer categoryId, String keyword,
             LocalDate startDate, LocalDate endDate) {
 
@@ -145,11 +261,13 @@ public class StoreInventoryDslRepository {
         }
         if (startDate != null) builder.and(q.expiredDate.goe(startDate));
         if (endDate != null) builder.and(q.expiredDate.loe(endDate));
+        builder.and(q.quantity.gt(0));
 
         Long count = queryFactory.select(q.count()).from(q).where(builder).fetchOne();
 
         return count == null ? 0L : count;
     }
+    
 
 
     // 매장 재고 업데이트
@@ -319,7 +437,16 @@ public class StoreInventoryDslRepository {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(ir.store.id.eq(storeId));
         if (changeType != null && !changeType.isBlank()) {
-            builder.and(ir.changeType.eq(changeType));
+        	
+        	if(changeType.equals("입고")) {
+        		builder.and(ir.changeType.eq("입고"));
+        	}
+        	else if(changeType.equals("사용")) {
+                builder.and(ir.memo.contains("판매"));  // memo LIKE '%판매%'
+        	}
+        	else if(changeType.equals("폐기")) {
+                builder.and(ir.memo.contains("폐기"));  // memo LIKE '%판매%'
+        	}
         }
 
         return queryFactory
@@ -518,60 +645,55 @@ public class StoreInventoryDslRepository {
     
     // 임박재고 Top3+전체건수+임박카운트
     public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
-        QStoreIngredient si = QStoreIngredient.storeIngredient;
+        QHqIngredient hq = QHqIngredient.hqIngredient;
 
         LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+        LocalDate today = LocalDate.now();
 
-        // Top3 임박재고
         List<InventoryExpireSummaryDto.Item> top3 = queryFactory
             .select(Projections.bean(
                 InventoryExpireSummaryDto.Item.class,
-                si.ingredient.name.as("ingredientName"),
-                si.category.name.as("categoryName"),
-                si.quantity.as("remainQuantity"),
-                si.expiredDate.stringValue().as("expiredDate")
+                hq.ingredient.name.as("ingredientName"),
+                hq.category.name.as("categoryName"),
+                hq.quantity.as("remainQuantity"),
+                hq.expiredDate.stringValue().as("expiredDate")
             ))
-            .from(si)
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                hq.quantity.gt(0),
+                sDate != null ? hq.expiredDate.goe(sDate) : null,
+                eDate != null ? hq.expiredDate.loe(eDate) : null
             )
-            .orderBy(si.expiredDate.asc(), si.quantity.desc())
+            .orderBy(hq.expiredDate.asc(), hq.quantity.desc())
             .limit(3)
             .fetch();
 
-        // 전체 임박재고 건수
         Long totalCount = queryFactory
-            .select(si.count())
-            .from(si)
+            .select(hq.count())
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                hq.quantity.gt(0),
+                sDate != null ? hq.expiredDate.goe(sDate) : null,
+                eDate != null ? hq.expiredDate.loe(eDate) : null
             )
             .fetchOne();
 
-        LocalDate today = LocalDate.now();
-
-        // D-1 (내일 유통기한)
         Long d1Count = queryFactory
-            .select(si.count())
-            .from(si)
+            .select(hq.count())
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                si.expiredDate.eq(today.plusDays(1))
+                hq.quantity.gt(0),
+                hq.expiredDate.eq(today.plusDays(1))
             )
             .fetchOne();
 
-        // D-DAY (오늘 유통기한)
         Long todayCount = queryFactory
-            .select(si.count())
-            .from(si)
+            .select(hq.count())
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                si.expiredDate.eq(today)
+                hq.quantity.gt(0),
+                hq.expiredDate.eq(today)
             )
             .fetchOne();
 
@@ -583,6 +705,7 @@ public class StoreInventoryDslRepository {
 
         return dto;
     }
+
 
     // 자동발주 예정 품목 카운트
     public int countAutoOrderExpectedByStore(Integer storeId) {
@@ -630,7 +753,7 @@ public class StoreInventoryDslRepository {
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
         LocalDate today = LocalDate.now();
 
-        // 임박재고 Top3
+     // 임박재고 Top3
         List<InventoryExpireSummaryDto.Item> top3 = queryFactory
             .select(Projections.bean(
                 InventoryExpireSummaryDto.Item.class,
@@ -643,8 +766,8 @@ public class StoreInventoryDslRepository {
             .where(
                 si.store.id.eq(storeId),
                 si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                sDate != null ? si.expiredDate.goe(sDate) : si.expiredDate.isNotNull(),  // 수정된 부분
+                eDate != null ? si.expiredDate.loe(eDate) : si.expiredDate.isNotNull()   // 수정된 부분
             )
             .orderBy(si.expiredDate.asc(), si.quantity.desc())
             .limit(3)
@@ -657,8 +780,8 @@ public class StoreInventoryDslRepository {
             .where(
                 si.store.id.eq(storeId),
                 si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                sDate != null ? si.expiredDate.goe(sDate) : si.expiredDate.isNotNull(),  // 수정된 부분
+                eDate != null ? si.expiredDate.loe(eDate) : si.expiredDate.isNotNull()   // 수정된 부분
             )
             .fetchOne();
 
@@ -682,6 +805,7 @@ public class StoreInventoryDslRepository {
                 si.expiredDate.eq(today)
             )
             .fetchOne();
+
 
         InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
         dto.setTop3(top3);

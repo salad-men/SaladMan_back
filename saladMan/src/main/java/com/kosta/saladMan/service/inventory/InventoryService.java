@@ -28,6 +28,11 @@ public interface InventoryService {
 	 List<StoreIngredientDto> getStoreInventory(Integer storeId, Integer categoryId, String keyword,
              String startDateStr, String endDateStr,
              PageInfo pageInfo, String sortOption);
+	 
+	 // 매장 유통기한 목록 조회 (유통기한 필터 선택적 적용)
+	 List<StoreIngredientDto> getStoreInventoryExpiration(Integer storeId, Integer categoryId, String keyword,
+	             String startDateStr, String endDateStr,
+	             PageInfo pageInfo, String sortOption);
     
     // 본사 재고 추가
     void addHqIngredient(HqIngredientDto dto);
@@ -145,7 +150,8 @@ public interface InventoryService {
     
     int getAutoOrderExpectedCount(Integer storeId);
 
-    Map<String, Integer> getDisposalStatusCountByStore(Integer storeId, String startDate, String endDate);
+    Map<String, Integer> getDisposalStatusCountByStore(Integer storeId);
+
 
 
 }

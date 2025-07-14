@@ -35,14 +35,15 @@ public class StoreInventoryController {
             if (param.get("category") != null && !"all".equals(param.get("category").toString())) {
                 categoryId = Integer.valueOf(param.get("category").toString());
             }
-            String keyword = (String) param.getOrDefault("name", "");
+            String keyword = (String) param.getOrDefault("keyword", "");
             int page = param.get("page") == null ? 1 : (int) param.get("page");
 
             String startDate = (String) param.getOrDefault("startDate", null);
             String endDate = (String) param.getOrDefault("endDate", null);
             String sortOption = (String) param.getOrDefault("sortOption", "default");
 
-            PageInfo pageInfo = new PageInfo(page);
+            int size = param.get("size") == null ? 10 : (int) param.get("size");
+            PageInfo pageInfo = new PageInfo(page,size);
 
             List<StoreIngredientDto> storeInventory = inventoryService.getStoreInventory(storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption);
 

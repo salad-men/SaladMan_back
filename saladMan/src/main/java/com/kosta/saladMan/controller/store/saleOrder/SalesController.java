@@ -51,16 +51,16 @@ public class SalesController {
     public ResponseEntity<Map<String, Object>> getPaymentList(@AuthenticationPrincipal PrincipalDetails principalDetails,
     		@RequestParam(required = false) String status,@RequestParam(required = false) String startDate, 
     		@RequestParam(required = false) String endDate,@RequestParam Integer page) {
-    	PageInfo pageInfo = new PageInfo(1);
+    	
     	Integer storeId = principalDetails.getStore().getId();
     	
     	// 빈 문자열이면 null로 변환
         status = (status != null && !status.isBlank()) ? status : null;
         startDate = (startDate != null && !startDate.isBlank()) ? startDate : null;
         endDate = (endDate != null && !endDate.isBlank()) ? endDate : null;
-        System.out.println("페이지 요청: " + page); // SalesController
 
         try {
+        	PageInfo pageInfo = new PageInfo(page);
         	List<PaymentListDto> list = salesService.getPaymentList(storeId, status, startDate, endDate, pageInfo);
         	Map<String, Object> response = new HashMap<>();
         	response.put("content", list);
