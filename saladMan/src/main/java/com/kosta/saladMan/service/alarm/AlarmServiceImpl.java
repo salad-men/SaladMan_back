@@ -29,7 +29,7 @@ public class AlarmServiceImpl implements AlarmService {
 	@Override
 	public List<AlarmDto> getStoreAlarm(Integer storeId, PageInfo pageInfo) throws Exception {
 		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 10);
-		Page<Alarm> pages = alarmRepository.findByStoreId(storeId, pageRequest);
+		Page<Alarm> pages = alarmRepository.findByStoreIdOrderBySendAtDesc(storeId, pageRequest);
 		
 		pageInfo.setAllPage(pages.getTotalPages());
 		int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;

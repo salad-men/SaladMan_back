@@ -31,12 +31,18 @@ public class ComplaintServiceImpl implements ComplaintService {
     private final AlarmMsgRepository alarmMsgRepository;
 
     @Override
-    public List<ComplaintDto> searchHqComplaintList(PageInfo pageInfo, String keyword) {
+    public List<ComplaintDto> searchHqComplaintList(PageInfo pageInfo, String keyword,String status, Integer storeId) {
         int curPage = pageInfo.getCurPage() == null || pageInfo.getCurPage() < 1 ? 1 : pageInfo.getCurPage();
         PageRequest pageRequest = PageRequest.of(curPage - 1, 10);
         Boolean isRelay = false;
-        List<Complaint> complaintList = complaintDslRepository.findComplaintsByFilters(pageRequest, null, null, null, isRelay, keyword);
-        Long totalCount = complaintDslRepository.countComplaintsByFilters(null, null, null, isRelay, keyword);
+        
+        // 미열람/열람 처리
+        Boolean isHqRead = null;
+        if ("true".equals(status)) isHqRead = true;
+        else if ("false".equals(status)) isHqRead = false;
+        
+        List<Complaint> complaintList = complaintDslRepository.findComplaintsByFilters(pageRequest, storeId, isHqRead, null, isRelay, keyword);
+        Long totalCount = complaintDslRepository.countComplaintsByFilters(storeId, isHqRead, null, isRelay, keyword);
 
         int allPage = (int) Math.ceil((double) totalCount / pageRequest.getPageSize());
         pageInfo.setAllPage(allPage);

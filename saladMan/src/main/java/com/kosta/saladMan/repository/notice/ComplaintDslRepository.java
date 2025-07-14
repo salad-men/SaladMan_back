@@ -25,8 +25,17 @@ public class ComplaintDslRepository {
         if (storeId != null) {
             builder.and(complaint.store.id.eq(storeId));
         }
-        if (isHqRead != null) builder.and(complaint.isHqRead.eq(isHqRead));
+        
+        if (isHqRead != null) { 
+        	if(isHqRead) {
+            	builder.and(complaint.isHqRead.eq(isHqRead));
+        	}else {
+                builder.and(complaint.isHqRead.isNull());
+            }
+        }
+        
         if (isStoreRead != null) builder.and(complaint.isStoreRead.eq(isStoreRead));
+        
         if (isRelay != null) {
             builder.and(complaint.isRelay.eq(isRelay));
         }
@@ -50,7 +59,13 @@ public class ComplaintDslRepository {
         if (storeId != null) {
             builder.and(complaint.store.id.eq(storeId));
         }
-        if (isHqRead != null) builder.and(complaint.isHqRead.eq(isHqRead));
+        if (isHqRead != null) { 
+        	if(isHqRead) {
+            	builder.and(complaint.isHqRead.eq(isHqRead));
+        	}else {
+                builder.and(complaint.isHqRead.isNull());
+            }
+        }
         if (isStoreRead != null) builder.and(complaint.isStoreRead.eq(isStoreRead));
         if (isRelay != null) {
             builder.and(complaint.isRelay.eq(isRelay));

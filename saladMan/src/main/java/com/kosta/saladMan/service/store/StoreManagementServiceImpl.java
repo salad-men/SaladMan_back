@@ -1,6 +1,7 @@
 package com.kosta.saladMan.service.store;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,8 +133,8 @@ public class StoreManagementServiceImpl implements StoreManagementService {
 	}
 
 	@Override
-	public List<String> getStoreNamesByLocation(String location) {
-		List<String> storeList = storeDslRepository.findStoreNamesByLocation(location);
+	public List<Map<String, Object>> getStoreNamesByLocation(String location) {
+		List<Map<String, Object>> storeList = storeDslRepository.findStoreNamesByLocation(location);
 		return storeList;
 	}
 
