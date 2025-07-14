@@ -101,8 +101,9 @@ public class SalesServiceImpl implements SalesService {
 		Page<PaymentListDto> pages = salesDslRepository.getPaymentList(storeId, status, start, end, pageRequest);
 		
 		pageInfo.setAllPage(pages.getTotalPages());
-		int startPage = (pageInfo.getAllPage() - 1) / 10 * 10 + 1;
-		int endPage = Math.min(startPage + 9, pageInfo.getAllPage());
+		
+		int startPage = ((pageInfo.getCurPage() - 1) / 5) * 5 + 1;
+		int endPage = Math.min(startPage + 4, pageInfo.getAllPage());
 		pageInfo.setStartPage(startPage);
 		pageInfo.setEndPage(endPage);
 		
