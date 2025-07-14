@@ -57,6 +57,8 @@ public class ChatService {
                 .orElseThrow(() -> new EntityNotFoundException("Store not found"));
 
         ChatMessage chatMessage = chatMessageDto.toEntity(chatRoom, sender);
+        ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
+
         chatMessageRepository.save(chatMessage);
         
         // 사용자별로 읽음 여부 저장
@@ -70,6 +72,9 @@ public class ChatService {
                     .build();
             readStatusRepository.save(readStatus);
         }
+        
+        savedMessage.getStore().getName();
+        savedMessage.getChatRoom().getName();
         
         ChatMessageDto sseDto = chatMessage.toDto(); 
 
