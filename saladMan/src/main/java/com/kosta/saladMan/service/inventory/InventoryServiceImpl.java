@@ -811,8 +811,8 @@ public class InventoryServiceImpl implements InventoryService {
     	    LocalDate end = LocalDate.parse(endDate);
 
     	    Map<String, Integer> result = new HashMap<>();
-    	    result.put("신청", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REQUESTED", start, end));
-    	    result.put("승인", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "APPROVED", start, end));
+    	    result.put("대기", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REQUESTED", start, end));
+    	    result.put("완료", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "APPROVED", start, end));
     	    result.put("반려", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REJECTED", start, end));
     	    return result;
     	}

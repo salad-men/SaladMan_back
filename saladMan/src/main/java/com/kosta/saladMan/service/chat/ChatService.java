@@ -59,9 +59,11 @@ public class ChatService {
         ChatMessage chatMessage = chatMessageDto.toEntity(chatRoom, sender);
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
 
-//        chatMessageRepository.save(chatMessage);
-        
-        // 사용자별로 읽음 여부 저장
+        // 저장 후 다시 조회하여 연관 엔티티 초기화
+        savedMessage = chatMessageRepository.findById(savedMessage.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Saved message not found"));
+
+        // 사용자별 읽음 여부 저장
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
         for (ChatParticipant c : chatParticipants) {
             ReadStatus readStatus = ReadStatus.builder()
@@ -72,19 +74,16 @@ public class ChatService {
                     .build();
             readStatusRepository.save(readStatus);
         }
-        
-        savedMessage.getStore().getName();
-        savedMessage.getChatRoom().getName();
-        
+
         ChatMessageDto sseDto = savedMessage.toDto();
 
-        //SSE전송
+        // SSE 전송
         Set<String> participants = chatParticipants.stream()
                 .map(cp -> cp.getStore().getUsername())
                 .collect(Collectors.toSet());
         chatSseService.sendToUsers(participants, "newMessage", sseDto);
-
     }
+
 
     // 그룹채팅방 개설
     public void createGroupRoom(String chatRoomName) {
