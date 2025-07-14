@@ -27,6 +27,7 @@ import com.kosta.saladMan.service.saleOrder.SalesServiceImpl;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -140,7 +141,7 @@ public class DashboardService {
         
         // employeeDslRepository에서 직접 데이터를 가져옵니다.
         return employeeDslRepository.findWeekSchedulesByStore(storeId, weekNo);  
-    }
+    } 
 
     // 매장 대시보드 요약 전체 반환
     public StoreDashboardSummaryDto getStoreSummary(Integer storeId, String startDate, String endDate, String groupType, int weekNo) {
@@ -173,29 +174,39 @@ public class DashboardService {
         // 2. 임박/폐기 예정 재고 요약
         InventoryExpireSummaryDto expireSummary = inventoryService.getStoreExpireSummary(storeId, null, null);
         dto.setExpireSummary(expireSummary);
-
-        // 3. 자동 발주 예정 품목 수
+        	
+        // 3. 폐기 현황
+        Map<String, Integer> disposalSummary = inventoryService.getDisposalStatusCountByStore(storeId, startDate, endDate);
+        // 예: { "신청": 2, "승인": 3, "반려": 1 }
+        dto.setDisposalSummary(disposalSummary);
+        
+        // 4. 발주 현황
+        Map<String, Integer> orderSummary = orderService.getOrderStatusCountByStore(storeId, startDate, endDate);
+        // 예: { "요청": 5, "승인": 3, "반려": 2, "입고완료": 2 }
+        dto.setOrderSummary(orderSummary);
+        
+        // 5. 자동 발주 예정 품목 수
         int autoOrderExpectedCount = orderService.getAutoOrderExpectedCount(storeId);
         dto.setAutoOrderExpectedCount(autoOrderExpectedCount);
 
-        // 4. 주요 재고
+        // 6. 주요 재고
         List<MainStockSummaryDto> mainStocks = inventoryService.getMainStocksByPeriod(storeId, start, end);
 
         dto.setMainStocks(mainStocks);
 
-        // 5. 재고부족 개수
+        // 7. 재고부족 개수
         int lowStockCount = inventoryService.getStoreLowStockCount(storeId);
         dto.setLowStockCount(lowStockCount);  // StoreDashboardSummaryDto에 프로퍼티 추가 필요
         
-        // 5. 최근 공지사항 (최신 5개)
+        // 8. 최근 공지사항 (최신 5개)
         List<NoticeDto> notices = noticeService.getRecentNotices(5);
         dto.setNotices(notices);
 
-        // 6. 고객문의 수
+        // 9. 고객문의 수
         int unreadComplaintCount = complaintService.countUnreadComplaintsByStore(storeId);
         dto.setUnreadComplaintCount(unreadComplaintCount);
 
-        // 7. 주간 근무표
+        // 10. 주간 근무표
         List<ScheduleDto> weekSchedules = getWeekSchedule(storeId, weekNo);
         dto.setWeekSchedules(weekSchedules);
 

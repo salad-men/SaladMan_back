@@ -122,6 +122,8 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private MenuIngredientRepository menuIngredientRepository;
+	
+	
 
 	
 	// 재료 리스트
@@ -616,4 +618,17 @@ public class OrderServiceImpl implements OrderService {
     public OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate) {
         return purchaseOrderDslRepository.findPurchaseOrderSummaryTop3WithCountMerged(startDate, endDate);
     }
+    
+    @Override
+    public Map<String, Integer> getOrderStatusCountByStore(Integer storeId, String startDate, String endDate) {
+        LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
+        LocalDateTime end = LocalDate.parse(endDate).atTime(23, 59, 59);
+
+        Map<String, Integer> result = new HashMap<>();
+        result.put("대기", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "REQUESTED", start, end));
+        result.put("완료", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "APPROVED", start, end));
+        result.put("반려", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "REJECTED", start, end));
+        return result;
+    }
+
 }

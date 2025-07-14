@@ -15,6 +15,7 @@ import com.kosta.saladMan.util.PageInfo;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface InventoryService {
 
@@ -149,6 +150,7 @@ public interface InventoryService {
     
     int getAutoOrderExpectedCount(Integer storeId);
 
+    Map<String, Integer> getDisposalStatusCountByStore(Integer storeId, String startDate, String endDate);
 
 
 }
