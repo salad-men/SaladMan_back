@@ -12,6 +12,6 @@ import com.kosta.saladMan.entity.store.Store;
 
 @Repository
 public interface AlarmRepository extends JpaRepository<Alarm, Integer> {
-	List<Alarm> findByStore_IdAndIsReadFalse(Integer storeId);
-	Page<Alarm> findByStoreId(Integer storeId, Pageable pageable);
+	List<Alarm> findByStore_IdAndIsReadFalseOrderBySendAtDesc(Integer storeId);
+	Page<Alarm> findByStoreIdOrderBySendAtDesc(Integer storeId, Pageable pageable);
 }

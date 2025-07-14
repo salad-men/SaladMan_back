@@ -98,7 +98,7 @@ public class FcmMessageService {
 
 	//알람목록 조회(미확인것만)
 	public List<AlarmDto> getAlarmList(Integer storeId) {
-		List<Alarm> alarmList = alarmRepository.findByStore_IdAndIsReadFalse(storeId);
+		List<Alarm> alarmList = alarmRepository.findByStore_IdAndIsReadFalseOrderBySendAtDesc(storeId);
 		return alarmList.stream().map(alarm->AlarmDto.builder()
 									.id(alarm.getId())
 									.storeId(alarm.getStore().getId())
