@@ -151,10 +151,10 @@ public class OrderServiceImpl implements OrderService {
 	
 	//발주 신청 목록
 	@Override
-	public Map<String, Object> getOrderListByHq(String storeName, String status, LocalDate startDate,
+	public Map<String, Object> getOrderListByHq(String storeName, String status,String purType, LocalDate startDate,
 			LocalDate endDate, Pageable pageable) throws Exception {
 		Page<PurchaseOrderDto> resultPage = purchaseOrderDslRepository.findOrderApplyList(storeName, status,
-				startDate, endDate, pageable);
+				purType,startDate, endDate, pageable);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("orders", resultPage.getContent());

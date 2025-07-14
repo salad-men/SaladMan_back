@@ -26,7 +26,7 @@ public interface OrderService {
     //발주 신청 가능 항목 설정
     Boolean toggleIngredientAvailability(Integer id) throws Exception;
     //본사 발주 신청 목록 조회
-    Map<String,Object> getOrderListByHq(String storeName, String status, LocalDate startDate, LocalDate endDate, Pageable pageable) throws Exception;
+    Map<String,Object> getOrderListByHq(String storeName, String status,String purType, LocalDate startDate, LocalDate endDate, Pageable pageable) throws Exception;
     //본사 발주 신청 상세
     List<PurchaseOrderItemDto> getOrderDetailByHq(Integer purchaseOrderId) throws Exception;
     //본사 발주 신청 수락
