@@ -75,6 +75,7 @@ public interface OrderService {
     //-----------------------대시보드---------------------------
 	int getAutoOrderExpectedCount(Integer storeId);
     OrderSummaryDto getOrderSummaryTop3WithCountMerged(String startDate, String endDate);
+    Map<String, Integer> getOrderStatusCountByStore(Integer storeId, String startDate, String endDate);
 
 } 
 
