@@ -31,11 +31,17 @@ public class HqComplaintController {
     public ResponseEntity<Map<String, Object>> hqList(@RequestBody Map<String, Object> param) {
         int page = param.get("page") != null ? (Integer) param.get("page") : 1;
         String keyword = (String) param.get("keyword");
+        
+        String status = (String) param.get("status"); // 추가
+        Integer storeId = null;
+        if (param.get("storeId") != null && !param.get("storeId").toString().isBlank()) {
+            storeId = Integer.valueOf(param.get("storeId").toString());
+        }
         PageInfo pageInfo = new PageInfo(page);
 
         Map<String, Object> res = new HashMap<>();
         try {
-            List<ComplaintDto> complaintList = complaintService.searchHqComplaintList(pageInfo, keyword);
+            List<ComplaintDto> complaintList = complaintService.searchHqComplaintList(pageInfo, keyword, status, storeId);
             res.put("complaintList", complaintList);
             res.put("pageInfo", pageInfo);
             res.put("result", "ok");
