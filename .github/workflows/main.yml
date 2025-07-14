@@ -2,9 +2,9 @@ name: 백엔드 서버 자동배포
 
 on:
   push:
-    branches: [main, dev]
+    branches: main
   pull_request:
-    branches: [main, dev]
+    branches: main
 
 jobs:
   build_and_deploy:
