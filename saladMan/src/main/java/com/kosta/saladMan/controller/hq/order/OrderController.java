@@ -75,13 +75,13 @@ public class OrderController {
 
 	@GetMapping("/orderRequestList")
 	public ResponseEntity<Map<String, Object>> getOrderRequests(@RequestParam(required = false) String storeName,
-			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String status,@RequestParam(required = false) String purType,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		try {
 			Pageable pageable = PageRequest.of(page, size, Sort.by("orderDateTime").descending());
-			Map<String, Object> result = orderService.getOrderListByHq(storeName, status, startDate, endDate, pageable);
+			Map<String, Object> result = orderService.getOrderListByHq(storeName, status,purType, startDate, endDate, pageable);
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -42,7 +42,7 @@ public class PuchaseOrderDslRepository {
 	private ModelMapper modelMapper;
 
 	// 본사 발주 신청 목록
-	public Page<PurchaseOrderDto> findOrderApplyList(String storeName, String status, LocalDate startDate,
+	public Page<PurchaseOrderDto> findOrderApplyList(String storeName, String status,String purType, LocalDate startDate,
 			LocalDate endDate, Pageable pageable) {
 
 		QPurchaseOrder po = QPurchaseOrder.purchaseOrder;
@@ -59,6 +59,10 @@ public class PuchaseOrderDslRepository {
 		if (status != null && !status.trim().isEmpty() && !status.equals("전체")) {
 			builder.and(po.status.eq(status));
 		}
+		
+		if (purType != null && !purType.trim().isEmpty()) {
+	        builder.and(po.purType.eq(purType));
+	    }
 
 		if (startDate != null && endDate != null) {
 			builder.and(po.orderDateTime.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX)));
