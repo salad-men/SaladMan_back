@@ -57,29 +57,33 @@ public class ChatService {
                 .orElseThrow(() -> new EntityNotFoundException("Store not found"));
 
         ChatMessage chatMessage = chatMessageDto.toEntity(chatRoom, sender);
-        chatMessageRepository.save(chatMessage);
-        
-        // 사용자별로 읽음 여부 저장
+        ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
+
+        // 저장 후 다시 조회하여 연관 엔티티 초기화
+        savedMessage = chatMessageRepository.findById(savedMessage.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Saved message not found"));
+
+        // 사용자별 읽음 여부 저장
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
         for (ChatParticipant c : chatParticipants) {
             ReadStatus readStatus = ReadStatus.builder()
                     .chatRoom(chatRoom)
                     .store(c.getStore())
-                    .chatMessage(chatMessage)
+                    .chatMessage(savedMessage)
                     .isRead(c.getStore().equals(sender))
                     .build();
             readStatusRepository.save(readStatus);
         }
-        
-        ChatMessageDto sseDto = chatMessage.toDto(); 
 
-        //SSE전송
+        ChatMessageDto sseDto = savedMessage.toDto();
+
+        // SSE 전송
         Set<String> participants = chatParticipants.stream()
                 .map(cp -> cp.getStore().getUsername())
                 .collect(Collectors.toSet());
         chatSseService.sendToUsers(participants, "newMessage", sseDto);
-
     }
+
 
     // 그룹채팅방 개설
     public void createGroupRoom(String chatRoomName) {
@@ -165,7 +169,7 @@ public class ChatService {
         if(!check) throw new IllegalArgumentException("본인이 속하지 않은 채팅방 입니다");
 
         //특정 room에 대한 message 조회(생성순)
-        List<ChatMessage> chatMessages = chatMessageRepository.findByChatRoomOrderByCreatedTimeAsc(chatRoom);
+        List<ChatMessage> chatMessages = chatMessageRepository.findByChatRoomOrderByCreatedTimeAscWithStore(chatRoom);
         List<ChatMessageDto> chatMessageDtos = new ArrayList<>();
         for (ChatMessage chatMessage : chatMessages) {
             chatMessageDtos.add(chatMessage.toDto());

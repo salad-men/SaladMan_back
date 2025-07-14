@@ -2,6 +2,7 @@ package com.kosta.saladMan.dto.dashboard;
 
 
 import java.util.List;
+import java.util.Map;
 
 import com.kosta.saladMan.dto.notice.NoticeDto;
 import com.kosta.saladMan.dto.saleOrder.SalesResultDto;
@@ -22,5 +23,7 @@ public class StoreDashboardSummaryDto {
     private List<NoticeDto> notices;                  // 최근 공지사항(최신 5개)
     private int unreadComplaintCount;                 // 미확인 고객문의 수
     private List<ScheduleDto> weekSchedules;          // 주간 근무표
-    
+    private Map<String, Integer> disposalSummary; 	  // 폐기: 신청/승인/반려
+    private Map<String, Integer> orderSummary;        // 발주: 요청/승인/반려/입고완료
+
 }

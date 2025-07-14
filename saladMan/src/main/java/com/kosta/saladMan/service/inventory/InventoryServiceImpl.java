@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -803,7 +804,20 @@ public class InventoryServiceImpl implements InventoryService {
         return storeInventoryDslRepository.countLowStockByStore(storeId);
     }
 
-    
+    public Map<String, Integer> getDisposalStatusCountByStore(
+    	    Integer storeId, String startDate, String endDate
+    	) {
+    	    LocalDate start = LocalDate.parse(startDate);
+    	    LocalDate end = LocalDate.parse(endDate);
+
+    	    Map<String, Integer> result = new HashMap<>();
+    	    result.put("대기", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REQUESTED", start, end));
+    	    result.put("완료", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "APPROVED", start, end));
+    	    result.put("반려", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REJECTED", start, end));
+    	    return result;
+    	}
+
+
     
     
     

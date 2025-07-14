@@ -32,24 +32,25 @@ public class CorsConfig implements WebMvcConfigurer {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true); //프론트의 Access-Control-Allow-Credentials 요청에 대한 허용
+		config.addAllowedOrigin("https://saladman.net");
 		config.addAllowedOrigin("https://www.saladman.net");
+		config.addAllowedOrigin("http://www.saladman.net");
 		config.addAllowedOrigin("http://localhost:5173");
 		config.addAllowedOrigin("http://saladman-web.s3-website.ap-northeast-2.amazonaws.com");
-        config.addAllowedOrigin("https://api.saladman.com");
-        config.addAllowedOrigin("http://localhost:8081");
-        config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("https://api.saladman.net");
+        config.addAllowedOrigin("http://api.saladman.net");
+        config.addAllowedOrigin("http://localhost:8091");
+        config.addAllowedOrigin("http://localhost:8090");
+        config.addAllowedOrigin("http://localhost:8092");
         config.addAllowedOrigin("http://192.168.0.15:8080");
         config.addAllowedOrigin("http://192.168.0.15:5173");
         config.addAllowedOrigin("http://192.168.0.15:8090");
+        //config.addAllowedOriginPattern("*");
 
-
-
-
-//		config.addAllowedOriginPattern("*");
 
 		config.addAllowedHeader("*"); //프론트의 Access-Control-Allow-Headers 요청에 대한 허용
 		config.addAllowedMethod("*"); //프론트의 Access-Control-Allow-Method 요청에 대한 허용
-		config.addAllowedOriginPattern("*");
+//		config.addAllowedOriginPattern("*");
 		config.addExposedHeader(JwtProperties.HEADER_STRING); //클라이언트(리액트 등)가 응답에 접간할 수 있는 Header 추가
 //		source.registerCorsConfiguration("/*", config);
 //		source.registerCorsConfiguration("/*/*", config);
@@ -64,7 +65,8 @@ public class CorsConfig implements WebMvcConfigurer {
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
             "http://192.168.0.23:5173",
-            "http://localhost:8081",
+            "http://localhost:8091",
+            "http://localhost:8092",
             "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
             "https://api.saladman.com",
             "http://192.168.0.15:8080",
