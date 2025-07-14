@@ -165,7 +165,7 @@ public class ChatService {
         if(!check) throw new IllegalArgumentException("본인이 속하지 않은 채팅방 입니다");
 
         //특정 room에 대한 message 조회(생성순)
-        List<ChatMessage> chatMessages = chatMessageRepository.findByChatRoomOrderByCreatedTimeAsc(chatRoom);
+        List<ChatMessage> chatMessages = chatMessageRepository.findByChatRoomOrderByCreatedTimeAscWithStore(chatRoom);
         List<ChatMessageDto> chatMessageDtos = new ArrayList<>();
         for (ChatMessage chatMessage : chatMessages) {
             chatMessageDtos.add(chatMessage.toDto());
