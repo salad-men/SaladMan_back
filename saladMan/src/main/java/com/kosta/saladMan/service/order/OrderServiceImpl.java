@@ -620,15 +620,21 @@ public class OrderServiceImpl implements OrderService {
     }
     
     @Override
-    public Map<String, Integer> getOrderStatusCountByStore(Integer storeId, String startDate, String endDate) {
-        LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
-        LocalDateTime end = LocalDate.parse(endDate).atTime(23, 59, 59);
+    public Map<String, Integer> getOrderStatusCountByStore(Integer storeId) {
+        // 1년 전부터 현재까지의 범위를 설정 (LocalDate -> LocalDateTime으로 변환)
+        LocalDateTime start = LocalDate.now().minusYears(1).atStartOfDay();  // 1년 전 (LocalDateTime)
+        LocalDateTime end = LocalDate.now().atTime(23, 59, 59);  // 현재 날짜 (LocalDateTime), 23:59:59로 설정
 
+        // 결과 맵 생성
         Map<String, Integer> result = new HashMap<>();
-        result.put("대기", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "REQUESTED", start, end));
-        result.put("완료", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "APPROVED", start, end));
-        result.put("반려", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "REJECTED", start, end));
+        result.put("대기중", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, null, start, end));
+        result.put("승인", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "승인", start, end));
+        result.put("반려", purchaseOrderRepository.countByStoreIdAndOrderStatusAndOrderDateTimeBetween(storeId, "반려", start, end));
+
         return result;
     }
+
+
+
 
 }

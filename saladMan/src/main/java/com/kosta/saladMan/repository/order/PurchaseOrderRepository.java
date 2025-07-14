@@ -1,5 +1,6 @@
 package com.kosta.saladMan.repository.order;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,8 +14,8 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, In
     int countByStoreIdAndOrderStatusAndOrderDateTimeBetween(
             Integer storeId,
             String orderStatus,
-            LocalDateTime startDateTime,
-            LocalDateTime endDateTime
+            LocalDateTime  startDate,
+            LocalDateTime  endDate
         );
 
 }

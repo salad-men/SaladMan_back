@@ -518,60 +518,55 @@ public class StoreInventoryDslRepository {
     
     // 임박재고 Top3+전체건수+임박카운트
     public InventoryExpireSummaryDto findExpireSummaryTop3WithCountMerged(String startDate, String endDate) {
-        QStoreIngredient si = QStoreIngredient.storeIngredient;
+        QHqIngredient hq = QHqIngredient.hqIngredient;
 
         LocalDate sDate = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate) : null;
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
+        LocalDate today = LocalDate.now();
 
-        // Top3 임박재고
         List<InventoryExpireSummaryDto.Item> top3 = queryFactory
             .select(Projections.bean(
                 InventoryExpireSummaryDto.Item.class,
-                si.ingredient.name.as("ingredientName"),
-                si.category.name.as("categoryName"),
-                si.quantity.as("remainQuantity"),
-                si.expiredDate.stringValue().as("expiredDate")
+                hq.ingredient.name.as("ingredientName"),
+                hq.category.name.as("categoryName"),
+                hq.quantity.as("remainQuantity"),
+                hq.expiredDate.stringValue().as("expiredDate")
             ))
-            .from(si)
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                hq.quantity.gt(0),
+                sDate != null ? hq.expiredDate.goe(sDate) : null,
+                eDate != null ? hq.expiredDate.loe(eDate) : null
             )
-            .orderBy(si.expiredDate.asc(), si.quantity.desc())
+            .orderBy(hq.expiredDate.asc(), hq.quantity.desc())
             .limit(3)
             .fetch();
 
-        // 전체 임박재고 건수
         Long totalCount = queryFactory
-            .select(si.count())
-            .from(si)
+            .select(hq.count())
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                hq.quantity.gt(0),
+                sDate != null ? hq.expiredDate.goe(sDate) : null,
+                eDate != null ? hq.expiredDate.loe(eDate) : null
             )
             .fetchOne();
 
-        LocalDate today = LocalDate.now();
-
-        // D-1 (내일 유통기한)
         Long d1Count = queryFactory
-            .select(si.count())
-            .from(si)
+            .select(hq.count())
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                si.expiredDate.eq(today.plusDays(1))
+                hq.quantity.gt(0),
+                hq.expiredDate.eq(today.plusDays(1))
             )
             .fetchOne();
 
-        // D-DAY (오늘 유통기한)
         Long todayCount = queryFactory
-            .select(si.count())
-            .from(si)
+            .select(hq.count())
+            .from(hq)
             .where(
-                si.quantity.gt(0),
-                si.expiredDate.eq(today)
+                hq.quantity.gt(0),
+                hq.expiredDate.eq(today)
             )
             .fetchOne();
 
@@ -583,6 +578,7 @@ public class StoreInventoryDslRepository {
 
         return dto;
     }
+
 
     // 자동발주 예정 품목 카운트
     public int countAutoOrderExpectedByStore(Integer storeId) {
@@ -630,7 +626,7 @@ public class StoreInventoryDslRepository {
         LocalDate eDate = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate) : null;
         LocalDate today = LocalDate.now();
 
-        // 임박재고 Top3
+     // 임박재고 Top3
         List<InventoryExpireSummaryDto.Item> top3 = queryFactory
             .select(Projections.bean(
                 InventoryExpireSummaryDto.Item.class,
@@ -643,8 +639,8 @@ public class StoreInventoryDslRepository {
             .where(
                 si.store.id.eq(storeId),
                 si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                sDate != null ? si.expiredDate.goe(sDate) : si.expiredDate.isNotNull(),  // 수정된 부분
+                eDate != null ? si.expiredDate.loe(eDate) : si.expiredDate.isNotNull()   // 수정된 부분
             )
             .orderBy(si.expiredDate.asc(), si.quantity.desc())
             .limit(3)
@@ -657,8 +653,8 @@ public class StoreInventoryDslRepository {
             .where(
                 si.store.id.eq(storeId),
                 si.quantity.gt(0),
-                sDate != null ? si.expiredDate.goe(sDate) : null,
-                eDate != null ? si.expiredDate.loe(eDate) : null
+                sDate != null ? si.expiredDate.goe(sDate) : si.expiredDate.isNotNull(),  // 수정된 부분
+                eDate != null ? si.expiredDate.loe(eDate) : si.expiredDate.isNotNull()   // 수정된 부분
             )
             .fetchOne();
 
@@ -682,6 +678,7 @@ public class StoreInventoryDslRepository {
                 si.expiredDate.eq(today)
             )
             .fetchOne();
+
 
         InventoryExpireSummaryDto dto = new InventoryExpireSummaryDto();
         dto.setTop3(top3);

@@ -145,7 +145,8 @@ public interface InventoryService {
     
     int getAutoOrderExpectedCount(Integer storeId);
 
-    Map<String, Integer> getDisposalStatusCountByStore(Integer storeId, String startDate, String endDate);
+    Map<String, Integer> getDisposalStatusCountByStore(Integer storeId);
+
 
 
 }

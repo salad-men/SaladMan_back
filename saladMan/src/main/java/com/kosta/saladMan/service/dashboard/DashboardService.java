@@ -176,13 +176,11 @@ public class DashboardService {
         dto.setExpireSummary(expireSummary);
         	
         // 3. 폐기 현황
-        Map<String, Integer> disposalSummary = inventoryService.getDisposalStatusCountByStore(storeId, startDate, endDate);
-        // 예: { "신청": 2, "승인": 3, "반려": 1 }
+        Map<String, Integer> disposalSummary = inventoryService.getDisposalStatusCountByStore(storeId);
         dto.setDisposalSummary(disposalSummary);
         
         // 4. 발주 현황
-        Map<String, Integer> orderSummary = orderService.getOrderStatusCountByStore(storeId, startDate, endDate);
-        // 예: { "요청": 5, "승인": 3, "반려": 2, "입고완료": 2 }
+        Map<String, Integer> orderSummary = orderService.getOrderStatusCountByStore(storeId);
         dto.setOrderSummary(orderSummary);
         
         // 5. 자동 발주 예정 품목 수

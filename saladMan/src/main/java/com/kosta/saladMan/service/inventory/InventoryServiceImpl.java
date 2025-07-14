@@ -804,21 +804,21 @@ public class InventoryServiceImpl implements InventoryService {
         return storeInventoryDslRepository.countLowStockByStore(storeId);
     }
 
-    public Map<String, Integer> getDisposalStatusCountByStore(
-    	    Integer storeId, String startDate, String endDate
-    	) {
-    	    LocalDate start = LocalDate.parse(startDate);
-    	    LocalDate end = LocalDate.parse(endDate);
+    @Override
+    public Map<String, Integer> getDisposalStatusCountByStore(Integer storeId) {
+        // 1년 전부터 현재까지의 범위 설정 (LocalDateTime에서 LocalDate로 변환)
+        LocalDate start = LocalDate.now().minusYears(1);  // 1년 전 날짜 (시각 제외)
+        LocalDate end = LocalDate.now();  // 현재 날짜 (시각 제외)
 
-    	    Map<String, Integer> result = new HashMap<>();
-    	    result.put("대기", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REQUESTED", start, end));
-    	    result.put("완료", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "APPROVED", start, end));
-    	    result.put("반려", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "REJECTED", start, end));
-    	    return result;
-    	}
+        // 결과 맵 생성
+        Map<String, Integer> result = new HashMap<>();
+        result.put("대기", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "대기", start, end));
+        result.put("완료", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "완료", start, end));
+        result.put("반려", disposalRepository.countByStoreIdAndStatusAndRequestedAtBetween(storeId, "반려", start, end));
+
+        return result;
+    }
 
 
-    
-    
     
 }
