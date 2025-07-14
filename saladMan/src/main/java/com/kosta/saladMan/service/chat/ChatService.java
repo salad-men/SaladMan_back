@@ -49,7 +49,7 @@ public class ChatService {
     }
 
     // 채팅 메시지 저장
-    public void saveMessage(Integer roomId, ChatMessageDto chatMessageDto) {
+    public ChatMessage saveMessage(Integer roomId, ChatMessageDto chatMessageDto) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new EntityNotFoundException("Room cannot found"));
 
@@ -60,8 +60,9 @@ public class ChatService {
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
 
         // 저장 후 다시 조회하여 연관 엔티티 초기화
-        savedMessage = chatMessageRepository.findById(savedMessage.getId())
+        savedMessage = chatMessageRepository.findByIdWithStoreAndRoom(savedMessage.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Saved message not found"));
+
 
         // 사용자별 읽음 여부 저장
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
@@ -82,7 +83,11 @@ public class ChatService {
                 .map(cp -> cp.getStore().getUsername())
                 .collect(Collectors.toSet());
         chatSseService.sendToUsers(participants, "newMessage", sseDto);
-    }
+        
+        
+        
+        return savedMessage;
+    } 
 
 
     // 그룹채팅방 개설
