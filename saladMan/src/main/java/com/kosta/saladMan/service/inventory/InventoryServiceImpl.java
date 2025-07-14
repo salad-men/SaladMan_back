@@ -72,8 +72,8 @@ public class InventoryServiceImpl implements InventoryService {
         long totalCount = hqInventoryDslRepository.countHqInventoryByFilters(categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
 
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
@@ -105,12 +105,36 @@ public class InventoryServiceImpl implements InventoryService {
 
         long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
         return storeInventoryDslRepository.findStoreInventoryByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate, pageRequest, sortOption);
+    }
+    
+    //매장 유통기한 목록 조회
+    @Override
+    public List<StoreIngredientDto> getStoreInventoryExpiration(Integer storeId, Integer categoryId, String keyword,
+                                                      String startDateStr, String endDateStr,
+                                                      PageInfo pageInfo, String sortOption) {
+        if (storeId == null || storeId == 1) return List.of();
+
+        LocalDate startDate = (startDateStr == null || startDateStr.isBlank()) ? null : LocalDate.parse(startDateStr);
+        LocalDate endDate = (endDateStr == null || endDateStr.isBlank()) ? null : LocalDate.parse(endDateStr);
+
+        PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+        Store storeEntity = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장 ID: " + storeId));
+
+        long totalCount = storeInventoryDslRepository.countStoreInventoryExpirationByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate);
+        pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
+        pageInfo.setStartPage(start);
+        pageInfo.setEndPage(end);
+
+        return storeInventoryDslRepository.findStoreInventoryExpirationByFilters(storeEntity.getId(), categoryId, keyword, startDate, endDate, pageRequest, sortOption);
     }
 
     
@@ -122,8 +146,8 @@ public class InventoryServiceImpl implements InventoryService {
 
         long totalCount = storeInventoryDslRepository.countStoreInventoryByFilters(null, categoryId, keyword, startDate, endDate);
         pageInfo.setAllPage((int) Math.ceil((double) totalCount / PAGE_SIZE));
-        int start = (pageInfo.getCurPage() - 1) / 10 * 10 + 1;
-        int end = Math.min(start + 9, pageInfo.getAllPage());
+        int start = (pageInfo.getCurPage() - 1) / 5 * 5 + 1;
+        int end = Math.min(start + 4, pageInfo.getAllPage());
         pageInfo.setStartPage(start);
         pageInfo.setEndPage(end);
 
@@ -517,8 +541,8 @@ public class InventoryServiceImpl implements InventoryService {
         long totalCount = hqInventoryDslRepository.countHqSettingsByFilters(storeId, categoryId, keyword);
 
         int allPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        int startPage = ((pageInfo.getCurPage() - 1) / 10) * 10 + 1;
-        int endPage = Math.min(startPage + 9, allPage);
+        int startPage = ((pageInfo.getCurPage() - 1) / 5) * 5 + 1;
+        int endPage = Math.min(startPage + 4, allPage);
 
         pageInfo.setStartPage(startPage);
         pageInfo.setEndPage(endPage);
@@ -539,8 +563,8 @@ public class InventoryServiceImpl implements InventoryService {
         long totalCount = storeInventoryDslRepository.countStoreSettingsByFilters(storeId, categoryId, keyword);
 
         int allPage = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-        int startPage = ((pageInfo.getCurPage() - 1) / 10) * 10 + 1;
-        int endPage = Math.min(startPage + 9, allPage);
+        int startPage = ((pageInfo.getCurPage() - 1) / 5) * 5 + 1;
+        int endPage = Math.min(startPage + 4, allPage);
 
         pageInfo.setStartPage(startPage);
         pageInfo.setEndPage(endPage);
