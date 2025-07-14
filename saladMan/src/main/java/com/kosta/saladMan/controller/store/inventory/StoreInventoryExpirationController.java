@@ -43,7 +43,7 @@ public class StoreInventoryExpirationController {
 
             PageInfo pageInfo = new PageInfo(page);
 
-            List<?> storeInventory = inventoryService.getStoreInventory(
+            List<?> storeInventory = inventoryService.getStoreInventoryExpiration(
                     storeId, categoryId, keyword, startDate, endDate, pageInfo, sortOption
                 );
 
