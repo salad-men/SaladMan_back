@@ -59,7 +59,7 @@ public class ChatService {
         ChatMessage chatMessage = chatMessageDto.toEntity(chatRoom, sender);
         ChatMessage savedMessage = chatMessageRepository.save(chatMessage);
 
-        chatMessageRepository.save(chatMessage);
+//        chatMessageRepository.save(chatMessage);
         
         // 사용자별로 읽음 여부 저장
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
@@ -67,7 +67,7 @@ public class ChatService {
             ReadStatus readStatus = ReadStatus.builder()
                     .chatRoom(chatRoom)
                     .store(c.getStore())
-                    .chatMessage(chatMessage)
+                    .chatMessage(savedMessage)
                     .isRead(c.getStore().equals(sender))
                     .build();
             readStatusRepository.save(readStatus);
@@ -76,7 +76,7 @@ public class ChatService {
         savedMessage.getStore().getName();
         savedMessage.getChatRoom().getName();
         
-        ChatMessageDto sseDto = chatMessage.toDto(); 
+        ChatMessageDto sseDto = savedMessage.toDto();
 
         //SSE전송
         Set<String> participants = chatParticipants.stream()
