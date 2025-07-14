@@ -803,7 +803,8 @@ public class InventoryServiceImpl implements InventoryService {
         // 해당 매장의 전체 재고 중, minQuantity 이하(또는 자체 로직 적용) 품목 수 반환
         return storeInventoryDslRepository.countLowStockByStore(storeId);
     }
-
+    
+    //폐기신청 목록
     public Map<String, Integer> getDisposalStatusCountByStore(
     	    Integer storeId, String startDate, String endDate
     	) {

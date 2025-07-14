@@ -49,7 +49,7 @@ public class ChatService {
     }
 
     // 채팅 메시지 저장
-    public void saveMessage(Integer roomId, ChatMessageDto chatMessageDto) {
+    public ChatMessage saveMessage(Integer roomId, ChatMessageDto chatMessageDto) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new EntityNotFoundException("Room cannot found"));
 
@@ -83,6 +83,10 @@ public class ChatService {
                 .map(cp -> cp.getStore().getUsername())
                 .collect(Collectors.toSet());
         chatSseService.sendToUsers(participants, "newMessage", sseDto);
+        
+        
+        
+        return savedMessage;
     } 
 
 
