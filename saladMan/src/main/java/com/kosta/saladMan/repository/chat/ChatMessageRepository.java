@@ -10,9 +10,15 @@ import com.kosta.saladMan.entity.chat.ChatMessage;
 import com.kosta.saladMan.entity.chat.ChatRoom;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage,Integer> {
 
+	@Query("select m from ChatMessage m join fetch m.store join fetch m.chatRoom where m.id = :id")
+	Optional<ChatMessage> findByIdWithStoreAndRoom(@Param("id") Integer id);
+	
+	
 	@Query("select m from ChatMessage m join fetch m.store join fetch m.chatRoom where m.chatRoom = :chatRoom order by m.createdTime asc")
-	List<ChatMessage> findByChatRoomOrderByCreatedTimeAscWithStore(@Param("chatRoom") ChatRoom chatRoom);}
+    List<ChatMessage> findByChatRoomOrderByCreatedTimeAscWithStore(@Param("chatRoom") ChatRoom chatRoom);
+}
