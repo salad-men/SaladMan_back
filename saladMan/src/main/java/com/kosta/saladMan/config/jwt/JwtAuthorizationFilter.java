@@ -47,6 +47,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
  	        return;
  	    }
  		
+ 		if (uri.startsWith("/login")) {
+ 		    chain.doFilter(request, response);
+ 		    return;
+ 		}
+ 		
 // 		//로그인(인증)이 필요없는 요청은 그대로 진행
 // 		if(!(uri.contains("/store") || uri.contains("/hq"))) {
 // 			chain.doFilter(request, response);

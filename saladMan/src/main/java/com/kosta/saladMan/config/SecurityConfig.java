@@ -77,7 +77,7 @@ public class SecurityConfig {
 	@Order(1)
 	public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
 			throws Exception {
-			http.cors()
+		http.cors()
 				.and()
 	    		.addFilter(corsFilter) // 다른 도메인 접근 허용
 				.csrf().disable() // csrf 공격 비활성화
@@ -95,6 +95,7 @@ public class SecurityConfig {
 				.antMatchers("/store/**").access("hasRole('ROLE_STORE')")
 				.antMatchers("/actuator/health").permitAll()
 				.antMatchers("/user/**").permitAll()
+				.antMatchers("/login").permitAll()
 				.antMatchers("/chat/sse").permitAll()
 				.antMatchers("/chat/**").authenticated()
 				.anyRequest().permitAll();
