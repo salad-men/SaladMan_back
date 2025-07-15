@@ -247,9 +247,10 @@ public class OrderServiceImpl implements OrderService {
 	// 발주 신청 수락
 	@Transactional
 	@Override
-	public void updateOrderItems(List<PurchaseOrderItemDto> items) throws Exception {
+	public void updateOrderItems(List<PurchaseOrderItemDto> items,Store adminId) throws Exception {
 	    if (items == null || items.isEmpty()) return;
-
+	    if (adminId ==null) return;
+	    
 	    Integer orderId = items.get(0).getPurchaseOrderId();
 	    List<PurchaseOrderItem> orderItems = purchaseOrderItemRepository.findByPurchaseOrderId(orderId);
 
@@ -307,7 +308,7 @@ public class OrderServiceImpl implements OrderService {
 	                    
 	                    InventoryRecord record = InventoryRecord.builder()
 	                    	    .ingredient(stock.getIngredient())
-	                    	    .store(order.getStore())
+	                    	    .store(adminId)
 	                    	    .quantity(deduct)
 	                    	    .changeType("출고")
 	                    	    .memo("출고")

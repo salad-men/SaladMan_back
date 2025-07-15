@@ -53,7 +53,8 @@ public class StoreRecordController {
             pageInfo.setCurPage(page);
 
             List<InventoryRecordDto> list = inventoryService.getRecordsByStoreAndType(storeId, type, pageInfo);
-
+            System.out.println(pageInfo);
+            
             Map<String, Object> res = new HashMap<>();
             res.put("records", list);
             res.put("pageInfo", pageInfo);  

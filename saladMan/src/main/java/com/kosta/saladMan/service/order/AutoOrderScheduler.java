@@ -71,7 +71,10 @@ public class AutoOrderScheduler {
 		// 1. 자동발주 사용 매장 조회
 		List<Store> stores = storeRepository.findByAutoOrderEnabledTrue();
 
+
 		for (Store store : stores) {
+			
+
 			System.out.println("자동발주 매장: " + store.getName());
 
 			// 2. 매장별 템플릿 조회
@@ -89,6 +92,7 @@ public class AutoOrderScheduler {
 				System.out.println("자동발주 품목 없음: " + store.getName());
 				continue;
 			}
+			
 
 			List<StoreOrderItemDto> orderItemList = itemList.stream().map(fixedItem -> {
 				try {
@@ -143,6 +147,8 @@ public class AutoOrderScheduler {
 				} catch (Exception e) {
 					System.err.println("[" + store.getName() + "] 품목 처리 실패 - 재료 ID: "
 							+ fixedItem.getIngredient().getId() + ", 사유: " + e.getMessage());
+					
+					fixedItem.getIngredient().getName();
 
 			        SendAlarmDto alarmDto = SendAlarmDto.builder()
 			                .storeId(store.getId())

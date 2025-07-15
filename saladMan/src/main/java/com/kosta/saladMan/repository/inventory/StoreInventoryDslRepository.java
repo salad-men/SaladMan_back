@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import javax.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -427,7 +428,7 @@ public class StoreInventoryDslRepository {
     }
 
 
-    //매장 재고 기록 조회
+  //매장 재고 기록 조회
     public List<InventoryRecordDto> findStoreInventoryRecords(Integer storeId, String changeType, PageRequest pageRequest) {
         QInventoryRecord ir = QInventoryRecord.inventoryRecord;
         QIngredient ingredient = QIngredient.ingredient;
@@ -437,16 +438,16 @@ public class StoreInventoryDslRepository {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(ir.store.id.eq(storeId));
         if (changeType != null && !changeType.isBlank()) {
-        	
-        	if(changeType.equals("입고")) {
-        		builder.and(ir.changeType.eq("입고"));
-        	}
-        	else if(changeType.equals("사용")) {
+           
+           if(changeType.equals("입고")) {
+              builder.and(ir.changeType.eq("입고"));
+           }
+           else if(changeType.equals("사용")) {
                 builder.and(ir.memo.contains("판매"));  // memo LIKE '%판매%'
-        	}
-        	else if(changeType.equals("폐기")) {
+           }
+           else if(changeType.equals("폐기")) {
                 builder.and(ir.memo.contains("폐기"));  // memo LIKE '%판매%'
-        	}
+           }
         }
 
         return queryFactory

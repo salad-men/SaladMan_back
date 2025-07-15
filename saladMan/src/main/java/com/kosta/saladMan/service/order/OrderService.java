@@ -30,7 +30,7 @@ public interface OrderService {
     //본사 발주 신청 상세
     List<PurchaseOrderItemDto> getOrderDetailByHq(Integer purchaseOrderId) throws Exception;
     //본사 발주 신청 수락
-    void updateOrderItems(List<PurchaseOrderItemDto> items) throws Exception;
+    void updateOrderItems(List<PurchaseOrderItemDto> items,Store adminId) throws Exception;
     //본사 발주서 출력 상세
     PurchaseOrderDetailDto getPurchaseOrderDetail(Integer purchaseOrderId) throws Exception;
 
