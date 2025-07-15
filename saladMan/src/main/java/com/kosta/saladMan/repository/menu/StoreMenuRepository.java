@@ -25,4 +25,7 @@ public interface StoreMenuRepository extends JpaRepository<StoreMenu, Integer> {
 	@Query("UPDATE StoreMenu sm SET sm.isSoldOut = true WHERE sm.store.id = :storeId AND sm.menu.id IN :menuIds")
 	int markMenusSoldOut(@Param("storeId") Integer storeId, @Param("menuIds") List<Integer> menuIds);
 
+	@Query("SELECT sm.menu.id FROM StoreMenu sm WHERE sm.store.id = :storeId")
+	List<Integer> findMenuIdsByStore(@Param("storeId") Integer storeId);
+
 }

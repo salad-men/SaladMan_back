@@ -60,7 +60,8 @@ public class StoreIngredientDslRepository {
 					    qsetting.ingredient.name,
 					    qsetting.ingredient.category.name,
 					    Expressions.numberTemplate(Integer.class, "coalesce({0}, 0)", totalQuantityExpr),
-					    qin.unit
+					    qin.unit,
+					    qsetting.minQuantity
 					))
 					.from(qsetting)
 					.leftJoin(qin).on(qsetting.ingredient.id.eq(qin.id))

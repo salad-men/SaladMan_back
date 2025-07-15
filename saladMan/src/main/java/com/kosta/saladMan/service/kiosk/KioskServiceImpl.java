@@ -1,11 +1,17 @@
 package com.kosta.saladMan.service.kiosk;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -30,6 +36,7 @@ import com.kosta.saladMan.dto.kiosk.PaymentPrepareDto;
 import com.kosta.saladMan.dto.kiosk.PaymentPrepareResponseDto;
 import com.kosta.saladMan.dto.menu.KioskMenuDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
+import com.kosta.saladMan.entity.inventory.Ingredient;
 import com.kosta.saladMan.entity.inventory.InventoryRecord;
 import com.kosta.saladMan.entity.inventory.StoreIngredient;
 import com.kosta.saladMan.entity.menu.MenuCategory;
@@ -197,7 +204,7 @@ public class KioskServiceImpl implements KioskService {
 		payment.setStatus("PAID");
 		payment.setApprovedAt(approvedAt.toLocalDateTime());
 
-		saleOrder.setStatus("결제완료");
+		saleOrder.setStatus("주문완료");
 
 		// --- [5] 재고 차감
 		List<SaleOrderItem> saleItems = saleOrderItemRepository.findBySaleOrder(saleOrder);
@@ -208,32 +215,61 @@ public class KioskServiceImpl implements KioskService {
 				for (MenuIngredient mi : ingredients) {
 
 					List<StoreIngredient> siList = storeIngredientRepository
-							.findByStoreAndIngredientId(saleOrder.getStore(), mi.getIngredient().getId());
+						    .findByStoreAndIngredientIdAndNotExpired(saleOrder.getStore(), mi.getIngredient().getId(), LocalDate.now());
 
+					int totalQuantity = siList.stream()
+						    .mapToInt(StoreIngredient::getQuantity)
+						    .sum();
+					
 					int deduction = mi.getQuantity() * item.getQuantity();
 					boolean isOutOfStock = false;
 
 					if (siList.isEmpty()) {
-						// ❗ 재고 정보 자체가 없을 경우 품절 처리 대상으로 판단
+						// 재고 정보 자체가 없을 경우 품절 처리 대상으로 판단
 						isOutOfStock = true;
 					} else {
-						StoreIngredient si = siList.get(0);
+//						StoreIngredient si = siList.get(0);
 
-						if (si.getQuantity() < deduction) {
+						if (totalQuantity< deduction) {
 							isOutOfStock = true;
 						} else {
 							// 정상 차감
-							si.setQuantity(si.getQuantity() - deduction);
+							int remaining = deduction;
+						    for (StoreIngredient si : siList) {
+						        if (remaining <= 0) break;
+
+						        int currentQty = si.getQuantity();
+						        if (currentQty >= remaining) {
+						            si.setQuantity(currentQty - remaining);
+						            remaining = 0;
+						        } else {
+						            si.setQuantity(0);
+						            remaining -= currentQty;
+						        }
+						    }
+
 
 							// 출고 기록 저장
-							InventoryRecord record = new InventoryRecord();
-							record.setChangeType("출고");
-							record.setDate(LocalDateTime.now());
-							record.setMemo("매장 판매");
-							record.setQuantity(deduction);
-							record.setIngredient(mi.getIngredient());
-							record.setStore(saleOrder.getStore());
-							inventoryRecordRepository.save(record);
+							Ingredient ingredient = mi.getIngredient();
+							Store store = saleOrder.getStore();
+							java.sql.Date today = java.sql.Date.valueOf(LocalDate.now());
+
+							Optional<InventoryRecord> existingRecordOpt =
+							    inventoryRecordRepository.findTodayOutRecord(ingredient, store, today);
+							
+							if (existingRecordOpt.isPresent()) {
+							    InventoryRecord record = existingRecordOpt.get();
+							    record.setQuantity(record.getQuantity() + deduction); // 누적 차감
+							} else {
+							    InventoryRecord newRecord = new InventoryRecord();
+							    newRecord.setChangeType("출고");
+							    newRecord.setDate(LocalDateTime.now());
+							    newRecord.setMemo("매장 판매");
+							    newRecord.setQuantity(deduction);
+							    newRecord.setIngredient(ingredient);
+							    newRecord.setStore(store);
+							    inventoryRecordRepository.save(newRecord);
+							}
 						}
 					}
 					if (isOutOfStock) {
@@ -264,7 +300,54 @@ public class KioskServiceImpl implements KioskService {
 			ex.printStackTrace();
 			throw ex;
 		}
+		
+		// 정상 결제 완료 → 재고 기준으로 품절 처리
+		updateSoldOutMenusIfNeeded(saleOrder.getStore().getId());
 
 	}
 
+	
+	private Map<Integer, Integer> getAvailableIngredientQuantityMap(Integer storeId) {
+	    List<Object[]> results = storeIngredientRepository.findValidIngredientQuantities(storeId);
+	    Map<Integer, Integer> quantityMap = new HashMap<>();
+	    for (Object[] row : results) {
+	        Integer ingredientId = (Integer) row[0];
+	        Long quantity = (Long) row[1]; // SUM() 결과는 Long
+	        quantityMap.put(ingredientId, quantity.intValue());
+	    }
+	    return quantityMap;
+	}
+
+	private void updateSoldOutMenusIfNeeded(Integer storeId) {
+	    Map<Integer, Integer> availableQuantities = getAvailableIngredientQuantityMap(storeId);
+	    List<Integer> allMenuIds = storeMenuRepository.findMenuIdsByStore(storeId); // 판매중인 메뉴만 가져오도록 되어있다면 OK
+
+	    Set<Integer> soldOutMenuIds = new HashSet<>();
+
+	    for (Integer menuId : allMenuIds) {
+	        List<MenuIngredient> ingredients = menuIngredientRepository.findByMenuId(menuId);
+
+	        boolean isSoldOut = false;
+	        for (MenuIngredient mi : ingredients) {
+	            int required = mi.getQuantity();
+	            int available = availableQuantities.getOrDefault(mi.getIngredient().getId(), 0);
+	            if (available < required) {
+	                isSoldOut = true;
+	                break;
+	            }
+	        }
+
+	        if (isSoldOut) {
+	            soldOutMenuIds.add(menuId);
+	        }
+	    }
+
+	    if (!soldOutMenuIds.isEmpty()) {
+	        try {
+				storeMenuService.markSoldOut(storeId, new ArrayList<>(soldOutMenuIds));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	    }
+	}
 }

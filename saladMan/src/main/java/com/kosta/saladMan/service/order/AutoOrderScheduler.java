@@ -1,5 +1,6 @@
 package com.kosta.saladMan.service.order;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -114,12 +115,9 @@ public class AutoOrderScheduler {
 					}
 
 					// 2. 현재 보유 재고
-					StoreIngredient storeIngredient = storeIngredientRepository.findByStoreIdAndIngredientId(storeId,
-							ingredientId);
-
-					int stockQty = (storeIngredient != null && storeIngredient.getQuantity() != null)
-							? storeIngredient.getQuantity()
-							: 0;
+					Integer stockQty = storeIngredientRepository
+				    .sumAvailableQuantity(storeId, ingredientId, LocalDate.now())
+				    .orElse(0);
 
 					// 3. 입고중 재고
 					Integer incomingQty = storeIngredientStockRepository

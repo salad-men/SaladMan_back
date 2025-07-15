@@ -10,4 +10,5 @@ public class LowStockItemDto {
     private String category;
     private Integer quantity;
     private String unit;
+    private Integer minQuantity;
 }
