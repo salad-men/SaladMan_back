@@ -163,6 +163,7 @@ public interface InventoryService {
     Map<String, Integer> getDisposalStatusCountByStore(Integer storeId);
 
 
+	List<HqIngredientDto> getLowStockList();
 
 }
 

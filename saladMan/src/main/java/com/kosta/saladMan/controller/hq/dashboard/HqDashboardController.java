@@ -3,6 +3,7 @@ package com.kosta.saladMan.controller.hq.dashboard;
 import com.kosta.saladMan.dto.dashboard.DashboardSummaryDto;
 import com.kosta.saladMan.dto.dashboard.DisposalSummaryDto;
 import com.kosta.saladMan.dto.dashboard.OrderSummaryDto;
+import com.kosta.saladMan.dto.dashboard.StoreDashboardSummaryDto;
 import com.kosta.saladMan.dto.inventory.HqIngredientDto;
 import com.kosta.saladMan.dto.store.ScheduleDto;
 import com.kosta.saladMan.repository.empolyee.EmployeeDslRepository;
@@ -39,6 +40,18 @@ public class HqDashboardController {
     ) {
         // 서비스에서 집계 데이터 리턴
         return dashboardService.getSummary(startDate, endDate, groupType);
+    }
+    
+    
+    @GetMapping("/summary/store")
+    public StoreDashboardSummaryDto getStoreSummary(
+        @RequestParam Integer storeId,
+        @RequestParam String startDate,
+        @RequestParam String endDate,
+        @RequestParam(required = false, defaultValue = "day") String groupType,
+        @RequestParam(required = false, defaultValue = "0") int weekNo
+    ) {
+        return dashboardService.getStoreSummary(storeId, startDate, endDate, groupType, weekNo);
     }
 
     /** 

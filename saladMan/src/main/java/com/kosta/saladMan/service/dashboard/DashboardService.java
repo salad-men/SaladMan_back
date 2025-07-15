@@ -61,7 +61,7 @@ public class DashboardService {
             e.printStackTrace();
             // 예외 발생 시 빈 객체 반환 또는 예외 처리 로직 추가
             dailySales = new SalesResultDto();
-            weeklySales = new SalesResultDto();
+            weeklySales = new SalesResultDto(); 
             monthlySales = new SalesResultDto();
         }
 

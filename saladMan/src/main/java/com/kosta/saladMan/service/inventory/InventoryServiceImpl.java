@@ -32,12 +32,15 @@ import com.kosta.saladMan.repository.inventory.StoreIngredientSettingRepository;
 import com.kosta.saladMan.util.PageInfo;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -593,21 +596,38 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	// 재고 기록 조회
-	   @Override
-	   public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo) {
-	      if (storeId == null)
-	         return List.of();
+	@Override
+	public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo) {
+	    if (storeId == null) return List.of();
 
-	      PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+	    PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, 10); // 페이지당 10개
 
-	      if (storeId == 1) {
-	         // 본사 인벤토리 기록 조회
-	         return hqInventoryDslRepository.findHqInventoryRecords(changeType, pageRequest);
-	      } else {
-	         // 매장 인벤토리 기록 조회
-	         return storeInventoryDslRepository.findStoreInventoryRecords(storeId, changeType, pageRequest);
-	      }
-	   }
+	    Page<InventoryRecord> pages = recordRepository
+	            .findByStoreIdAndChangeTypeOrderByDateDesc(storeId, changeType, pageRequest);
+
+	    pageInfo.setAllPage(pages.getTotalPages());
+
+	    int startPage = ((pageInfo.getCurPage() - 1) / 5) * 5 + 1;
+	    int endPage = Math.min(startPage + 4, pageInfo.getAllPage());
+
+	    pageInfo.setStartPage(startPage);
+	    pageInfo.setEndPage(endPage);
+
+	    return pages.getContent().stream()
+	    	    .map(ir -> InventoryRecordDto.builder()
+	    	        .id(ir.getId())
+	    	        .quantity(ir.getQuantity())
+	    	        .changeType(ir.getChangeType())
+	    	        .memo(ir.getMemo())
+	    	        .date(ir.getDate())
+	    	        .ingredientId(ir.getIngredient().getId())
+	    	        .ingredientName(ir.getIngredient().getName())
+	    	        .categoryName(ir.getIngredient().getCategory().getName())
+	    	        .storeId(ir.getStore().getId())
+	    	        .storeName(ir.getStore().getName())
+	    	        .build())
+	    	    .collect(Collectors.toList());
+	}
 
 	// 카테고리 조회
 	@Override
@@ -784,5 +804,21 @@ public class InventoryServiceImpl implements InventoryService {
 
 		return result;
 	}
+	
+	
+	// HQ의 부족 품목 리스트 반환
+	@Override
+	public List<HqIngredientDto> getLowStockList() {
+	    Integer hqStoreId = 1;
+	    List<HqIngredientDto> all = getHqInventory(hqStoreId, null, null, null, null, new PageInfo(1), null);
+	    List<HqIngredientDto> result = new ArrayList<>();
+	    for (HqIngredientDto i : all) {
+	        if (i.getQuantity() != null && i.getMinquantity() != null && i.getQuantity() <= i.getMinquantity()) {
+	            result.add(i);
+	        }
+	    }
+	    return result;
+	}
+	
 
 }

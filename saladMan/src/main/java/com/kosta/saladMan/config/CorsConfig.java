@@ -32,7 +32,7 @@ public class CorsConfig implements WebMvcConfigurer {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true); //프론트의 Access-Control-Allow-Credentials 요청에 대한 허용
-		config.addAllowedOrigin("https://saladman.net");
+//		config.addAllowedOrigin("https://saladman.net");
 		config.addAllowedOrigin("https://www.saladman.net");
 		config.addAllowedOrigin("http://www.saladman.net");
 		config.addAllowedOrigin("http://localhost:5173");
@@ -68,6 +68,7 @@ public class CorsConfig implements WebMvcConfigurer {
             "http://localhost:8091",
             "http://localhost:8092",
             "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
+            "https://www.saladman.com",
             "https://api.saladman.com",
             "http://192.168.0.15:8080",
             "http://192.168.0.15:8090",

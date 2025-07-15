@@ -16,7 +16,9 @@ import com.kosta.saladMan.service.user.StoreService;
 @RequestMapping("/user/stores")
 @CrossOrigin(origins = {
 	    "http://localhost:5173", 
-	    "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com"
+	    "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
+	    "https://www.saladman.net",
+	    "http://www.saladman.net"
 	}, allowCredentials = "true")
 public class StoreController {
 
