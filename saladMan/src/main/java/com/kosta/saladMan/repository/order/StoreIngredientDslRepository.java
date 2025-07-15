@@ -44,27 +44,44 @@ public class StoreIngredientDslRepository {
 		QPurchaseOrder qpo = QPurchaseOrder.purchaseOrder;
 		QPurchaseOrderItem qpi = QPurchaseOrderItem.purchaseOrderItem;
 		QIngredient qin = QIngredient.ingredient;
+		
+		Expression<Integer> totalQuantityExpr = JPAExpressions
+			    .select(qstoreIngre.quantity.sum())
+			    .from(qstoreIngre)
+			    .where(
+			        qstoreIngre.ingredient.id.eq(qsetting.ingredient.id),
+			        qstoreIngre.store.id.eq(qsetting.store.id),
+			        qstoreIngre.expiredDate.gt(LocalDate.now())
+			    );
 
 		return jpaQueryFactory
-				.select(Projections.constructor(LowStockItemDto.class, qsetting.ingredient.name,
-						qsetting.ingredient.category.name, qstoreIngre.quantity.coalesce(0),qin.unit))
-				.from(qsetting)
-				.leftJoin(qstoreIngre)
-				.on(qsetting.store.id.eq(qstoreIngre.store.id), qsetting.ingredient.id.eq(qstoreIngre.ingredient.id))
-				.leftJoin(qin).on(qsetting.ingredient.id.eq(qin.ingredient.id))
-				.where(
-						qsetting.store.id.eq(id), 
-						qsetting.minQuantity.gt(qstoreIngre.quantity.coalesce(0)
-						.add(
-								JPAExpressions
-								.select(
-										qpi.orderedQuantity.subtract(qpi.receivedQuantity).sum().coalesce(0))
-								.from(qpi).join(qpi.purchaseOrder, qpo).where(qpo.store.id.eq(id),
-										qpi.ingredient.id.eq(qsetting.ingredient.id), qpo.status.in("대기중") // ←
-																													// 입고
-																													// 전
-																													// 상태만
-								)))).fetch();
+				.select(Projections.constructor(
+					    LowStockItemDto.class,
+					    qsetting.ingredient.name,
+					    qsetting.ingredient.category.name,
+					    Expressions.numberTemplate(Integer.class, "coalesce({0}, 0)", totalQuantityExpr),
+					    qin.unit
+					))
+					.from(qsetting)
+					.leftJoin(qin).on(qsetting.ingredient.id.eq(qin.id))
+					.where(
+					    qsetting.store.id.eq(id),
+					    qsetting.minQuantity.gt(
+					        Expressions.numberTemplate(Integer.class, "coalesce({0}, 0)", totalQuantityExpr)
+					        .add(
+					            JPAExpressions.select(
+					                qpi.orderedQuantity.subtract(qpi.receivedQuantity).sum().coalesce(0)
+					            )
+					            .from(qpi)
+					            .join(qpi.purchaseOrder, qpo)
+					            .where(
+					                qpo.store.id.eq(id),
+					                qpi.ingredient.id.eq(qsetting.ingredient.id),
+					                qpo.status.in("대기중")
+					            )
+					        )
+					    )
+					).fetch();
 
 	}
 	
@@ -105,6 +122,18 @@ public class StoreIngredientDslRepository {
 	    	    "incoming"
 	    	);
 	    
+	    Expression<Integer> storeQuantityExpr = ExpressionUtils.as(
+	    	    JPAExpressions
+	    	        .select(si.quantity.sum().coalesce(0))
+	    	        .from(si)
+	    	        .where(
+	    	            si.ingredient.id.eq(ing.id),
+	    	            si.store.id.eq(id),
+	    	            si.expiredDate.goe(today)
+	    	        ),
+	    	    "storeQuantity"
+	    	);
+	    
 	    return jpaQueryFactory
 	    	    .select(Projections.constructor(
 	    	        StoreOrderItemDto.class,
@@ -112,7 +141,7 @@ public class StoreIngredientDslRepository {
 	    	        ing.name,
 	    	        cat.id,
 	    	        cat.name,
-	    	        si.quantity.coalesce(0),
+	    	        storeQuantityExpr,
 	    	        incomingExpr,
 	    	        ing.unit,
 	    	        hq.unitCost.max().coalesce(0),
@@ -122,10 +151,6 @@ public class StoreIngredientDslRepository {
 	    	    ))
 	    	    .from(ing)
 	    	    .join(ing.category, cat)
-	    	    .leftJoin(si).on(
-	    	        si.ingredient.id.eq(ing.id),
-	    	        si.store.id.eq(id)
-	    	    )
 	    	    .leftJoin(hq).on(hq.ingredient.id.eq(ing.id))
 	    	    .where(
 	    	       	    category != null && !category.equals("전체")
@@ -136,7 +161,7 @@ public class StoreIngredientDslRepository {
 	    	    )
 	    	    .groupBy(
 	    	        ing.id, ing.name, cat.id, cat.name,
-	    	        si.quantity, ing.unit, ing.available
+	    	        ing.unit, ing.available
 	    	    )
 	    	    .fetch();
 	}
