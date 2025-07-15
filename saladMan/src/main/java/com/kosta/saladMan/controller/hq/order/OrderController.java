@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kosta.saladMan.auth.PrincipalDetails;
 import com.kosta.saladMan.dto.inventory.IngredientCategoryDto;
 import com.kosta.saladMan.dto.inventory.IngredientItemDto;
 import com.kosta.saladMan.dto.menu.MenuCategoryDto;
@@ -29,6 +31,7 @@ import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDetailDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderDto;
 import com.kosta.saladMan.dto.purchaseOrder.PurchaseOrderItemDto;
 import com.kosta.saladMan.dto.store.StoreDto;
+import com.kosta.saladMan.entity.store.Store;
 import com.kosta.saladMan.service.order.OrderService;
 
 @RestController
@@ -105,9 +108,10 @@ public class OrderController {
 	}
 	
 	@PostMapping("/orderRequestDetail")
-	public ResponseEntity<Void> updateOrderRequest(@RequestBody List<PurchaseOrderItemDto> items) {
+	public ResponseEntity<Void> updateOrderRequest(@RequestBody List<PurchaseOrderItemDto> items, @AuthenticationPrincipal PrincipalDetails principal) {
+		Store adminId = principal.getStore(); // JWT에서 store 정보 추출
 	    try {
-	        orderService.updateOrderItems(items);
+	        orderService.updateOrderItems(items,adminId);
 	        System.out.println("저장완");
 	        return ResponseEntity.ok().build();
 	    } catch (Exception e) {

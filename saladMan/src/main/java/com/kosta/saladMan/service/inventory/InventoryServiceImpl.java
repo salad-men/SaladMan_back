@@ -593,21 +593,21 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	// 재고 기록 조회
-	@Override
-	public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo) {
-		if (storeId == null)
-			return List.of();
+	   @Override
+	   public List<InventoryRecordDto> getRecordsByStoreAndType(Integer storeId, String changeType, PageInfo pageInfo) {
+	      if (storeId == null)
+	         return List.of();
 
-		PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
+	      PageRequest pageRequest = PageRequest.of(pageInfo.getCurPage() - 1, PAGE_SIZE);
 
-		if (storeId == 1) {
-			// 본사 인벤토리 기록 조회
-			return hqInventoryDslRepository.findHqInventoryRecords(changeType, pageRequest);
-		} else {
-			// 매장 인벤토리 기록 조회
-			return storeInventoryDslRepository.findStoreInventoryRecords(storeId, changeType, pageRequest);
-		}
-	}
+	      if (storeId == 1) {
+	         // 본사 인벤토리 기록 조회
+	         return hqInventoryDslRepository.findHqInventoryRecords(changeType, pageRequest);
+	      } else {
+	         // 매장 인벤토리 기록 조회
+	         return storeInventoryDslRepository.findStoreInventoryRecords(storeId, changeType, pageRequest);
+	      }
+	   }
 
 	// 카테고리 조회
 	@Override
