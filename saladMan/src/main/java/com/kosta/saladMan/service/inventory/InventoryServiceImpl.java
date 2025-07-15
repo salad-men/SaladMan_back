@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -784,5 +785,21 @@ public class InventoryServiceImpl implements InventoryService {
 
 		return result;
 	}
+	
+	
+	// HQ의 부족 품목 리스트 반환
+	@Override
+	public List<HqIngredientDto> getLowStockList() {
+	    Integer hqStoreId = 1;
+	    List<HqIngredientDto> all = getHqInventory(hqStoreId, null, null, null, null, new PageInfo(1), null);
+	    List<HqIngredientDto> result = new ArrayList<>();
+	    for (HqIngredientDto i : all) {
+	        if (i.getQuantity() != null && i.getMinquantity() != null && i.getQuantity() <= i.getMinquantity()) {
+	            result.add(i);
+	        }
+	    }
+	    return result;
+	}
+	
 
 }

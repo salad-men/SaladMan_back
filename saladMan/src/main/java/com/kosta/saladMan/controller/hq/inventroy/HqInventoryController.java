@@ -253,5 +253,16 @@ public class HqInventoryController {
         return ResponseEntity.ok().build();
     }
     
-    
+ // HQ 재고부족 품목 전체 리스트
+    @GetMapping("/lowStockList")
+    public ResponseEntity<List<HqIngredientDto>> getLowStockList() {
+        try {
+            List<HqIngredientDto> list = inventoryService.getLowStockList();
+            return ResponseEntity.ok(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }
