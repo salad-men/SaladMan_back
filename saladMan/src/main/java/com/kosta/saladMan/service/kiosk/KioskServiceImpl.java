@@ -264,7 +264,7 @@ public class KioskServiceImpl implements KioskService {
 							    InventoryRecord newRecord = new InventoryRecord();
 							    newRecord.setChangeType("출고");
 							    newRecord.setDate(LocalDateTime.now());
-							    newRecord.setMemo("매장 판매");
+							    newRecord.setMemo("매장판매");
 							    newRecord.setQuantity(deduction);
 							    newRecord.setIngredient(ingredient);
 							    newRecord.setStore(store);
