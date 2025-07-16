@@ -1,5 +1,6 @@
 package com.kosta.saladMan.repository.order;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -246,6 +247,8 @@ public class PuchaseOrderDslRepository {
 	    QPurchaseOrder order = QPurchaseOrder.purchaseOrder;
 	    QStore store = QStore.store;
 	    
+	    Expression<Integer> unitCost = Expressions.constant(0);
+
 	    return jpaQueryFactory
 	            .select(Projections.fields(PurchaseOrderItemDto.class,
 	                poi.id,
@@ -262,7 +265,7 @@ public class PuchaseOrderDslRepository {
 	                poi.approvalStatus,
 	                poi.rejectionReason,
 	                store.name.as("storeName"),
-	                hqIngredient.unitCost.max().as("unitCost"), // 가장 큰 날짜 = 가장 최근 단가
+	                ExpressionUtils.as(Expressions.constant(0), "unitCost"), // 임시값
 	                po.status.as("orderStatus"),
 	                po.orderDateTime.as("orderDateTime")
 	            ))
@@ -271,7 +274,6 @@ public class PuchaseOrderDslRepository {
 	            .leftJoin(ingredient.category, category)
 	            .leftJoin(poi.purchaseOrder, po)
 	            .leftJoin(po.store, store)
-	            .leftJoin(hqIngredient).on(hqIngredient.ingredient.id.eq(ingredient.id))
 	            .where(po.id.eq(orderId))
 	            .groupBy(poi.id) //item 기준 group by
 	            .fetch();

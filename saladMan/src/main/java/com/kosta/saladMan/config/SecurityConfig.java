@@ -91,6 +91,7 @@ public class SecurityConfig {
 		http.addFilter(new JwtAuthorizationFilter(authenticationManager, storeRepository))
 				.authorizeRequests()
 				.antMatchers("/connect/**", "/connect", "/connect/info/**", "/connect/info").permitAll()
+				.antMatchers("/store/stockInspection/**").permitAll()
 				.antMatchers("/hq/**").access("hasRole('ROLE_HQ')")
 				.antMatchers("/store/**").access("hasRole('ROLE_STORE')")
 				.antMatchers("/actuator/health").permitAll()
