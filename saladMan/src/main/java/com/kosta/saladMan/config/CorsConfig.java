@@ -60,28 +60,29 @@ public class CorsConfig implements WebMvcConfigurer {
 		return new CorsFilter(source);
 	}
     
-    @Bean
-    public CorsFilter kioskCorsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-            "http://localhost:5173",
-            "http://192.168.0.23:5173",
-            "http://localhost:8091",
-            "http://localhost:8092",
-            "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
-            "https://www.saladman.com",
-            "https://api.saladman.com",
-            "http://192.168.0.15:8080",
-            "http://192.168.0.15:8090",
-            "http://192.168.0.15:5173"
-
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        source.registerCorsConfiguration("/kiosk/**", config);
-        return new CorsFilter(source);
-    }
+//    @Bean
+//    public CorsFilter kioskCorsFilter() {
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowedOrigins(List.of(
+//        		
+//            "http://localhost:5173",
+//            "http://192.168.0.23:5173",
+//            "http://localhost:8091",
+//            "http://localhost:8092",
+//            "http://saladman-web.s3-website.ap-northeast-2.amazonaws.com",
+//            "https://www.saladman.com",
+//            "https://api.saladman.com",
+//            "http://192.168.0.15:8080",
+//            "http://192.168.0.15:8090",
+//            "http://192.168.0.15:5173"
+//
+//        ));
+//        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        config.setAllowedHeaders(List.of("*"));
+//        config.setAllowCredentials(true);
+//
+//        source.registerCorsConfiguration("/kiosk/**", config);
+//        return new CorsFilter(source);
+//    }
 }
