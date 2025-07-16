@@ -5,7 +5,7 @@ public interface JwtProperties {
 	Integer ACCESS_EXPIRATION_TIME = 60000*60*12;
 //	Integer ACCESS_EXPIRATION_TIME = 10000;
 	Integer REFRESH_EXPIRATION_TIME = 60000*60*24;
-//	Integer REFRESH_EXPIRATION_TIME = 60000;;
+//	Integer REFRESH_EXPIRATION_TIME = 60000;
 	String TOKEN_PREFIX = "Bearer ";
 	String HEADER_STRING = "Authorization";
 }
