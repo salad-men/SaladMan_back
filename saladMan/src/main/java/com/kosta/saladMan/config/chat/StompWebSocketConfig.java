@@ -22,13 +22,16 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/connect")
-        .setAllowedOrigins( "http://localhost:5173", 
-                "https://www.saladman.net", 
-                "http://www.saladman.net",
-                "https://api.saladman.net",
-                "http://localhost:8090",
-                "http://localhost:8091",
-                "http://localhost:8092")
+        .setAllowedOriginPatterns("*") // 모든 오리진 허용
+
+//        .setAllowedOrigins( 
+//        		"http://localhost:5173", 
+//                "https://www.saladman.net", 
+//                "http://www.saladman.net",
+//                "https://api.saladman.net",
+//                "http://localhost:8090",
+//                "http://localhost:8091",
+//                "http://localhost:8092")
                 // ws://가 아니라 http:// 엔드포인트를 사용할 수 있게 해주는 sockJs라이브러리를 통한 요청을 허용하는 설정.
                 .withSockJS();
     }
