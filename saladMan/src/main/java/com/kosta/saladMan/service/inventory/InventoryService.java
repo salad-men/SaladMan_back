@@ -136,7 +136,7 @@ public interface InventoryService {
 
     // 재료
     List<IngredientDto> getAllIngredients();
-    IngredientDto addIngredient(String name, Integer categoryId, String unit);
+    IngredientDto addIngredient(String name, Integer categoryId, String unit,Integer price);
     void updateIngredient(Integer id, String name, String unit);
     void deleteIngredient(Integer ingredientId);
     

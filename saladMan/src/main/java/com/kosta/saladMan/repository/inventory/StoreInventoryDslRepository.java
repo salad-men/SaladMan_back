@@ -83,7 +83,7 @@ public class StoreInventoryDslRepository {
             orderSpecifiers.add(q.category.name.asc());
             orderSpecifiers.add(q.ingredient.name.asc());
         } else {
-            orderSpecifiers.add(q.category.name.asc());
+            orderSpecifiers.add(q.receivedDate.asc());
             orderSpecifiers.add(q.ingredient.name.asc());
             orderSpecifiers.add(q.expiredDate.asc().nullsLast());
         }

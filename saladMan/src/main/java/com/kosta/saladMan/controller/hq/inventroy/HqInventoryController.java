@@ -216,12 +216,14 @@ public class HqInventoryController {
         String name       = (String)  body.get("name");
         String unit       = (String)  body.get("unit");
         Integer categoryId= (Integer) body.get("categoryId");
-        IngredientDto dto = inventoryService.addIngredient(name, categoryId, unit);
+        Integer price = (Integer) body.get("price");
+        IngredientDto dto = inventoryService.addIngredient(name, categoryId, unit,price);
         return ResponseEntity.ok(Map.of(
             "id",         dto.getId(),
             "name",       dto.getName(),
             "unit",       dto.getUnit(),
-            "categoryId", dto.getCategoryId()
+            "categoryId", dto.getCategoryId(),
+            "price", 	  dto.getPrice()
         ));
     }
 
