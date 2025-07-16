@@ -33,19 +33,19 @@ public class CorsConfig implements WebMvcConfigurer {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowCredentials(true); //프론트의 Access-Control-Allow-Credentials 요청에 대한 허용
 //		config.addAllowedOrigin("https://saladman.net");
-		config.addAllowedOrigin("https://www.saladman.net");
-		config.addAllowedOrigin("http://www.saladman.net");
-		config.addAllowedOrigin("http://localhost:5173");
-		config.addAllowedOrigin("http://saladman-web.s3-website.ap-northeast-2.amazonaws.com");
-        config.addAllowedOrigin("https://api.saladman.net");
-        config.addAllowedOrigin("http://api.saladman.net");
-        config.addAllowedOrigin("http://localhost:8091");
-        config.addAllowedOrigin("http://localhost:8090");
-        config.addAllowedOrigin("http://localhost:8092");
-        config.addAllowedOrigin("http://192.168.0.15:8080");
-        config.addAllowedOrigin("http://192.168.0.15:5173");
-        config.addAllowedOrigin("http://192.168.0.15:8090");
-        //config.addAllowedOriginPattern("*");
+//		config.addAllowedOrigin("https://www.saladman.net");
+//		config.addAllowedOrigin("http://www.saladman.net");
+//		config.addAllowedOrigin("http://localhost:5173");
+//		config.addAllowedOrigin("http://saladman-web.s3-website.ap-northeast-2.amazonaws.com");
+//        config.addAllowedOrigin("https://api.saladman.net");
+//        config.addAllowedOrigin("http://api.saladman.net");
+//        config.addAllowedOrigin("http://localhost:8091");
+//        config.addAllowedOrigin("http://localhost:8090");
+//        config.addAllowedOrigin("http://localhost:8092");
+//        config.addAllowedOrigin("http://192.168.0.15:8080");
+//        config.addAllowedOrigin("http://192.168.0.15:5173");
+//        config.addAllowedOrigin("http://192.168.0.15:8090");
+        config.addAllowedOriginPattern("*");
 
 
 		config.addAllowedHeader("*"); //프론트의 Access-Control-Allow-Headers 요청에 대한 허용
