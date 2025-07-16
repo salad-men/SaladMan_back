@@ -673,7 +673,7 @@ public class InventoryServiceImpl implements InventoryService {
 	// 재료추가
 	@Override
 	@Transactional
-	public IngredientDto addIngredient(String name, Integer categoryId, String unit) {
+	public IngredientDto addIngredient(String name, Integer categoryId, String unit,Integer price) {
 		IngredientCategory cat = categoryRepository.findById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("카테고리 없음: " + categoryId));
 		Ingredient ing = ingredientRepository.findByNameAndCategoryId(name, categoryId).orElseGet(() -> {
@@ -682,6 +682,7 @@ public class InventoryServiceImpl implements InventoryService {
 			e.setUnit(unit);
 			e.setCategory(cat);
 			e.setAvailable(true);
+			e.setPrice(price);
 			return ingredientRepository.save(e);
 		});
 		return ing.toDto();
