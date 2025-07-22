@@ -1,11 +1,9 @@
-# 🥗 샐러드맨(SaladMan)
+![사용자-매장찾기](https://github.com/user-attachments/assets/608b9066-22d9-4c0a-b174-15a1f6f34123)![매장- 주문내역](https://github.com/user-attachments/assets/ba8b23f2-1f35-4453-b192-824cc5c041fd)![매장-재고관리](https://github.com/user-attachments/assets/f0d18940-e231-4177-b334-bc627441e764)# 🥗 샐러드맨(SaladMan)
 **샐러드 매장 통합 관리 플랫폼**
 
 > **본사-매장-고객**을 하나로 연결하는 재고/발주/매출/인사/소통/챗봇/키오스크 통합 서비스
 
 ---
-![매장- 직원 일정관리](https://github.com/user-attachments/assets/30a7cb61-efcd-479f-958b-2890655e8717)
-
 ## 목차
 1. [프로젝트 개요](#프로젝트-개요)
 2. [팀원 및 담당 업무](#팀원-및-담당-업무)
@@ -100,312 +98,418 @@
 
 ---
 
-### 1. 본사(관리자) 기능
+## 🏢 본사(관리자)
 
 <details>
-<summary> <img src="./images/hq-inventory.png" width="22"/> <strong>본사 - 재고</strong> </summary>
+<summary><strong>재고</strong></summary>
 
-| ![](./images/hq-inventory1.png) | ![](./images/hq-inventory2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+  <details>
+  <summary>재고관리</summary>
+    
+  ![본사- 매장관리](https://github.com/user-attachments/assets/ccce7ff7-c044-4f56-8d34-8fb2b01ef059)
 
-- 재고관리
-- 유통기한 관리
-- 폐기재료/폐기요청재료
-- 재료설정
-- 입/출고내역
-- 카테고리/재료관리
+
+  </details>
+
+  <details>
+  <summary>유통기한 관리</summary>
+
+![본사- 유통기한 관리](https://github.com/user-attachments/assets/11e6679b-48a9-4862-9496-c7fdc1bf7b5e)
+
+  </details>
+
+  <details>
+  <summary>폐기요청재료</summary>
+![본사- 폐기 요청 재료](https://github.com/user-attachments/assets/afb0b25b-368f-4752-9388-1e43830a1a35)
+
+
+  </details>
+
+  <details>
+  <summary>재료설정</summary>
+![본사- 재료 설정](https://github.com/user-attachments/assets/217a9de0-4249-4e87-aad6-e353f8c9be1b)
+
+
+  </details>
+
+  <details>
+  <summary>입/출고내역</summary>
+![본사- 입출고내역](https://github.com/user-attachments/assets/d9e45bba-4ca8-421a-8691-02249a72c464)
+
+
+  </details>
+
+  <details>
+  <summary>카테고리/재료관리</summary>
+![본사- 카테고리재료관리](https://github.com/user-attachments/assets/def51971-85a5-4905-aa56-545bc5b1b667)
+
+
+  </details>
 
 </details>
 
 <details>
-<summary> <img src="./images/hq-order.png" width="22"/> <strong>본사 - 수주</strong> </summary>
+<summary><strong>수주</strong></summary>
 
-| ![](./images/hq-order1.png) | ![](./images/hq-order2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
-![매장-유통기한 관리](https://github.com/user-attachments/assets/1a54ccd2-7855-4288-8368-4a66af80cba3)
+  <details>
+  <summary>수주목록</summary>
+![본사- 수주목록, 승인](https://github.com/user-attachments/assets/abe5d690-874a-4575-be20-305c39a77906)
 
-- 수주목록
-- 수주상세
-- 발주서 출력
-- 재료별 수주 가능여부 설정
 
-</details>
+  </details>
 
-<details>
-<summary> <img src="./images/hq-menu.png" width="22"/> <strong>본사 - 메뉴</strong> </summary>
+  <details>
+  <summary>발주서 출력</summary>
+![본사-발주서출력](https://github.com/user-attachments/assets/a071fa60-8906-4fbf-9a6e-d1a60c8b96db)
 
-| ![](./images/hq-menu1.png) | ![](./images/hq-menu2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
 
-- 전체메뉴
-- 메뉴등록
-- 레시피조회
+  </details>
+
+  <details>
+  <summary>재료별 수주 가능여부 설정</summary>
+![본사- 재료별 수주가능여부 설정](https://github.com/user-attachments/assets/e161c082-e8a8-43a3-a8bb-5714fcea3a3f)
+
+
+  </details>
 
 </details>
 
 <details>
-<summary> <img src="./images/hq-sales.png" width="22"/> <strong>본사 - 매출</strong> </summary>
+<summary><strong>메뉴</strong></summary>
 
-| ![](./images/hq-sales1.png) | ![](./images/hq-sales2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+  <details>
+  <summary>전체메뉴/레시피</summary>
 
-- 매출조회(전사)
-- 매출조회(지점)
+![본사- 전체메뉴 조회,레시피조회](https://github.com/user-attachments/assets/7c87973e-20d9-4e61-8386-ced19ade6269)
 
-</details>
+  </details>
 
-<details>
-<summary> <img src="./images/hq-store.png" width="22"/> <strong>본사 - 매장관리</strong> </summary>
+  <details>
+  <summary>메뉴등록</summary>
+![본사- 메뉴등록](https://github.com/user-attachments/assets/071fc28f-b9d3-4702-9bef-225e8f439b3f)
 
-| ![](./images/hq-store1.png) | ![](./images/hq-store2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
 
-- 매장목록/매장등록/매장상세
-- 직원목록/직원상세/직원등록
+  </details>
+
 
 </details>
 
 <details>
-<summary> <img src="./images/hq-notice.png" width="22"/> <strong>본사 - 공지사항</strong> </summary>
+<summary><strong>매출</strong></summary>
 
-| ![](./images/hq-notice1.png) | ![](./images/hq-notice2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+  <details>
+  <summary>매출조회(전사)</summary>
+![본사- 매출조회(전사)](https://github.com/user-attachments/assets/18b2c16a-94b2-4b32-bb4f-d9c1e17ad6f3)
 
-- 공지사항
-- 불편사항
-- 알림 목록
+ 
 
-</details>
+  </details>
 
-<details>
-<summary> <img src="./images/hq-dashboard.png" width="22"/> <strong>본사 - 대시보드</strong> </summary>
+  <details>
+  <summary>매출조회(지점)</summary>
+![본사- 매출조회(지점)](https://github.com/user-attachments/assets/57ab762a-9ca0-49c3-85a3-600ef41bd1b3)
 
-| ![](./images/hq-dashboard1.png) | ![](./images/hq-dashboard2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
 
-</details>
 
----
-
-### 2. 매장(직영점) 기능
-
-<details>
-<summary> <img src="./images/store-inventory.png" width="22"/> <strong>매장 - 재고</strong> </summary>
-
-| ![](./images/store-inventory1.png) | ![](./images/store-inventory2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
-
-- 재고관리
-- 유통기한 관리
-- 폐기신청 목록
-- 재료 입고내역
-- 재료사용내역
-- 재료설정
+  </details>
 
 </details>
 
 <details>
-<summary> <img src="./images/store-order.png" width="22"/> <strong>매장 - 발주</strong> </summary>
+<summary><strong>매장관리</strong></summary>
 
-| ![](./images/store-order1.png) | ![](./images/store-order2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+  <details>
+  <summary>매장관리(목록/상세/수정/등록)</summary>
+![본사- 매장관리](https://github.com/user-attachments/assets/5a716ff2-bd7d-47c8-bd79-bead8dbae523)
 
-- 발주목록
-- 발주신청
-- 자동발주설정
+  </details>
 
-</details>
 
-<details>
-<summary> <img src="./images/store-menu.png" width="22"/> <strong>매장 - 메뉴</strong> </summary>
+  <details>
+  <summary>직원관리(목록/상세/수정/등록)</summary>
+    
+![본사- 직원관리](https://github.com/user-attachments/assets/017e2719-6fc5-40c1-9166-e289b814891c)
 
-| ![](./images/store-menu1.png) | ![](./images/store-menu2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
-
-- 전체메뉴조회
-- 점포메뉴관리
-- 레시피조회
+  </details>
 
 </details>
 
 <details>
-<summary> <img src="./images/store-manage.png" width="22"/> <strong>매장 - 매장관리</strong> </summary>
+<summary><strong>공지사항/불편사항</strong></summary>
 
-| ![](./images/store-manage1.png) | ![](./images/store-manage2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
-
-- 매출조회
-- 주문 및 환불 내역 조회
-- 직원목록/직원상세/직원 일정관리(테이블, 캘린더)
+![본사-공지사항,불편사항](https://github.com/user-attachments/assets/7bd62556-1a95-41f5-b3c4-313d9ec85e63)
 
 </details>
 
 <details>
-<summary> <img src="./images/store-location.png" width="22"/> <strong>매장 - 점포조회</strong> </summary>
-
-| ![](./images/store-location1.png) | ![](./images/store-location2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
-
-- 타 매장 재고 조회
-
-</details>
-
-<details>
-<summary> <img src="./images/store-notice.png" width="22"/> <strong>매장 - 공지사항</strong> </summary>
-
-| ![](./images/store-notice1.png) | ![](./images/store-notice2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
-
-- 공지사항
-- 불편사항
-- 알림목록
-
-</details>
-
-<details>
-<summary> <img src="./images/store-dashboard.png" width="22"/> <strong>매장 - 대시보드</strong> </summary>
-
-| ![](./images/store-dashboard1.png) | ![](./images/store-dashboard2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+<summary><strong>대시보드</strong></summary>
+![본사- 대시보드](https://github.com/user-attachments/assets/4f21e5b0-24d0-4390-8806-dd2dd23417e5)
 
 </details>
 
 ---
 
-### 3. 본사 & 매장 공통
+## 🏬 매장
 
 <details>
-<summary> <img src="./images/login.png" width="22"/> <strong>로그인</strong> </summary>
+<summary><strong>재고</strong></summary>
 
-| ![](./images/login1.png) | ![](./images/login2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+  <details>
+  <summary>재고관리</summary>
+![매장-재고관리](https://github.com/user-attachments/assets/e9810ba0-1380-4ea2-9a93-78d05be285f9)
+
+  </details>
+
+  <details>
+  <summary>유통기한 관리</summary>
+![매장-유통기한 관리](https://github.com/user-attachments/assets/84324348-23f6-44af-8064-e08b5c2571c2)
+
+  </details>
+
+  <details>
+  <summary>폐기신청 목록</summary>
+<img width="2542" height="1261" alt="매장-폐기신청목록" src="https://github.com/user-attachments/assets/3198ceb8-9fa5-44ef-a51e-d93de8b1fe31" />
+
+  </details>
+
+  <details>
+  <summary>재료 입고내역</summary>
+
+  ![재료입고내역 이미지/영상](경로/매장-재료입고내역.gif)
+
+  </details>
+
+  <details>
+  <summary>재료사용내역</summary>
+
+  ![재료사용내역 이미지/영상](경로/매장-재료사용내역.gif)
+
+  </details>
+
+  <details>
+  <summary>재료설정</summary>
+![매장-재료설정](https://github.com/user-attachments/assets/c28b95ec-db4f-4d34-811e-8267e6347cbf)
+
+  </details>
 
 </details>
 
 <details>
-<summary> <img src="./images/chat.png" width="22"/> <strong>채팅</strong> </summary>
+<summary><strong>발주</strong></summary>
 
-| ![](./images/chat1.png) | ![](./images/chat2.png) |
-|:---:|:---:|
-| 내 채팅목록/그룹채팅목록 | 매장목록/채팅화면 |
+  <details>
+  <summary>발주신청</summary>
+![매장- 발주신청](https://github.com/user-attachments/assets/7243248c-603f-47f8-a93b-95fbdfd967d9)
+
+  </details>
+
+  <details>
+  <summary>자동발주설정</summary>
+![매장- 자동발주설정](https://github.com/user-attachments/assets/530bbd6a-4127-4be9-985e-30cf6f961fb2)
+
+  </details>
 
 </details>
 
 <details>
-<summary> <img src="./images/alarm.png" width="22"/> <strong>알림</strong> </summary>
+<summary><strong>메뉴</strong></summary>
 
-| ![](./images/alarm1.png) | ![](./images/alarm2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+  <details>
+  <summary>전체메뉴조회</summary>
+![매장- 전체메뉴조회](https://github.com/user-attachments/assets/9e46bdd6-a046-4d4b-b3b6-8b403d89ae7f)
+
+
+  </details>
+
+  <details>
+  <summary>점포메뉴관리</summary>
+![매장- 점포메뉴관리](https://github.com/user-attachments/assets/e4cdd7c2-459d-4e3a-a787-e303b6cdb570)
+
+  </details>
+
+  <details>
+  <summary>레시피조회</summary>
+![매장- 레시피 조회](https://github.com/user-attachments/assets/83d4211d-ecb5-4731-b5af-0eb48c25ce73)
+
+  </details>
+
+</details>
+
+<details>
+<summary><strong>매장관리</strong></summary>
+
+  <details>
+  <summary>매출조회</summary>
+![매장- 매출조회](https://github.com/user-attachments/assets/0ed6abd6-c184-46c9-9ab7-e8b62738cc24)
+
+
+  </details>
+
+  <details>
+  <summary>주문 및 환불 내역 조회</summary>
+![매장- 주문내역](https://github.com/user-attachments/assets/70eae0cf-6ba2-4502-9b25-30855bdeeb55)
+
+  </details>
+
+  <details>
+  <summary>직원목록</summary>
+![매장- 직원 목록](https://github.com/user-attachments/assets/3e2f881a-bfc6-4fdf-8f83-c67d94ae0c66)
+
+  </details>
+
+  <details>
+  
+
+  <details>
+  <summary>직원 일정관리</summary>
+![매장- 직원 일정관리](https://github.com/user-attachments/assets/16a29586-9472-47c5-b13c-0916806d78cf)
+
+
+</details>
+
+<details>
+<summary><strong>점포조회</strong></summary>
+
+  <details>
+  <summary>타 매장 재고 조회</summary>
+![매장- 타매장 재고 조회](https://github.com/user-attachments/assets/9ca71695-4936-42f5-bb07-0b3ab653f5bc)
+
+  </details>
+
+</details>
+
+<details>
+<summary><strong>공지사항</strong></summary>
+
+  <details>
+  <summary>공지사항</summary>
+![매장- 공지사항 조회](https://github.com/user-attachments/assets/1f45a8c3-474a-49d2-b537-67e8002789bf)
+
+
+  </details>
+
+  <details>
+  <summary>불편사항</summary>
+
+  ![불편사항 이미지/영상](경로/매장-불편사항.gif)
+
+  </details>
+
+
+</details>
+
+<details>
+<summary><strong>대시보드</strong></summary>
+![매장- 대시보드](https://github.com/user-attachments/assets/8cb6ffc8-deda-4e92-8cd3-a441de85ba63)
+
 
 </details>
 
 ---
 
-### 4. 사용자
+## 🏢 본사 & 🏬 매장 공통
 
 <details>
-<summary> <img src="./images/user-main.png" width="22"/> <strong>메인페이지</strong> </summary>
+<summary><strong>로그인</strong></summary>
 
-| ![](./images/user-main1.png) | ![](./images/user-main2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+ <img width="1123" height="910" alt="image" src="https://github.com/user-attachments/assets/46745444-130c-4f7a-a442-02ddd444e06c" />
+
 
 </details>
 
 <details>
-<summary> <img src="./images/user-brand.png" width="22"/> <strong>브랜드 소개/메뉴</strong> </summary>
-
-| ![](./images/user-brand1.png) | ![](./images/user-brand2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+<summary><strong>채팅</strong></summary>
+![채팅](https://github.com/user-attachments/assets/2ae09daa-a620-46ce-8dce-a5c9cf32f18a)
 
 </details>
 
 <details>
-<summary> <img src="./images/user-nutrition.png" width="22"/> <strong>영양표/매장찾기</strong> </summary>
+<summary><strong>알림</strong></summary>
 
-| ![](./images/user-nutrition1.png) | ![](./images/user-nutrition2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+![매장- 알림 확인](https://github.com/user-attachments/assets/0a57ffe4-a229-4845-bca1-065416536a14)
 
-</details>
-
-<details>
-<summary> <img src="./images/user-news.png" width="22"/> <strong>새소식</strong> </summary>
-
-| ![](./images/user-news1.png) | ![](./images/user-news2.png) |
-|:---:|:---:|
-| 공지사항/이벤트 | 칭찬매장 |
-
-</details>
-
-<details>
-<summary> <img src="./images/user-chatbot.png" width="22"/> <strong>챗봇</strong> </summary>
-
-| ![](./images/user-chatbot1.png) | ![](./images/user-chatbot2.png) |
-|:---:|:---:|
-| 메뉴/매장찾기/불편사항 | 자주묻는질문 |
-
-</details>
-
-<details>
-<summary> <img src="./images/user-banner.png" width="22"/> <strong>배너/이미지 수정(본사 전용)</strong> </summary>
-
-| ![](./images/user-banner1.png) | ![](./images/user-banner2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
 
 </details>
 
 ---
 
-### 5. 키오스크
+## 👤 사용자
 
 <details>
-<summary> <img src="./images/kiosk-type.png" width="22"/> <strong>이용유형 선택</strong> </summary>
+<summary><strong>메인 페이지</strong></summary>
 
-| ![](./images/kiosk-type1.png) | ![](./images/kiosk-type2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+
+https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
+
+
+  
+<img width="2535" height="1285" alt="image" src="https://github.com/user-attachments/assets/80c52c35-aec0-4a35-a1b2-8601ee168e00" />
+<img width="1501" height="1168" alt="image" src="https://github.com/user-attachments/assets/71f9d6f3-0ee6-4904-9d24-3d9ad938ec77" />
+
+
 
 </details>
 
 <details>
-<summary> <img src="./images/kiosk-menu.png" width="22"/> <strong>메뉴 선택/카트담기</strong> </summary>
+<summary><strong>브랜드 소개메뉴</strong></summary>
+<img width="905" height="1236" alt="image" src="https://github.com/user-attachments/assets/275d4933-431a-412a-9530-333a76961154" />
 
-| ![](./images/kiosk-menu1.png) | ![](./images/kiosk-menu2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+
 
 </details>
 
 <details>
-<summary> <img src="./images/kiosk-order.png" width="22"/> <strong>주문서/결제</strong> </summary>
+<summary><strong>영양표</strong></summary>
 
-| ![](./images/kiosk-order1.png) | ![](./images/kiosk-order2.png) |
-|:---:|:---:|
-| 예시이미지1 | 예시이미지2 |
+ 
+<img width="862" height="825" alt="image" src="https://github.com/user-attachments/assets/d4b8f1a6-33fe-4d08-baa2-28714d87bbc2" />
 
 </details>
 
+<details>
+<summary><strong>매장찾기</strong></summary>
+
+![사용자-매장찾기](https://github.com/user-attachments/assets/a3cb6937-b7ed-4df8-97f9-e3cbfd6b63a2)
 
 
+</details>
+
+<details>
+<summary><strong>새소식(공지사항, 이벤트, 칭찬매장)</strong></summary>
+
+ <img width="558" height="1176" alt="image" src="https://github.com/user-attachments/assets/8a9a0b21-0e27-48d8-a47a-bc5183ae46be" />
+ 
+<img width="546" height="852" alt="image" src="https://github.com/user-attachments/assets/d4baf247-a639-445f-8577-58ee0db2ae1c" />
+
+
+
+</details>
+
+<details>
+<summary><strong>챗봇(메뉴, 매장찾기, 불편사항, 자주묻는질문)</strong></summary>
+
+
+![사용자-챗봇](https://github.com/user-attachments/assets/e46f9f3b-48f6-41d0-b242-9ebbf197d63a)
+
+</details>
+
+<details>
+<summary><strong>배너 및 이미지 수정 화면(본사 로그인 시)</strong></summary>
+
+  ![배너및이미지수정 이미지/영상](경로/사용자-배너수정.gif)
+
+</details>
+
+---
+
+## 🖥️ 키오스크
+
+<details>
+<summary><strong>키오스크</strong></summary>
+![키오스크](https://github.com/user-attachments/assets/dd7a3d93-8a27-4b7d-abbd-309f20b55325)
+
+
+</details>
 
 ---
 
