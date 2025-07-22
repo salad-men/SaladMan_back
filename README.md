@@ -114,35 +114,35 @@
   <details>
   <summary>유통기한 관리</summary>
 
-![본사- 유통기한 관리](https://github.com/user-attachments/assets/11e6679b-48a9-4862-9496-c7fdc1bf7b5e)
+  ![본사- 유통기한 관리](https://github.com/user-attachments/assets/11e6679b-48a9-4862-9496-c7fdc1bf7b5e)
 
   </details>
 
   <details>
   <summary>폐기요청재료</summary>
-![본사- 폐기 요청 재료](https://github.com/user-attachments/assets/afb0b25b-368f-4752-9388-1e43830a1a35)
-
-
+    
+  ![본사- 폐기 요청 재료](https://github.com/user-attachments/assets/afb0b25b-368f-4752-9388-1e43830a1a35)
+  
   </details>
 
   <details>
   <summary>재료설정</summary>
-![본사- 재료 설정](https://github.com/user-attachments/assets/217a9de0-4249-4e87-aad6-e353f8c9be1b)
-
+    
+  ![본사- 재료 설정](https://github.com/user-attachments/assets/217a9de0-4249-4e87-aad6-e353f8c9be1b)
 
   </details>
 
   <details>
   <summary>입/출고내역</summary>
-![본사- 입출고내역](https://github.com/user-attachments/assets/d9e45bba-4ca8-421a-8691-02249a72c464)
-
+    
+  ![본사- 입출고내역](https://github.com/user-attachments/assets/d9e45bba-4ca8-421a-8691-02249a72c464)
 
   </details>
 
   <details>
   <summary>카테고리/재료관리</summary>
-![본사- 카테고리재료관리](https://github.com/user-attachments/assets/def51971-85a5-4905-aa56-545bc5b1b667)
-
+    
+  ![본사- 카테고리재료관리](https://github.com/user-attachments/assets/def51971-85a5-4905-aa56-545bc5b1b667)
 
   </details>
 
@@ -153,21 +153,23 @@
 
   <details>
   <summary>수주목록</summary>
-![본사- 수주목록, 승인](https://github.com/user-attachments/assets/abe5d690-874a-4575-be20-305c39a77906)
-
+  
+  ![본사- 수주목록, 승인](https://github.com/user-attachments/assets/abe5d690-874a-4575-be20-305c39a77906)
 
   </details>
 
   <details>
   <summary>발주서 출력</summary>
-![본사-발주서출력](https://github.com/user-attachments/assets/a071fa60-8906-4fbf-9a6e-d1a60c8b96db)
+  
+  ![본사-발주서출력](https://github.com/user-attachments/assets/a071fa60-8906-4fbf-9a6e-d1a60c8b96db)
 
 
   </details>
 
   <details>
   <summary>재료별 수주 가능여부 설정</summary>
-![본사- 재료별 수주가능여부 설정](https://github.com/user-attachments/assets/e161c082-e8a8-43a3-a8bb-5714fcea3a3f)
+    
+  ![본사- 재료별 수주가능여부 설정](https://github.com/user-attachments/assets/e161c082-e8a8-43a3-a8bb-5714fcea3a3f)
 
 
   </details>
@@ -180,13 +182,14 @@
   <details>
   <summary>전체메뉴/레시피</summary>
 
-![본사- 전체메뉴 조회,레시피조회](https://github.com/user-attachments/assets/7c87973e-20d9-4e61-8386-ced19ade6269)
+  ![본사- 전체메뉴 조회,레시피조회](https://github.com/user-attachments/assets/7c87973e-20d9-4e61-8386-ced19ade6269)
 
   </details>
 
   <details>
   <summary>메뉴등록</summary>
-![본사- 메뉴등록](https://github.com/user-attachments/assets/071fc28f-b9d3-4702-9bef-225e8f439b3f)
+  
+  ![본사- 메뉴등록](https://github.com/user-attachments/assets/071fc28f-b9d3-4702-9bef-225e8f439b3f)
 
 
   </details>
@@ -199,7 +202,8 @@
 
   <details>
   <summary>매출조회(전사)</summary>
-![본사- 매출조회(전사)](https://github.com/user-attachments/assets/18b2c16a-94b2-4b32-bb4f-d9c1e17ad6f3)
+    
+  ![본사- 매출조회(전사)](https://github.com/user-attachments/assets/18b2c16a-94b2-4b32-bb4f-d9c1e17ad6f3)
 
  
 
@@ -207,9 +211,8 @@
 
   <details>
   <summary>매출조회(지점)</summary>
-![본사- 매출조회(지점)](https://github.com/user-attachments/assets/57ab762a-9ca0-49c3-85a3-600ef41bd1b3)
-
-
+    
+  ![본사- 매출조회(지점)](https://github.com/user-attachments/assets/57ab762a-9ca0-49c3-85a3-600ef41bd1b3)
 
   </details>
 
@@ -220,7 +223,8 @@
 
   <details>
   <summary>매장관리(목록/상세/수정/등록)</summary>
-![본사- 매장관리](https://github.com/user-attachments/assets/5a716ff2-bd7d-47c8-bd79-bead8dbae523)
+  
+  ![본사- 매장관리](https://github.com/user-attachments/assets/5a716ff2-bd7d-47c8-bd79-bead8dbae523)
 
   </details>
 
@@ -228,7 +232,7 @@
   <details>
   <summary>직원관리(목록/상세/수정/등록)</summary>
     
-![본사- 직원관리](https://github.com/user-attachments/assets/017e2719-6fc5-40c1-9166-e289b814891c)
+  ![본사- 직원관리](https://github.com/user-attachments/assets/017e2719-6fc5-40c1-9166-e289b814891c)
 
   </details>
 
@@ -243,6 +247,7 @@
 
 <details>
 <summary><strong>대시보드</strong></summary>
+  
 ![본사- 대시보드](https://github.com/user-attachments/assets/4f21e5b0-24d0-4390-8806-dd2dd23417e5)
 
 </details>
@@ -256,19 +261,22 @@
 
   <details>
   <summary>재고관리</summary>
-![매장-재고관리](https://github.com/user-attachments/assets/e9810ba0-1380-4ea2-9a93-78d05be285f9)
+    
+  ![매장-재고관리](https://github.com/user-attachments/assets/e9810ba0-1380-4ea2-9a93-78d05be285f9)
 
   </details>
 
   <details>
   <summary>유통기한 관리</summary>
-![매장-유통기한 관리](https://github.com/user-attachments/assets/84324348-23f6-44af-8064-e08b5c2571c2)
+    
+  ![매장-유통기한 관리](https://github.com/user-attachments/assets/84324348-23f6-44af-8064-e08b5c2571c2)
 
   </details>
 
   <details>
   <summary>폐기신청 목록</summary>
-<img width="2542" height="1261" alt="매장-폐기신청목록" src="https://github.com/user-attachments/assets/3198ceb8-9fa5-44ef-a51e-d93de8b1fe31" />
+    
+  <img width="2542" height="1261" alt="매장-폐기신청목록" src="https://github.com/user-attachments/assets/3198ceb8-9fa5-44ef-a51e-d93de8b1fe31" />
 
   </details>
 
@@ -288,7 +296,8 @@
 
   <details>
   <summary>재료설정</summary>
-![매장-재료설정](https://github.com/user-attachments/assets/c28b95ec-db4f-4d34-811e-8267e6347cbf)
+    
+  ![매장-재료설정](https://github.com/user-attachments/assets/c28b95ec-db4f-4d34-811e-8267e6347cbf)
 
   </details>
 
@@ -299,13 +308,15 @@
 
   <details>
   <summary>발주신청</summary>
-![매장- 발주신청](https://github.com/user-attachments/assets/7243248c-603f-47f8-a93b-95fbdfd967d9)
+    
+  ![매장- 발주신청](https://github.com/user-attachments/assets/7243248c-603f-47f8-a93b-95fbdfd967d9)
 
   </details>
 
   <details>
   <summary>자동발주설정</summary>
-![매장- 자동발주설정](https://github.com/user-attachments/assets/530bbd6a-4127-4be9-985e-30cf6f961fb2)
+  
+  ![매장- 자동발주설정](https://github.com/user-attachments/assets/530bbd6a-4127-4be9-985e-30cf6f961fb2)
 
   </details>
 
@@ -316,20 +327,23 @@
 
   <details>
   <summary>전체메뉴조회</summary>
-![매장- 전체메뉴조회](https://github.com/user-attachments/assets/9e46bdd6-a046-4d4b-b3b6-8b403d89ae7f)
+    
+  ![매장- 전체메뉴조회](https://github.com/user-attachments/assets/9e46bdd6-a046-4d4b-b3b6-8b403d89ae7f)
 
 
   </details>
 
   <details>
   <summary>점포메뉴관리</summary>
-![매장- 점포메뉴관리](https://github.com/user-attachments/assets/e4cdd7c2-459d-4e3a-a787-e303b6cdb570)
+    
+  ![매장- 점포메뉴관리](https://github.com/user-attachments/assets/e4cdd7c2-459d-4e3a-a787-e303b6cdb570)
 
   </details>
 
   <details>
   <summary>레시피조회</summary>
-![매장- 레시피 조회](https://github.com/user-attachments/assets/83d4211d-ecb5-4731-b5af-0eb48c25ce73)
+    
+  ![매장- 레시피 조회](https://github.com/user-attachments/assets/83d4211d-ecb5-4731-b5af-0eb48c25ce73)
 
   </details>
 
@@ -340,20 +354,23 @@
 
   <details>
   <summary>매출조회</summary>
-![매장- 매출조회](https://github.com/user-attachments/assets/0ed6abd6-c184-46c9-9ab7-e8b62738cc24)
+    
+  ![매장- 매출조회](https://github.com/user-attachments/assets/0ed6abd6-c184-46c9-9ab7-e8b62738cc24)
 
 
   </details>
 
   <details>
   <summary>주문 및 환불 내역 조회</summary>
-![매장- 주문내역](https://github.com/user-attachments/assets/70eae0cf-6ba2-4502-9b25-30855bdeeb55)
+    
+  ![매장- 주문내역](https://github.com/user-attachments/assets/70eae0cf-6ba2-4502-9b25-30855bdeeb55)
 
   </details>
 
   <details>
   <summary>직원목록</summary>
-![매장- 직원 목록](https://github.com/user-attachments/assets/3e2f881a-bfc6-4fdf-8f83-c67d94ae0c66)
+    
+  ![매장- 직원 목록](https://github.com/user-attachments/assets/3e2f881a-bfc6-4fdf-8f83-c67d94ae0c66)
 
   </details>
 
@@ -362,7 +379,8 @@
 
   <details>
   <summary>직원 일정관리</summary>
-![매장- 직원 일정관리](https://github.com/user-attachments/assets/16a29586-9472-47c5-b13c-0916806d78cf)
+    
+  ![매장- 직원 일정관리](https://github.com/user-attachments/assets/16a29586-9472-47c5-b13c-0916806d78cf)
 
 
 </details>
@@ -372,7 +390,8 @@
 
   <details>
   <summary>타 매장 재고 조회</summary>
-![매장- 타매장 재고 조회](https://github.com/user-attachments/assets/9ca71695-4936-42f5-bb07-0b3ab653f5bc)
+    
+  ![매장- 타매장 재고 조회](https://github.com/user-attachments/assets/9ca71695-4936-42f5-bb07-0b3ab653f5bc)
 
   </details>
 
@@ -383,7 +402,8 @@
 
   <details>
   <summary>공지사항</summary>
-![매장- 공지사항 조회](https://github.com/user-attachments/assets/1f45a8c3-474a-49d2-b537-67e8002789bf)
+    
+  ![매장- 공지사항 조회](https://github.com/user-attachments/assets/1f45a8c3-474a-49d2-b537-67e8002789bf)
 
 
   </details>
@@ -400,6 +420,7 @@
 
 <details>
 <summary><strong>대시보드</strong></summary>
+  
 ![매장- 대시보드](https://github.com/user-attachments/assets/8cb6ffc8-deda-4e92-8cd3-a441de85ba63)
 
 
@@ -419,6 +440,7 @@
 
 <details>
 <summary><strong>채팅</strong></summary>
+  
 ![채팅](https://github.com/user-attachments/assets/2ae09daa-a620-46ce-8dce-a5c9cf32f18a)
 
 </details>
@@ -441,8 +463,6 @@
 
 https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
-
-  
 <img width="2535" height="1285" alt="image" src="https://github.com/user-attachments/assets/80c52c35-aec0-4a35-a1b2-8601ee168e00" />
 <img width="1501" height="1168" alt="image" src="https://github.com/user-attachments/assets/71f9d6f3-0ee6-4904-9d24-3d9ad938ec77" />
 
@@ -452,8 +472,8 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 <details>
 <summary><strong>브랜드 소개메뉴</strong></summary>
+  
 <img width="905" height="1236" alt="image" src="https://github.com/user-attachments/assets/275d4933-431a-412a-9530-333a76961154" />
-
 
 
 </details>
@@ -461,7 +481,6 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>영양표</strong></summary>
 
- 
 <img width="862" height="825" alt="image" src="https://github.com/user-attachments/assets/d4b8f1a6-33fe-4d08-baa2-28714d87bbc2" />
 
 </details>
@@ -477,7 +496,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>새소식(공지사항, 이벤트, 칭찬매장)</strong></summary>
 
- <img width="558" height="1176" alt="image" src="https://github.com/user-attachments/assets/8a9a0b21-0e27-48d8-a47a-bc5183ae46be" />
+<img width="558" height="1176" alt="image" src="https://github.com/user-attachments/assets/8a9a0b21-0e27-48d8-a47a-bc5183ae46be" />
  
 <img width="546" height="852" alt="image" src="https://github.com/user-attachments/assets/d4baf247-a639-445f-8577-58ee0db2ae1c" />
 
@@ -496,7 +515,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>배너 및 이미지 수정 화면(본사 로그인 시)</strong></summary>
 
-  ![배너및이미지수정 이미지/영상](경로/사용자-배너수정.gif)
+![배너및이미지수정 이미지/영상](경로/사용자-배너수정.gif)
 
 </details>
 
@@ -506,6 +525,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 <details>
 <summary><strong>키오스크</strong></summary>
+  
 ![키오스크](https://github.com/user-attachments/assets/dd7a3d93-8a27-4b7d-abbd-309f20b55325)
 
 
