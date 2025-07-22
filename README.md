@@ -349,8 +349,8 @@
 
 </details>
 
-<details>
-<summary><strong>매장관리</strong></summary>
+  <details>
+  <summary><strong>매장관리</strong></summary>
 
   <details>
   <summary>매출조회</summary>
@@ -383,11 +383,14 @@
   ![매장- 직원 일정관리](https://github.com/user-attachments/assets/16a29586-9472-47c5-b13c-0916806d78cf)
 
 
-</details>
+  </details>
 
-<details>
-<summary><strong>점포조회</strong></summary>
+  <details>
+  <summary><strong>점포조회</strong></summary>
 
+  </details>
+  </details>
+  
   <details>
   <summary>타 매장 재고 조회</summary>
     
@@ -395,10 +398,10 @@
 
   </details>
 
-</details>
+  </details>
 
-<details>
-<summary><strong>공지사항</strong></summary>
+  <details>
+  <summary><strong>공지사항</strong></summary>
 
   <details>
   <summary>공지사항</summary>
@@ -416,15 +419,15 @@
   </details>
 
 
-</details>
-
-<details>
-<summary><strong>대시보드</strong></summary>
+  </details>
   
-![매장- 대시보드](https://github.com/user-attachments/assets/8cb6ffc8-deda-4e92-8cd3-a441de85ba63)
-
-
-</details>
+  <details>
+  <summary><strong>대시보드</strong></summary>
+    
+  ![매장- 대시보드](https://github.com/user-attachments/assets/8cb6ffc8-deda-4e92-8cd3-a441de85ba63)
+  
+  
+  </details>
 
 ---
 
