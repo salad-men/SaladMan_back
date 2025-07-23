@@ -1,28 +1,25 @@
 # 🥗 샐러드맨(SaladMan)
 **샐러드 매장 통합 관리 플랫폼**
 
-> **본사-매장-고객**을 하나로 연결하는 재고/발주/매출/인사/소통/챗봇/키오스크 통합 서비스
+> **본사-매장-고객**을 하나로 연결하는 재고/발주/매출/인사/소통/키오스크 통합 관리 서비스
 
 ---
 ## 목차
 1. [프로젝트 개요](#프로젝트-개요)
-2. [팀원 및 담당 업무](#팀원-및-담당-업무)
-3. [기술스택 & 아키텍처](#기술스택--아키텍처)
-4. [사용 기술](#사용-기술)
-5. [서비스 주요 기능](#서비스-주요-기능)
-6. [주요 프로세스](#주요-프로세스)
-7. [기술적 요소](#기술적-요소)
-8. [트러블슈팅](#트러블슈팅)
-9. [데이터베이스 설계](#데이터베이스-설계)
-10. [개발화면 및 시연](#개발화면-및-시연)
-11. [Q&A](#qa)
+2. [기술스택 & 아키텍처](#기술스택--아키텍처)
+3. [사용 기술](#사용-기술)
+4. [액터별 서비스](#서비스-주요-기능)
+5. [주요 프로세스](#주요-프로세스)
+6. [기술적 요소](#기술적-요소)
+7. [트러블슈팅](#트러블슈팅)
+9. [프로젝트 설계 및 관리](#데이터베이스-설계)
 
 ---
 
 ## 프로젝트 개요
 
 - **샐러드 시장 연 8.4% 성장**  
-- **재고/발주/매출/인사/소통** 등 매장 운영 전반 통합관리
+- **재고/발주/매출/인사** 등 매장 운영 전반 통합관리
 - **본사-직영점 단일 시스템**으로 업무 효율화
 - **입고-소진-폐기-발주 자동화 및 실시간 모니터링**
 
@@ -94,7 +91,7 @@
 
 
 ---
-## 📦 서비스 주요 기능 (액터별)
+## 📦 액터별 서비스 기능
 
 ---
 
@@ -281,16 +278,10 @@
   </details>
 
   <details>
-  <summary>재료 입고내역</summary>
+  <summary>재료 입고/사용내역</summary>
+  ![매장-입고,사용내역](https://github.com/user-attachments/assets/40c213c4-f7d7-4cad-ad89-81d7a9dc37dd)
 
   ![재료입고내역 이미지/영상](경로/매장-재료입고내역.gif)
-
-  </details>
-
-  <details>
-  <summary>재료사용내역</summary>
-
-  ![재료사용내역 이미지/영상](경로/매장-재료사용내역.gif)
 
   </details>
 
@@ -373,22 +364,18 @@
   ![매장- 직원 목록](https://github.com/user-attachments/assets/3e2f881a-bfc6-4fdf-8f83-c67d94ae0c66)
 
   </details>
-
-  <details>
   
-
   <details>
   <summary>직원 일정관리</summary>
     
   ![매장- 직원 일정관리](https://github.com/user-attachments/assets/16a29586-9472-47c5-b13c-0916806d78cf)
 
-
   </details>
-
+  </details>
+  
   <details>
   <summary><strong>점포조회</strong></summary>
 
-  </details>
   </details>
   
   <details>
@@ -413,8 +400,9 @@
 
   <details>
   <summary>불편사항</summary>
+  ![매장-불편사항](https://github.com/user-attachments/assets/e4f958c4-2b7e-448f-8a37-150fd34282d2)
 
-  ![불편사항 이미지/영상](경로/매장-불편사항.gif)
+ 
 
   </details>
 
@@ -541,26 +529,8 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>🍱 매장 발주 프로세스</strong></summary>
 
-<details>
-<summary>1️⃣ 재고 확인</summary>
-매장 내 현재 재고량 실시간 확인
-</details>
-<details>
-<summary>2️⃣ 발주 신청</summary>
-부족한 재고의 발주 신청
-</details>
-<details>
-<summary>3️⃣ 본사 수주 승인</summary>
-본사에서 각 매장 발주 신청 확인 및 승인
-</details>
-<details>
-<summary>4️⃣ 입고 검수</summary>
-발주 입고 도착 시 검수 및 완료 처리
-</details>
-<details>
-<summary>5️⃣ 발주 내역/자동발주/이력 관리</summary>
-발주 이력, 자동발주 설정, 히스토리 관리
-</details>
+![매장발주프로세스](https://github.com/user-attachments/assets/cdd599af-a957-4571-adc1-3606024aa53b)
+
 </details>
 
 ---
@@ -568,22 +538,8 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>♻️ 폐기 프로세스</strong></summary>
 
-<details>
-<summary>1️⃣ 유통기한 확인</summary>
-보유 재고의 유통기한 실시간 확인
-</details>
-<details>
-<summary>2️⃣ 폐기 신청 및 사유작성</summary>
-폐기할 품목, 사유 작성 및 신청
-</details>
-<details>
-<summary>3️⃣ 본사 폐기 승인/관리</summary>
-본사에서 폐기 요청 승인 및 관리
-</details>
-<details>
-<summary>4️⃣ 폐기 상태 추적(대기/완료)</summary>
-폐기 상태(대기/완료) 실시간 추적 및 이력 관리
-</details>
+![폐기프로세스](https://github.com/user-attachments/assets/810c6d71-7282-474f-8990-863db517801d)
+
 </details>
 
 ---
@@ -591,33 +547,17 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>🥗 메뉴 등록/설정 프로세스</strong></summary>
 
-<details>
-<summary>1️⃣ 신규 메뉴/레시피 등록</summary>
-새로운 메뉴 및 상세 레시피 등록
-</details>
-<details>
-<summary>2️⃣ 매장별 메뉴 판매 ON/OFF 설정</summary>
-매장별 메뉴 판매 설정 관리
-</details>
+![메뉴등록,설정프로세스](https://github.com/user-attachments/assets/eb9f71af-84f4-4bcc-af19-2a3ffaba60aa)
+
 </details>
 
 ---
 
 <details>
-<summary><strong>🏬 매장 및 직원 등록 프로세스</strong></summary>
+<summary><strong>🏬 고객 이용 프로세스</strong></summary>
 
-<details>
-<summary>1️⃣ 매장 등록</summary>
-신규 매장 등록 및 정보 입력
-</details>
-<details>
-<summary>2️⃣ 직원 등록 및 배정</summary>
-직원 등록 및 매장 배정, 권한 할당
-</details>
-<details>
-<summary>3️⃣ 직무/권한 관리</summary>
-직원별 직무, 권한 부여 및 관리
-</details>
+![고객이용프로세스](https://github.com/user-attachments/assets/776ec966-ada8-4efd-86ea-9a86f6efd831)
+
 </details>
 
 ---
@@ -626,6 +566,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 <details>
 <summary><strong>💬 채팅 서비스</strong></summary>
+<img width="1853" height="924" alt="image" src="https://github.com/user-attachments/assets/cc2b01fe-252d-4181-8975-9106e058043d" />
 
 </details>
 
@@ -637,19 +578,28 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 <details>
 <summary><strong>🔔 알림 (FCM)</strong></summary>
-FCM 기반 주요 이벤트 푸시알림, 템플릿 자동 발송, 토큰 발급·관리
+<img width="1695" height="951" alt="image" src="https://github.com/user-attachments/assets/a7c8081b-aac5-4975-a32d-9dda0c52f1ac" />
+
 </details>
 
 <details>
-<summary><strong>🔐 인증/보안 (Spring Security)</strong></summary>
-JWT 기반 인증, 세션리스 구조, 토큰 만료/재발급/로컬스토리지 일원화, SPA 환경
+<summary><strong>🔐 스프링 시큐리티 (Spring Security)</strong></summary>
+<img width="1809" height="813" alt="image" src="https://github.com/user-attachments/assets/22ee11b2-e5d4-4038-b400-16edf7b92650" />
+
 </details>
 
 <details>
-<summary><strong>📷 QR코드</strong></summary>
-<img width="1696" height="765" alt="image" src="https://github.com/user-attachments/assets/9da72f00-043c-4dcc-9ec5-cab76597dbfd" />
+<summary><strong>💬 챗봇</strong></summary>
+<img width="1815" height="748" alt="image" src="https://github.com/user-attachments/assets/3f4f4de6-16b8-4a77-9f1f-cb321a6a2166" />
 
 </details>
+
+<details>
+<summary><strong>결제</strong></summary>
+<img width="1824" height="817" alt="image" src="https://github.com/user-attachments/assets/aef85846-9f03-47e3-896e-76be092ea9e9" />
+
+</details>
+
 
 ---
 
@@ -666,52 +616,38 @@ JWT 기반 인증, 세션리스 구조, 토큰 만료/재발급/로컬스토리�
 
 ---
 
-> 💡 표+이모지+볼드 조합으로 “한눈에 한 줄”로 핵심만,  
-> 필요시 각 이슈에 `<details>`로 상세설명(원인/코드/흐름도 등)도 넣을 수 있습니다.
+
+## 프로젝트 설계 및 관리
+
+<details>
+<summary><strong>요구사항 정의서 </strong></summary>
+<img width="773" height="568" alt="image" src="https://github.com/user-attachments/assets/06bc2196-0119-4c5c-a0ac-857865d975a5" />
+
+</details>
+
+<details>
+<summary><strong>화면 설계 </strong></summary>
+<img width="956" height="692" alt="image" src="https://github.com/user-attachments/assets/58c95ed5-dc4e-4ce9-9852-b8d395b45c05" />
+
+</details>
+
+<details>
+<summary><strong>데이터베이스 설계 </strong></summary>
+<img width="1023" height="690" alt="image" src="https://github.com/user-attachments/assets/4d5cb5bb-00dd-4dde-9084-ff017479f6b9" />
+
+</details>
+
+<details>
+<summary><strong>컴퍼넌트 정의서 </strong></summary>
+<img width="1198" height="697" alt="image" src="https://github.com/user-attachments/assets/26aed9b6-e61f-44b0-8251-67126cd5383d" />
+
+</details>
+
+<details>
+<summary><strong>노션 협업툴 활용 </strong></summary>
+<img width="417" height="521" alt="image" src="https://github.com/user-attachments/assets/dd6aeb2b-f670-47c5-a886-b5d4a35cf2c9" />
+<img width="928" height="693" alt="image" src="https://github.com/user-attachments/assets/e72f1d70-42dc-44bb-925e-3aa081d647f6" />
+
+</details>
 
 ---
-
-### 참고
-
-- 중첩 토글 시 **내부 토글은 summary 앞에 이모지/숫자/볼드 등으로 구분**하면 가독성 최고!
-- 트러블슈팅은 표로 한눈에, 또는 “문제 → 해결” 인라인 토글/리스트도 활용 가능
-- 이 포맷에서 원하면 더 예쁘게 커스텀(색/박스 등) 추가도 가능
-
----
-
-원하는 형태/톤 더 커스터마이징 원하면 바로 말씀해 주세요!  
-(더 미니멀/더 화려/컬러박스/예시 코드/탭 등 가능!)
-
-
-## 데이터베이스 설계
-
-- **테이블 수:** 31개
-- **주요 테이블:** 사용자, 매장, 직원, 재고, 발주/수주, 메뉴, 레시피, 폐기, 공지, 알림, 채팅 등  
-- (ERD/상세 테이블은 [ERD Cloud/HeidiSQL 설계문서](#) 참고)
-
----
-
-## 개발화면 및 시연
-
-> **아래에 시연 이미지, 캡처, 영상을 넣으세요!**
-
-- **관리자/본사:**  
-  ![관리자-시연-이미지](#)
-- **매장(직영점):**  
-  ![매장-시연-이미지](#)
-- **고객(키오스크/챗봇):**  
-  ![고객-시연-이미지](#)
-- **채팅/알림/공지 등:**  
-  ![채팅-시연-이미지](#)
-
----
-
-## Q&A
-
-문의: [ekzm849@naver.com](mailto:ekzm849@naver.com)  
-BackEnd: [github.com/salad-men/SaladMan_back](https://github.com/salad-men/SaladMan_back)  
-FrontEnd: [github.com/salad-men/SaladMan_front](https://github.com/salad-men/SaladMan_front)
-
----
-
-> **노션, ERD, API 문서 등 링크/자료는 필요시 추가!**
