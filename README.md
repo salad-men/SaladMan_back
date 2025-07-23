@@ -93,7 +93,6 @@
 ---
 ## 📦 액터별 서비스 기능
 
----
 
 ## 🏢 본사(관리자)
 
@@ -417,7 +416,7 @@
   
   </details>
 
----
+
 
 ## 🏢 본사 & 🏬 매장 공통
 
@@ -444,7 +443,7 @@
 
 </details>
 
----
+
 
 ## 👤 사용자
 
@@ -510,7 +509,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 </details>
 
----
+
 
 ## 🖥️ 키오스크
 
@@ -533,7 +532,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 </details>
 
----
+
 
 <details>
 <summary><strong>♻️ 폐기 프로세스</strong></summary>
@@ -542,7 +541,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 </details>
 
----
+
 
 <details>
 <summary><strong>🥗 메뉴 등록/설정 프로세스</strong></summary>
@@ -551,7 +550,7 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 
 </details>
 
----
+
 
 <details>
 <summary><strong>🏬 고객 이용 프로세스</strong></summary>
