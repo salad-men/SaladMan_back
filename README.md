@@ -505,7 +505,9 @@ https://github.com/user-attachments/assets/eb2bd76b-e447-42cb-9d5d-5fb618188fc9
 <details>
 <summary><strong>배너 및 이미지 수정 화면(본사 로그인 시)</strong></summary>
 
-![배너및이미지수정 이미지/영상](경로/사용자-배너수정.gif)
+![홈페이지 수정](https://github.com/user-attachments/assets/740d37a0-b5f9-4ceb-b9dc-f12a303662c1)
+
+
 
 </details>
 
